@@ -47,74 +47,94 @@
 }
 
 :root {
-  /* Luxury Palette: Off-white/Cream (#FAFAF9) & Deep Charcoal (#18181B) */
+  /* Aurea Warm Luxury Palette: Champagne Gold & Warm Beige */
   --radius: 0.5rem;
-  --background: #FAFAF9;
-  --foreground: #18181B;
-  --card: #FAFAF9;
-  --card-foreground: #18181B;
-  --popover: #FAFAF9;
-  --popover-foreground: #18181B;
-  --primary: #18181B;
-  --primary-foreground: #FAFAF9;
-  --secondary: #F5F5F4;
-  --secondary-foreground: #18181B;
-  --muted: #F5F5F4;
-  --muted-foreground: #71717A;
-  --accent: #E4E4E7;
-  --accent-foreground: #18181B;
+  
+  /* Primary Colors - Rich Dark Charcoal for text */
+  --primary: #1C1C1A;
+  --primary-foreground: #FDFCF8;
+  
+  /* Background - Warm Beige instead of pure white */
+  --background: #FDFCF8;
+  --foreground: #1C1C1A;
+  
+  /* Accent - Champagne Gold (hsl(45, 60%, 55%) ≈ #D4AF37) */
+  --accent: hsl(45, 60%, 55%);
+  --accent-foreground: #1C1C1A;
+  
+  /* Card & Popover */
+  --card: #FDFCF8;
+  --card-foreground: #1C1C1A;
+  --popover: #FDFCF8;
+  --popover-foreground: #1C1C1A;
+  
+  /* Secondary - Warm Gray/Beige tones */
+  --secondary: #F5F3ED;
+  --secondary-foreground: #1C1C1A;
+  
+  /* Muted - Warm stone colors instead of cool slate */
+  --muted: #F0EDE5;
+  --muted-foreground: #6B6B5F;
+  
+  /* Borders & Inputs - Warm neutral */
+  --border: #E8E5DD;
+  --input: #E8E5DD;
+  --ring: #B8A882;
+  
+  /* Destructive */
   --destructive: #DC2626;
-  --border: #E4E4E7;
-  --input: #E4E4E7;
-  --ring: #A1A1AA;
-  --chart-1: #18181B;
-  --chart-2: #3F3F46;
-  --chart-3: #71717A;
-  --chart-4: #A1A1AA;
-  --chart-5: #D4D4D8;
-  --sidebar: #FAFAF9;
-  --sidebar-foreground: #18181B;
-  --sidebar-primary: #18181B;
-  --sidebar-primary-foreground: #FAFAF9;
-  --sidebar-accent: #F5F5F4;
-  --sidebar-accent-foreground: #18181B;
-  --sidebar-border: #E4E4E7;
-  --sidebar-ring: #A1A1AA;
+  
+  /* Charts - Warm tones */
+  --chart-1: #1C1C1A;
+  --chart-2: #4A4A42;
+  --chart-3: #6B6B5F;
+  --chart-4: #9B9B8A;
+  --chart-5: #D4D4C8;
+  
+  /* Sidebar */
+  --sidebar: #FDFCF8;
+  --sidebar-foreground: #1C1C1A;
+  --sidebar-primary: #1C1C1A;
+  --sidebar-primary-foreground: #FDFCF8;
+  --sidebar-accent: #F5F3ED;
+  --sidebar-accent-foreground: #1C1C1A;
+  --sidebar-border: #E8E5DD;
+  --sidebar-ring: #B8A882;
 }
 
 .dark {
-  /* Dark mode maintains luxury aesthetic */
-  --background: #18181B;
-  --foreground: #FAFAF9;
-  --card: #27272A;
-  --card-foreground: #FAFAF9;
-  --popover: #27272A;
-  --popover-foreground: #FAFAF9;
-  --primary: #FAFAF9;
-  --primary-foreground: #18181B;
-  --secondary: #3F3F46;
-  --secondary-foreground: #FAFAF9;
-  --muted: #3F3F46;
-  --muted-foreground: #A1A1AA;
-  --accent: #3F3F46;
-  --accent-foreground: #FAFAF9;
+  /* Dark mode maintains warm luxury aesthetic */
+  --background: #1C1C1A;
+  --foreground: #FDFCF8;
+  --card: #2A2A26;
+  --card-foreground: #FDFCF8;
+  --popover: #2A2A26;
+  --popover-foreground: #FDFCF8;
+  --primary: #FDFCF8;
+  --primary-foreground: #1C1C1A;
+  --secondary: #3A3A35;
+  --secondary-foreground: #FDFCF8;
+  --muted: #3A3A35;
+  --muted-foreground: #9B9B8A;
+  --accent: hsl(45, 50%, 45%);
+  --accent-foreground: #1C1C1A;
   --destructive: #EF4444;
-  --border: #3F3F46;
-  --input: #3F3F46;
-  --ring: #71717A;
-  --chart-1: #FAFAF9;
-  --chart-2: #D4D4D8;
-  --chart-3: #A1A1AA;
-  --chart-4: #71717A;
-  --chart-5: #3F3F46;
-  --sidebar: #18181B;
-  --sidebar-foreground: #FAFAF9;
-  --sidebar-primary: #FAFAF9;
-  --sidebar-primary-foreground: #18181B;
-  --sidebar-accent: #3F3F46;
-  --sidebar-accent-foreground: #FAFAF9;
-  --sidebar-border: #3F3F46;
-  --sidebar-ring: #71717A;
+  --border: #3A3A35;
+  --input: #3A3A35;
+  --ring: #B8A882;
+  --chart-1: #FDFCF8;
+  --chart-2: #D4D4C8;
+  --chart-3: #9B9B8A;
+  --chart-4: #6B6B5F;
+  --chart-5: #4A4A42;
+  --sidebar: #1C1C1A;
+  --sidebar-foreground: #FDFCF8;
+  --sidebar-primary: #FDFCF8;
+  --sidebar-primary-foreground: #1C1C1A;
+  --sidebar-accent: #3A3A35;
+  --sidebar-accent-foreground: #FDFCF8;
+  --sidebar-border: #3A3A35;
+  --sidebar-ring: #B8A882;
 }
 
 @layer base {

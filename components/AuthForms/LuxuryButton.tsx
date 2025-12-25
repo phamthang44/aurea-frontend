@@ -19,8 +19,8 @@ export const LuxuryButton = forwardRef<HTMLButtonElement, LuxuryButtonProps>(
         className={cn(
           'font-light tracking-wide uppercase text-xs',
           'rounded-none border border-border',
-          variant === 'default' && 'bg-foreground text-background hover:bg-foreground/90',
-          variant === 'outline' && 'bg-transparent hover:bg-accent',
+          variant === 'default' && 'bg-foreground text-background hover:bg-accent hover:text-foreground transition-colors duration-300',
+          variant === 'outline' && 'bg-transparent hover:bg-accent hover:text-foreground transition-colors duration-300',
           className
         )}
         {...props}

@@ -49,13 +49,13 @@ export function NavBar() {
                   className={cn(
                     "text-sm font-light tracking-wide transition-all duration-300 ease-out relative no-underline",
                     isActive
-                      ? "font-medium text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "font-medium text-accent"
+                      : "text-muted-foreground hover:text-accent"
                   )}
                 >
                   {link.label}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-px bg-foreground" />
+                    <span className="absolute -bottom-1 left-0 right-0 h-px bg-accent" />
                   )}
                 </Link>
               );

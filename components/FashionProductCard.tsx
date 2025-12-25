@@ -80,7 +80,7 @@ export function FashionProductCard({
             <h3 className="text-sm font-light tracking-wide text-foreground group-hover:text-foreground/70 transition-all duration-300">
               {name}
             </h3>
-            <p className="text-sm font-light tracking-wide text-foreground">
+            <p className="text-sm font-light tracking-wide text-accent/90">
               {formattedPrice}
             </p>
           </div>

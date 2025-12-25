@@ -75,6 +75,9 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-foreground/20" />
         </div>
 
+        {/* Subtle Radial Gradient Overlay - The "Aurea" Glow */}
+        <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent/20 via-transparent to-transparent" />
+        
         {/* Hero Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 sm:px-8 lg:px-12">
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-light tracking-tighter leading-none text-background mb-8">

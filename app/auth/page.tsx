@@ -203,10 +203,13 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       <NavBar />
 
-      <div className="pt-20 min-h-screen flex">
+      {/* Blurred "Orb" of Color in Background Corner */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/15 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+      <div className="pt-20 min-h-screen flex relative z-10">
         {/* Left Side - Fashion Image */}
         <div className="hidden lg:block lg:w-1/2 relative">
           <div className="sticky top-0 h-screen">

@@ -13,6 +13,7 @@ export interface AuthResponse {
   status: AuthStatus;
   accessToken?: string;
   refreshToken?: string;
+  roles?: string[];
   registerToken?: string;
 }
 

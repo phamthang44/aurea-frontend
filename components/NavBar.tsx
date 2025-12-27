@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks';
-import { User } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ModeToggle } from '@/components/ui/ModeToggle';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,9 @@ export function NavBar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const userRole = useAppSelector((state) => state.auth.user?.roles);
+  const isAdmin = userRole?.includes('ADMIN');
+
 
   const handleLogout = async () => {
     dispatch(clearAuth());
@@ -64,8 +68,23 @@ export function NavBar() {
 
           {/* Auth Section */}
           <div className="flex items-center gap-4">
+            {/* Theme Toggle */}
+            <ModeToggle />
+            
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
+                {/* Admin Dashboard Link - Only visible for ADMIN users */}
+                {isAdmin && (
+                  <Link href="/admin/products">
+                    <Button
+                      variant="ghost"
+                      className="font-light tracking-wide px-4 py-2 text-xs text-muted-foreground hover:text-foreground border border-border/50"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 <Link href="/account">
                   <Button
                     variant="ghost"

@@ -137,6 +137,63 @@
   --sidebar-ring: #B8A882;
 }
 
+/* Luxury Dark Theme - Aurea Premium Palette */
+.luxury-dark {
+  /* Base Background - Rich Black */
+  --background: #1A1A1A;
+  --foreground: #F5F5F5;
+  
+  /* Surface/Card - Dark Gray for navbar/modals */
+  --card: #3D3D3D;
+  --card-foreground: #F5F5F5;
+  --popover: #3D3D3D;
+  --popover-foreground: #F5F5F5;
+  
+  /* Primary - Off-white text */
+  --primary: #F5F5F5;
+  --primary-foreground: #1A1A1A;
+  
+  /* Secondary */
+  --secondary: #2A2A2A;
+  --secondary-foreground: #F5F5F5;
+  
+  /* Muted */
+  --muted: #2A2A2A;
+  --muted-foreground: #B8A072;
+  
+  /* Accent - Muted Gold for icons/subtitles */
+  --accent: #B8A072;
+  --accent-foreground: #1A1A1A;
+  
+  /* Accent Bright - Bright Gold for Primary Buttons & Active states */
+  --accent-bright: #D4AF37;
+  
+  /* Borders & Inputs */
+  --border: #3D3D3D;
+  --input: #3D3D3D;
+  --ring: #D4AF37;
+  
+  /* Destructive */
+  --destructive: #EF4444;
+  
+  /* Charts */
+  --chart-1: #F5F5F5;
+  --chart-2: #B8A072;
+  --chart-3: #D4AF37;
+  --chart-4: #3D3D3D;
+  --chart-5: #2A2A2A;
+  
+  /* Sidebar */
+  --sidebar: #1A1A1A;
+  --sidebar-foreground: #F5F5F5;
+  --sidebar-primary: #F5F5F5;
+  --sidebar-primary-foreground: #1A1A1A;
+  --sidebar-accent: #3D3D3D;
+  --sidebar-accent-foreground: #F5F5F5;
+  --sidebar-border: #3D3D3D;
+  --sidebar-ring: #D4AF37;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -193,4 +250,9 @@
 
 .magnetic-link:hover {
   transform: translateY(-2px);
+}
+
+/* Luxury Gradient Utility */
+.bg-luxury-gradient {
+  background: linear-gradient(135deg, #B8A072 0%, #D4AF37 100%);
 }

@@ -112,6 +112,53 @@ export const clientApi = {
     const client = new ApiClient();
     return client.post('auth/refresh');
   },
+
+  // Product API methods
+  getProducts: async (params?: {
+    keyword?: string;
+    categoryId?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    page?: number;
+    size?: number;
+  }) => {
+    const client = new ApiClient();
+    const queryParams = new URLSearchParams();
+    if (params?.keyword) queryParams.append('keyword', params.keyword);
+    if (params?.categoryId) queryParams.append('categoryId', params.categoryId);
+    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
+    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.size) queryParams.append('size', params.size.toString());
+    
+    const query = queryParams.toString();
+    return client.get(`products${query ? `?${query}` : ''}`);
+  },
+
+  getProductById: async (id: string) => {
+    const client = new ApiClient();
+    return client.get(`products/${id}`);
+  },
+
+  createProduct: async (product: any) => {
+    const client = new ApiClient();
+    return client.post('products', product);
+  },
+
+  updateProduct: async (id: string, product: any) => {
+    const client = new ApiClient();
+    return client.put(`products/${id}`, product);
+  },
+
+  updateProductInfo: async (id: string, product: any) => {
+    const client = new ApiClient();
+    return client.patch(`products/${id}`, product);
+  },
+
+  deleteProduct: async (id: string) => {
+    const client = new ApiClient();
+    return client.delete(`products/${id}`);
+  },
 };
 
 export default new ApiClient();

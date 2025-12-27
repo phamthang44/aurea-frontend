@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { loginWithGoogleAction } from "@/app/actions/auth";
+import { loginWithGoogleAction, fetchUserProfileAction } from "@/app/actions/auth";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setAuthenticated } from "@/lib/store/authSlice";
 import { Loader2 } from "lucide-react";
@@ -46,12 +46,40 @@ function GoogleCallbackContent() {
       }
 
       try {
+        console.log("[Google Callback] Authorization code received:", code ? `${code.substring(0, 20)}...` : "null");
+        console.log("[Google Callback] Calling backend API...");
+        
         // Call our BFF server action to exchange code for tokens
         const result = await loginWithGoogleAction(code);
+        
+        console.log("[Google Callback] Backend response:", result.success ? "SUCCESS" : "FAILED", result.error || "");
 
-        if (result.success) {
-          // Update Redux state
-          dispatch(setAuthenticated({}));
+        if (result.success && result.data) {
+          // Fetch user profile from backend (single source of truth)
+          const profileResult = await fetchUserProfileAction();
+          
+          if (profileResult.success && profileResult.data) {
+            // Merge roles from Google login response with profile data
+            const userData = {
+              ...profileResult.data,
+              roles: result.data.roles || profileResult.data.roles || [],
+            };
+            
+            console.log("[Google Callback] User profile fetched:", userData);
+            dispatch(setAuthenticated({ user: userData }));
+          } else {
+            // If profile fetch fails, still set authenticated with roles from Google login
+            console.warn("[Google Callback] Profile fetch failed, using roles from Google login:", result.data.roles);
+            dispatch(setAuthenticated({ 
+              user: { 
+                roles: result.data.roles || [],
+              } 
+            }));
+          }
+          
+          // Merge guest cart after successful login
+          const { mergeGuestCartOnLogin } = await import('@/lib/utils/cartMerge');
+          await mergeGuestCartOnLogin();
 
           // Redirect to home page
           router.push("/");
@@ -65,8 +93,13 @@ function GoogleCallbackContent() {
         }
       } catch (err: any) {
         setStatus("error");
-        setErrorMessage("An unexpected error occurred. Please try again.");
-        console.error("Google callback error:", err);
+        const errorMsg = err?.message || "An unexpected error occurred. Please try again.";
+        setErrorMessage(errorMsg);
+        console.error("[Google Callback] Error details:", {
+          message: err?.message,
+          stack: err?.stack,
+          response: err?.response,
+        });
         setTimeout(() => {
           router.push("/auth");
         }, 3000);

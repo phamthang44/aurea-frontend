@@ -1,4 +1,4 @@
-import { NavBar } from '@/components/NavBar';
+import { LuxuryNavBar } from '@/components/NavBar/LuxuryNavBar';
 import { FashionProductCard } from '@/components/FashionProductCard';
 import Image from 'next/image';
 
@@ -57,18 +57,18 @@ const newArrivals = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <NavBar />
+      <LuxuryNavBar />
 
       {/* Hero Section - Full Viewport Height with Ken Burns Effect */}
       <section className="relative h-[90vh] w-full overflow-hidden">
         {/* Background Image with Ken Burns Effect */}
         <div className="absolute inset-0 z-0">
-          <Image
+        <Image
             src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=1920&h=1080&fit=crop"
             alt="Luxury Fashion"
             fill
             className="object-cover ken-burns"
-            priority
+          priority
             sizes="100vw"
           />
           {/* Overlay */}
@@ -121,7 +121,7 @@ export default function HomePage() {
               <a
                 href="#"
                 className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 ease-out magnetic-link no-underline"
-              >
+          >
                 Privacy
               </a>
               <a
@@ -129,13 +129,13 @@ export default function HomePage() {
                 className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 ease-out magnetic-link no-underline"
               >
                 Terms
-              </a>
-              <a
+          </a>
+          <a
                 href="#"
                 className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 ease-out magnetic-link no-underline"
-              >
+          >
                 Contact
-              </a>
+          </a>
             </div>
           </div>
         </div>

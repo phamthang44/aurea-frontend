@@ -70,10 +70,13 @@ export async function loginWithPasswordAction(
     // Set auth cookies
     await setAuthCookies(authData.accessToken, authData.refreshToken);
 
+    // Use roles from backend response (single source of truth)
+    // User profile will be fetched separately via fetchUserProfileAction
     return {
       success: true,
       data: {
         status: authData.status as AuthStatus,
+        roles: authData.roles || [],
       },
     };
   } catch (error: any) {
@@ -89,6 +92,9 @@ export async function loginWithPasswordAction(
  */
 export async function loginWithGoogleAction(code: string) {
   try {
+    console.log("[Server Action] Google login - API URL:", `${API_BASE_URL}/api/v1/auth/google-login`);
+    console.log("[Server Action] Code present:", !!code);
+    
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/google-login`, {
       method: "POST",
       headers: {
@@ -97,12 +103,20 @@ export async function loginWithGoogleAction(code: string) {
       body: JSON.stringify({ code }),
     });
 
+    console.log("[Server Action] Response status:", response.status, response.statusText);
+    
     const data: ApiResultAuthResponse = await response.json();
+    console.log("[Server Action] Response data:", {
+      success: !data.error,
+      error: data.error,
+      hasAccessToken: !!data.data?.accessToken,
+    });
 
     if (!response.ok || data.error) {
+      console.error("[Server Action] Google login failed:", data.error);
       return {
         success: false,
-        error: data.error?.message || "Google login failed",
+        error: data.error?.message || `Google login failed (${response.status})`,
       };
     }
 
@@ -117,10 +131,13 @@ export async function loginWithGoogleAction(code: string) {
     // Set auth cookies
     await setAuthCookies(authData.accessToken, authData.refreshToken);
 
+    // Use roles from backend response (single source of truth)
+    // User profile will be fetched separately via fetchUserProfileAction
     return {
       success: true,
       data: {
         status: authData.status as AuthStatus,
+        roles: authData.roles || [],
       },
     };
   } catch (error: any) {
@@ -182,10 +199,13 @@ export async function finishRegistrationAction(
     // Clear registerToken cookie
     cookieStore.delete("registerToken");
 
+    // Use roles from backend response (single source of truth)
+    // User profile will be fetched separately via fetchUserProfileAction
     return {
       success: true,
       data: {
         status: authData.status as AuthStatus,
+        roles: authData.roles || [],
       },
     };
   } catch (error: any) {
@@ -295,11 +315,15 @@ export async function verifyOtpAction(email: string, code: string) {
     // Case A: LOGIN_SUCCESS - User exists, set cookies and return
     if (authData.status === "LOGIN_SUCCESS" && authData.accessToken) {
       await setAuthCookies(authData.accessToken, authData.refreshToken);
+      
+      // Use roles from backend response (single source of truth)
+      // User profile will be fetched separately via fetchUserProfileAction
       return {
         success: true,
         data: {
           status: authData.status as AuthStatus,
           requiresRegistration: false,
+          roles: authData.roles || [],
         },
       };
     }
@@ -338,6 +362,76 @@ export async function verifyOtpAction(email: string, code: string) {
 }
 
 /**
+ * Server Action: Forgot Password - Request OTP
+ */
+export async function forgotPasswordAction(email: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data: ApiResultVoid = await response.json();
+
+    if (!response.ok || data.error) {
+      return {
+        success: false,
+        error: data.error?.message || "Failed to send password reset OTP",
+      };
+    }
+
+    return {
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "An error occurred",
+    };
+  }
+}
+
+/**
+ * Server Action: Reset Password
+ */
+export async function resetPasswordAction(
+  email: string,
+  otp: string,
+  newPassword: string
+) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+
+    const data: ApiResultVoid = await response.json();
+
+    if (!response.ok || data.error) {
+      return {
+        success: false,
+        error: data.error?.message || "Failed to reset password",
+      };
+    }
+
+    return {
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "An error occurred",
+    };
+  }
+}
+
+/**
  * Server Action: Check authentication status
  */
 export async function checkAuthAction() {
@@ -347,4 +441,76 @@ export async function checkAuthAction() {
   return {
     isAuthenticated: !!accessToken,
   };
+}
+
+/**
+ * Server Action: Fetch current user profile from backend
+ * This is the single source of truth for user data
+ */
+export async function fetchUserProfileAction() {
+  try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("accessToken")?.value;
+
+    if (!accessToken) {
+      return {
+        success: false,
+        error: "No access token found",
+      };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const data = await response.json();
+
+    console.log("[Server Action] Fetch User Profile - Raw API Response:", JSON.stringify(data, null, 2));
+
+    if (!response.ok || data.error) {
+      return {
+        success: false,
+        error: data.error?.message || "Failed to fetch user profile",
+      };
+    }
+
+    const userProfile = data.data;
+    console.log("[Server Action] Fetch User Profile - Raw User Data from API:", JSON.stringify(userProfile, null, 2));
+    console.log("[Server Action] Fetch User Profile - Checking role fields:");
+    console.log("  - userProfile.role:", userProfile?.role);
+    console.log("  - userProfile.roles:", userProfile?.roles);
+    console.log("  - userProfile.authorities:", userProfile?.authorities);
+
+    // Extract roles - check all possible field names
+    let roles: string[] = [];
+    if (userProfile?.roles && Array.isArray(userProfile.roles)) {
+      roles = userProfile.roles;
+    } else if (userProfile?.authorities && Array.isArray(userProfile.authorities)) {
+      roles = userProfile.authorities;
+    } else if (userProfile?.role) {
+      // Handle single role string
+      roles = [userProfile.role];
+    }
+
+    return {
+      success: true,
+      data: {
+        email: userProfile?.email,
+        fullName: userProfile?.fullName,
+        avatarUrl: userProfile?.avatarUrl,
+        userId: userProfile?.userId,
+        roles: roles,
+      },
+    };
+  } catch (error: any) {
+    console.error("[Server Action] Fetch User Profile - Error:", error);
+    return {
+      success: false,
+      error: error.message || "An error occurred while fetching user profile",
+    };
+  }
 }

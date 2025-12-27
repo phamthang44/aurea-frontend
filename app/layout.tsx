@@ -5,6 +5,9 @@ import "./globals.css";
 import { ReduxProvider } from "@/components/providers/ReduxProvider";
 import { GoogleOAuthProviderWrapper } from "@/components/providers/GoogleOAuthProvider";
 import { SuppressCOOPWarnings } from "@/components/providers/SuppressCOOPWarnings";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AuthInitProvider } from "@/components/providers/AuthInitProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="luxury-dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -64,9 +67,21 @@ export default function RootLayout({
           }}
         />
         <SuppressCOOPWarnings />
-        <GoogleOAuthProviderWrapper>
-          <ReduxProvider>{children}</ReduxProvider>
-        </GoogleOAuthProviderWrapper>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange={false}
+        >
+          <GoogleOAuthProviderWrapper>
+            <ReduxProvider>
+              <AuthInitProvider>
+                {children}
+                <Toaster position="top-center" richColors />
+              </AuthInitProvider>
+            </ReduxProvider>
+          </GoogleOAuthProviderWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );

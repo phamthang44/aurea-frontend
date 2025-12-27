@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { NavBar } from "@/components/NavBar";
+import { LuxuryNavBar } from "@/components/NavBar/LuxuryNavBar";
 import { LuxuryInput } from "@/components/AuthForms/LuxuryInput";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { LuxuryButton } from "@/components/AuthForms/LuxuryButton";
 import { OtpInput } from "@/components/AuthForms/OtpInput";
 
@@ -22,6 +23,7 @@ import {
   requestOtpAction,
   verifyOtpAction,
   finishRegistrationAction,
+  fetchUserProfileAction,
 } from "@/app/actions/auth";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setAuthenticated } from "@/lib/store/authSlice";
@@ -65,8 +67,33 @@ export default function AuthPage() {
     try {
       const result = await loginWithPasswordAction(identifier, password);
 
-      if (result.success) {
-        dispatch(setAuthenticated({}));
+      if (result.success && result.data) {
+        // Fetch user profile from backend (single source of truth)
+        const profileResult = await fetchUserProfileAction();
+        
+        if (profileResult.success && profileResult.data) {
+          // Merge roles from login response with profile data
+          const userData = {
+            ...profileResult.data,
+            roles: result.data.roles || profileResult.data.roles || [],
+          };
+          
+          console.log("[Auth Page] User profile fetched:", userData);
+          dispatch(setAuthenticated({ user: userData }));
+        } else {
+          // If profile fetch fails, still set authenticated with roles from login
+          console.warn("[Auth Page] Profile fetch failed, using roles from login:", result.data.roles);
+          dispatch(setAuthenticated({ 
+            user: { 
+              email: identifier, // Fallback to identifier
+              roles: result.data.roles || [],
+            } 
+          }));
+        }
+        
+        // Merge guest cart after successful login
+        const { mergeGuestCartOnLogin } = await import("@/lib/utils/cartMerge");
+        await mergeGuestCartOnLogin();
         router.push("/");
         router.refresh();
       } else {
@@ -120,7 +147,34 @@ export default function AuthPage() {
       if (result.success && result.data) {
         // Case A: LOGIN_SUCCESS - User exists
         if (!result.data.requiresRegistration) {
-          dispatch(setAuthenticated({}));
+          // Fetch user profile from backend (single source of truth)
+          const profileResult = await fetchUserProfileAction();
+          
+          if (profileResult.success && profileResult.data) {
+            // Merge roles from OTP response with profile data
+            const userData = {
+              ...profileResult.data,
+              roles: result.data.roles || profileResult.data.roles || [],
+            };
+            
+            console.log("[Auth Page] OTP Login - User profile fetched:", userData);
+            dispatch(setAuthenticated({ user: userData }));
+          } else {
+            // If profile fetch fails, still set authenticated with roles from OTP
+            console.warn("[Auth Page] Profile fetch failed, using roles from OTP:", result.data.roles);
+            dispatch(setAuthenticated({ 
+              user: { 
+                email: otpEmail, // Use email from form
+                roles: result.data.roles || [],
+              } 
+            }));
+          }
+          
+          // Merge guest cart after successful OTP login
+          const { mergeGuestCartOnLogin } = await import(
+            "@/lib/utils/cartMerge"
+          );
+          await mergeGuestCartOnLogin();
           router.push("/");
           router.refresh();
           return;
@@ -166,8 +220,34 @@ export default function AuthPage() {
         fullName
       );
 
-      if (result.success) {
-        dispatch(setAuthenticated({}));
+      if (result.success && result.data) {
+        // Fetch user profile from backend (single source of truth)
+        const profileResult = await fetchUserProfileAction();
+        
+        if (profileResult.success && profileResult.data) {
+          // Merge roles from registration response with profile data
+          const userData = {
+            ...profileResult.data,
+            roles: result.data.roles || profileResult.data.roles || [],
+          };
+          
+          console.log("[Auth Page] Registration - User profile fetched:", userData);
+          dispatch(setAuthenticated({ user: userData }));
+        } else {
+          // If profile fetch fails, still set authenticated with roles from registration
+          console.warn("[Auth Page] Profile fetch failed, using roles from registration:", result.data.roles);
+          dispatch(setAuthenticated({ 
+            user: { 
+              email: otpEmail, // Use email from form
+              fullName: fullName, // Use fullName from form
+              roles: result.data.roles || [],
+            } 
+          }));
+        }
+        
+        // Merge guest cart after successful registration
+        const { mergeGuestCartOnLogin } = await import("@/lib/utils/cartMerge");
+        await mergeGuestCartOnLogin();
         router.push("/");
         router.refresh();
       } else {
@@ -204,7 +284,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      <NavBar />
+      <LuxuryNavBar />
 
       {/* Blurred "Orb" of Color in Background Corner */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/15 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -284,10 +364,9 @@ export default function AuthPage() {
                   />
 
                   <div className="space-y-2">
-                    <LuxuryInput
+                    <PasswordInput
                       id="password"
                       label="Password"
-                      type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -441,10 +520,9 @@ export default function AuthPage() {
                         placeholder="John Doe"
                       />
 
-                      <LuxuryInput
+                      <PasswordInput
                         id="reg-password"
                         label="Password"
-                        type="password"
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
                         required

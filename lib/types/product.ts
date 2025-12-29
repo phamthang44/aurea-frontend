@@ -1,6 +1,12 @@
 /**
  * TypeScript types for Product API DTOs
  * Based on backend Java DTOs
+ * 
+ * IMPORTANT: All ID fields (id, categoryId, etc.) use `string` type
+ * because the backend uses TSID (Time-Sorted Unique Identifier) which is a Long type in Java.
+ * JavaScript's `number` type has a precision limit (Number.MAX_SAFE_INTEGER = 2^53 - 1),
+ * so TSID values larger than this would lose precision if stored as numbers.
+ * Always use `string` for IDs to prevent precision loss.
  */
 
 export interface VariantResponse {
@@ -96,6 +102,11 @@ export interface ApiResult<T> {
     serverTime?: number;
     apiVersion?: string;
     traceId?: string;
+    // Pagination metadata
+    page?: number;
+    size?: number;
+    totalElements?: number;
+    totalPages?: number;
   };
   error?: {
     code?: string;

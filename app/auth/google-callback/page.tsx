@@ -62,7 +62,7 @@ function GoogleCallbackContent() {
             // Merge roles from Google login response with profile data
             const userData = {
               ...profileResult.data,
-              roles: result.data.roles || profileResult.data.roles || [],
+              roles: result.data.roles || profileResult.data || [],
             };
             
             console.log("[Google Callback] User profile fetched:", userData);

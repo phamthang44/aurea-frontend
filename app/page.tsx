@@ -56,7 +56,7 @@ const newArrivals = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-background">
       <LuxuryNavBar />
 
       {/* Hero Section - Full Viewport Height with Ken Burns Effect */}
@@ -64,26 +64,26 @@ export default function HomePage() {
         {/* Background Image with Ken Burns Effect */}
         <div className="absolute inset-0 z-0">
         <Image
-            src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=1920&h=1080&fit=crop"
+            src="/background-2.jpg"
             alt="Luxury Fashion"
             fill
             className="object-cover ken-burns"
           priority
             sizes="100vw"
           />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-foreground/20" />
+          {/* Overlay for better text visibility - Soft in both modes */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/60 dark:from-black/70 dark:via-black/50 dark:to-black/70" />
         </div>
 
         {/* Subtle Radial Gradient Overlay - The "Aurea" Glow */}
-        <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent/20 via-transparent to-transparent" />
-        
+        <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/20 via-transparent to-transparent" />
+
         {/* Hero Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 sm:px-8 lg:px-12">
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-light tracking-tighter leading-none text-background mb-8">
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-light tracking-tighter leading-none text-[#D4AF37] mb-8 drop-shadow-2xl [text-shadow:_0_4px_20px_rgb(0_0_0_/60)]">
             AUREA
           </h1>
-          <p className="text-lg md:text-xl lg:text-2xl font-light tracking-wider text-background/90 max-w-2xl">
+          <p className="text-lg md:text-xl lg:text-2xl font-light tracking-wider text-black dark:text-[#E5C96B] max-w-2xl drop-shadow-lg [text-shadow:_0_2px_12px_rgb(0_0_0_/50)]">
             Where timeless elegance meets modern luxury
           </p>
         </div>
@@ -120,19 +120,19 @@ export default function HomePage() {
             <div className="flex gap-8">
               <a
                 href="#"
-                className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 ease-out magnetic-link no-underline"
+                className="text-sm font-light tracking-wide text-muted-foreground hover:text-[#D4AF37] transition-all duration-300 ease-out magnetic-link no-underline"
           >
                 Privacy
               </a>
               <a
                 href="#"
-                className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 ease-out magnetic-link no-underline"
+                className="text-sm font-light tracking-wide text-muted-foreground hover:text-[#D4AF37] transition-all duration-300 ease-out magnetic-link no-underline"
               >
                 Terms
           </a>
           <a
                 href="#"
-                className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 ease-out magnetic-link no-underline"
+                className="text-sm font-light tracking-wide text-muted-foreground hover:text-[#D4AF37] transition-all duration-300 ease-out magnetic-link no-underline"
           >
                 Contact
           </a>

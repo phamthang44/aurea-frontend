@@ -89,14 +89,14 @@ function ResetPasswordContent() {
 
       if (result.success) {
         setIsSuccess(true);
-        // Redirect to login after 2 seconds
+        // Redirect to log in after 2 seconds
         setTimeout(() => {
           router.push("/auth");
         }, 2000);
       } else {
         setError(result.error || "Failed to reset password");
       }
-    } catch (err: any) {
+    } catch (err) {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);

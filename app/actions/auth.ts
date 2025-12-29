@@ -4,8 +4,10 @@ import { cookies } from "next/headers";
 import type {
   ApiResultAuthResponse,
   ApiResultVoid,
+  AuthResponse,
   AuthStatus,
 } from "@/lib/types/auth";
+import { serverApi } from "@/lib/server-api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -444,8 +446,80 @@ export async function checkAuthAction() {
 }
 
 /**
+ * Server Action: Get roles from Auth Module via refresh token endpoint
+ * This is used to get roles on page refresh since UserProfileResponse doesn't contain roles
+ * Roles come from AuthResponse in the refresh endpoint
+ * 
+ * Uses serverApi which handles token refresh properly and ensures cookies are managed correctly
+ */
+export async function getRolesFromRefreshAction() {
+  try {
+    const cookieStore = await cookies();
+    const refreshToken = cookieStore.get("refresh_token")?.value;
+
+    if (!refreshToken) {
+      return {
+        success: false,
+        error: "No refresh token found",
+        roles: [],
+      };
+    }
+
+    // Use serverApi to call refresh endpoint
+    // serverApi handles the refresh token correctly and will automatically retry on 401
+    // The backend expects refresh_token cookie, serverApi sets it correctly
+    const result = await serverApi.post<AuthResponse>("/api/v1/auth/refresh", {}, { withCredentials: true });
+    
+    console.log("[Server Action] Get Roles From Refresh - Response data:", JSON.stringify(result, null, 2));
+
+    if (result.error) {
+      return {
+        success: false,
+        error: result.error.message || "Failed to get roles from refresh",
+        roles: [],
+      };
+    }
+
+    const authData = result?.data;
+    if (!authData) {
+      return {
+        success: false,
+        error: "Invalid response from refresh endpoint",
+        roles: [],
+      };
+    }
+
+    // Update access token if new one is provided
+    // serverApi already updates cookies in its interceptor, but we ensure it here too
+    if (authData.accessToken) {
+      await setAuthCookies(authData.accessToken, authData.refreshToken);
+    }
+
+    // Return roles from AuthResponse
+    // Note: This also refreshes the access token, which is beneficial for keeping tokens fresh
+    return {
+      success: true,
+      roles: authData.roles || [],
+    };
+  } catch (error: any) {
+    console.error("[Server Action] Get Roles From Refresh - Error:", error);
+    return {
+      success: false,
+      error: error.message || "An error occurred while getting roles",
+      roles: [],
+    };
+  }
+}
+
+/**
  * Server Action: Fetch current user profile from backend
- * This is the single source of truth for user data
+ * 
+ * Note: This endpoint (/api/v1/users/me) uses Auth Module authentication via JWT token.
+ * The UserController uses @AuthenticationPrincipal SecurityUserDetails which extracts
+ * user data from the Auth Module's JWT token, making this effectively part of the Auth Module flow.
+ * 
+ * Uses serverApi which automatically handles token refresh on 401 errors.
+ * This is the single source of truth for user data after authentication.
  */
 export async function fetchUserProfileAction() {
   try {
@@ -459,43 +533,87 @@ export async function fetchUserProfileAction() {
       };
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+    // Use serverApi which automatically handles token refresh on 401 errors
+    // The interceptor will refresh the token and retry if needed
+    // Note: userId is string (TSID/Long) to prevent precision loss in JavaScript
+    const result = await serverApi.get<{
+      email?: string;
+      fullName?: string;
+      avatarUrl?: string;
+      userId?: string; // TSID type (Long in Java) - must be string in TypeScript to prevent precision loss
+    }>("/api/v1/users/me", {
+      withCredentials: true,
     });
 
-    const data = await response.json();
-
-    console.log("[Server Action] Fetch User Profile - Raw API Response:", JSON.stringify(data, null, 2));
-
-    if (!response.ok || data.error) {
+    // Handle error cases
+    if (result.error) {
+      const errorMessage = result.error.message || "";
+      
+      // Check if error is "User not found" or "USER PROFILE not found"
+      // This happens when a user exists in auth but doesn't have a user profile yet
+      // (e.g., after Google OAuth login before profile is created)
+      if (errorMessage.includes("not found") || errorMessage.includes("USER_001") || errorMessage.includes("USER PROFILE")) {
+        console.warn("[Server Action] User profile not found. User may need to complete profile setup.");
+        
+        // Try to create user profile using the createUserProfile endpoint
+        // Note: This endpoint requires ADMIN role, so it may not work for regular users
+        // But we try it as a fallback - if it fails, we handle gracefully
+        try {
+          const createResult = await serverApi.post<{
+            email?: string;
+            fullName?: string;
+            avatarUrl?: string;
+            userId?: string;
+          }>("/api/v1/users/profiles", {});
+          
+          if (createResult.data && !createResult.error) {
+            console.log("[Server Action] User profile created successfully via createUserProfile endpoint");
+            // Return the newly created profile
+            const userProfile = createResult.data;
+            return {
+              success: true,
+              data: {
+                email: userProfile?.email,
+                fullName: userProfile?.fullName || "New User",
+                avatarUrl: userProfile?.avatarUrl,
+                userId: userProfile?.userId,
+              },
+            };
+          }
+        } catch (createError: any) {
+          console.warn("[Server Action] Could not create user profile automatically:", createError);
+          // If creation fails (e.g., not admin or endpoint not available),
+          // return a graceful error that allows the app to continue
+          // The user can still use the app, they just won't have profile data
+          return {
+            success: false,
+            error: "User profile not yet created. Profile will be created automatically or you can complete it later.",
+            // Return partial data so the app can continue
+            data: {
+              email: undefined,
+              fullName: undefined,
+              avatarUrl: undefined,
+              userId: undefined,
+            },
+          };
+        }
+      }
+      
+      // For other errors, return as-is
       return {
         success: false,
-        error: data.error?.message || "Failed to fetch user profile",
+        error: result.error.message || "Failed to fetch user profile",
       };
     }
 
-    const userProfile = data.data;
+    // UserProfileResponse structure from UserController
+    // Note: UserProfileResponse does NOT contain roles
+    // Roles come from Auth Module responses (login, refresh, google-login) via AuthResponse
+    const userProfile = result.data;
     console.log("[Server Action] Fetch User Profile - Raw User Data from API:", JSON.stringify(userProfile, null, 2));
-    console.log("[Server Action] Fetch User Profile - Checking role fields:");
-    console.log("  - userProfile.role:", userProfile?.role);
-    console.log("  - userProfile.roles:", userProfile?.roles);
-    console.log("  - userProfile.authorities:", userProfile?.authorities);
 
-    // Extract roles - check all possible field names
-    let roles: string[] = [];
-    if (userProfile?.roles && Array.isArray(userProfile.roles)) {
-      roles = userProfile.roles;
-    } else if (userProfile?.authorities && Array.isArray(userProfile.authorities)) {
-      roles = userProfile.authorities;
-    } else if (userProfile?.role) {
-      // Handle single role string
-      roles = [userProfile.role];
-    }
-
+    // Map UserProfileResponse fields: fullName, avatarUrl, userId, email
+    // Roles are NOT included here - they come from Auth Module (login/refresh/google-login responses)
     return {
       success: true,
       data: {
@@ -503,7 +621,7 @@ export async function fetchUserProfileAction() {
         fullName: userProfile?.fullName,
         avatarUrl: userProfile?.avatarUrl,
         userId: userProfile?.userId,
-        roles: roles,
+
       },
     };
   } catch (error: any) {

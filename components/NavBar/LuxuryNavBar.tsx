@@ -106,14 +106,6 @@ export function LuxuryNavBar() {
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   // Debugging logs - will appear in browser console
-  useEffect(() => {
-    console.log("=== LuxuryNavBar Debug ===");
-    console.log("Header Rendered. User:", user);
-    console.log("User Roles:", userRoles);
-    console.log("Is Admin?", isAdmin);
-    console.log("Is Authenticated:", isAuthenticated);
-    console.log("========================");
-  }, [user, userRoles, isAdmin, isAuthenticated]);
 
   const handleLogout = async () => {
     dispatch(clearAuth());
@@ -129,13 +121,13 @@ export function LuxuryNavBar() {
   }, [isAuthenticated]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1A1A1A]/80 backdrop-blur-xl border-b border-[#3D3D3D]/50">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border-b border-[#D4AF37]/30 dark:border-[#3D3D3D]/50">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl font-light tracking-wider text-[#F5F5F5] hover:text-[#D4AF37] transition-colors duration-300 no-underline"
+            className="text-2xl font-light tracking-wider text-[#B8A072] hover:text-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-[#E5C96B] transition-colors duration-300 no-underline"
           >
             AUREA
           </Link>
@@ -157,7 +149,7 @@ export function LuxuryNavBar() {
                   <Link href="/admin/products">
                     <Button
                       variant="ghost"
-                      className="font-light tracking-wide px-4 py-2 text-xs text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 border border-[#3D3D3D]/50 transition-colors duration-300"
+                      className="font-light tracking-wide px-4 py-2 text-xs text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 border border-[#D4AF37]/30 dark:border-[#3D3D3D]/50 transition-colors duration-300"
                     >
                       <Settings className="h-4 w-4 mr-2" />
                       Admin
@@ -185,7 +177,7 @@ export function LuxuryNavBar() {
                   >
                     <ShoppingBag className="h-5 w-5" />
                     {cartItemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#D4AF37] text-[#1A1A1A] text-xs font-medium flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#D4AF37] text-white text-xs font-medium flex items-center justify-center">
                         {cartItemCount > 9 ? '9+' : cartItemCount}
                       </span>
                     )}
@@ -197,7 +189,7 @@ export function LuxuryNavBar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full border border-[#3D3D3D] text-[#B8A072] hover:text-[#D4AF37] hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/10 transition-colors duration-300"
+                    className="rounded-full border border-[#D4AF37]/30 dark:border-[#3D3D3D] text-[#B8A072] hover:text-[#D4AF37] hover:border-[#D4AF37]/50 dark:hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/10 transition-colors duration-300"
                   >
                     <User className="h-5 w-5" />
                   </Button>
@@ -216,7 +208,8 @@ export function LuxuryNavBar() {
             ) : (
               <Link href="/auth">
                 <Button
-                  className="font-light tracking-wide px-6 py-2 border border-[#3D3D3D] bg-[#D4AF37] text-[#1A1A1A] hover:bg-[#B8A072] hover:border-[#B8A072] transition-colors duration-300"
+                  variant="outline"
+                  className="font-light tracking-wide px-6 py-2 border-2 border-[#D4AF37] text-[#D4AF37] hover:text-white hover:bg-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-[#1A1A1A] dark:hover:bg-[#D4AF37] transition-all duration-300"
                 >
                   Sign In
                 </Button>

@@ -35,8 +35,8 @@ export function ProductTable({
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block h-8 w-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-500">Loading products...</p>
+        <div className="inline-block h-8 w-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-muted-foreground">Loading products...</p>
       </div>
     );
   }
@@ -44,42 +44,76 @@ export function ProductTable({
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-sm text-gray-500">No products found</p>
+        <p className="text-sm text-muted-foreground">No products found</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white dark:bg-[#333738] rounded-lg border border-border overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-gray-200">
-            <TableHead className="w-[100px] font-semibold text-gray-900">ID</TableHead>
-            <TableHead className="font-semibold text-gray-900">Name</TableHead>
-            <TableHead className="font-semibold text-gray-900">Category</TableHead>
-            <TableHead className="text-right font-semibold text-gray-900">Price</TableHead>
-            <TableHead className="text-center font-semibold text-gray-900">Variants</TableHead>
-            <TableHead className="text-right w-[120px] font-semibold text-gray-900">Actions</TableHead>
+          <TableRow className="border-b border-border bg-secondary/50">
+            <TableHead className="font-semibold">ID</TableHead>
+            <TableHead className="font-semibold">Name</TableHead>
+            <TableHead className="font-semibold">Category</TableHead>
+            <TableHead className="text-right font-semibold">Price</TableHead>
+            <TableHead className="font-semibold">Variants</TableHead>
+            <TableHead className="text-right w-[120px] font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {products.map((product) => (
             <TableRow 
               key={product.id}
-              className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+              className="border-b border-border hover:bg-secondary/30 transition-colors"
             >
-              <TableCell className="font-mono text-xs text-gray-800">
-                {product.id.slice(-8)}
+              <TableCell className="font-mono text-xs text-muted-foreground max-w-[120px]">
+                <div className="truncate" title={product.id}>
+                  {product.id}
+                </div>
               </TableCell>
-              <TableCell className="font-medium text-gray-900">{product.name}</TableCell>
-              <TableCell className="text-gray-600">
+              <TableCell className="font-medium">{product.name}</TableCell>
+              <TableCell className="text-muted-foreground">
                 {product.categoryName || "N/A"}
               </TableCell>
-              <TableCell className="text-right font-medium text-gray-900">
+              <TableCell className="text-right font-medium">
                 {formatPrice(product.basePrice)}
               </TableCell>
-              <TableCell className="text-center text-sm text-gray-600">
-                {product.variants?.length || 0}
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {product.variants && product.variants.length > 0 ? (
+                    product.variants.slice(0, 3).map((variant, idx) => {
+                      const color = variant.attributes?.color || variant.attributes?.Color;
+                      const size = variant.attributes?.size || variant.attributes?.Size;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary text-xs"
+                        >
+                          {color && (
+                            <div
+                              className="h-3 w-3 rounded-full border border-border shadow-sm"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                            />
+                          )}
+                          <span className="text-muted-foreground">
+                            {size || color || 'Default'}
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No variants</span>
+                  )}
+                  {product.variants && product.variants.length > 3 && (
+                    <span className="text-xs text-muted-foreground px-2 py-1">
+                      +{product.variants.length - 3} more
+                    </span>
+                  )}
+                </div>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
@@ -87,7 +121,7 @@ export function ProductTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(product)}
-                    className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-600/10 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-500/10"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -95,7 +129,7 @@ export function ProductTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(product)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="h-8 w-8 p-0 text-red-600 hover:bg-red-600/10 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-500/10"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { setUser, setAuthenticated } from "@/lib/store/authSlice";
-import { fetchUserProfileAction, checkAuthAction } from "@/app/actions/auth";
+import { fetchUserProfileAction, checkAuthAction, getRolesFromRefreshAction } from "@/app/actions/auth";
 
 /**
  * Hook to initialize auth state on app load
@@ -22,19 +22,52 @@ export function useAuthInit() {
       if (authCheck.isAuthenticated) {
         // If authenticated but no user data, fetch it
         if (!user) {
-          console.log("[Auth Init] Token exists but user data is missing. Fetching user profile...");
+          // console.log("[Auth Init] Token exists but user data is missing. Fetching user profile...");
           
+          // Fetch user profile (doesn't include roles)
           const profileResult = await fetchUserProfileAction();
           
+          // Fetch roles from Auth Module via refresh endpoint
+          // Roles come from AuthResponse, not from UserProfileResponse
+          const rolesResult = await getRolesFromRefreshAction();
+          // console.log("[Auth Init] Roles from Auth Module:", rolesResult.roles);
+          // Handle profile fetch result - even if it fails, we may have partial data
           if (profileResult.success && profileResult.data) {
-            console.log("[Auth Init] User profile fetched successfully:", profileResult.data);
+            // console.log("[Auth Init] User profile fetched successfully:", profileResult.data);
+            // console.log("[Auth Init] Roles from Auth Module:", rolesResult.roles);
             
-            // Set user data in Redux
-            dispatch(setAuthenticated({ user: profileResult.data }));
+            // Merge profile data with roles from Auth Module
+            const userData = {
+              ...profileResult.data,
+              roles: rolesResult.success ? rolesResult.roles : [],
+            };
+            
+            // Set user data in Redux with roles from Auth Module
+            dispatch(setAuthenticated({ user: userData }));
           } else {
-            console.error("[Auth Init] Failed to fetch user profile:", profileResult.error);
-            // If fetch fails, token might be invalid - but don't clear auth state automatically
-            // Let the user try to use the app, and individual API calls will handle auth errors
+            // Profile fetch failed - this could be because profile doesn't exist yet
+            console.warn("[Auth Init] Failed to fetch user profile:", profileResult.error);
+            
+            // If we have partial data (e.g., from a graceful error handling), use it
+            if (profileResult.data) {
+              const userData = {
+                ...profileResult.data,
+                roles: rolesResult.success ? rolesResult.roles : [],
+              };
+              dispatch(setAuthenticated({ user: userData }));
+              console.log("[Auth Init] Using partial user data (profile may be created later)");
+            } else {
+              // If no data at all, still try to set roles if we have them
+              if (rolesResult.success && rolesResult.roles.length > 0) {
+                dispatch(setAuthenticated({ 
+                  user: { 
+                    roles: rolesResult.roles 
+                  } 
+                }));
+                console.log("[Auth Init] Set user with roles only (profile will be created later)");
+              }
+            }
+            // Don't clear auth state - let the user continue, profile will be created automatically
           }
         } else {
           console.log("[Auth Init] User data already exists:", user);

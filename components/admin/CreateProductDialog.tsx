@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { clientApi } from "@/lib/api-client";
+import { CategoryResponse, ApiResult } from "@/lib/types/product";
 
 interface CreateProductDialogProps {
   open: boolean;
@@ -31,6 +32,8 @@ export function CreateProductDialog({
 }: CreateProductDialogProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     categoryId: "",
@@ -39,13 +42,32 @@ export function CreateProductDialog({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Mock categories - replace with actual API call
-  const categories = [
-    { id: "792254090050729589", name: "Áo Thun (T-Shirt)" },
-    { id: "792254090050729590", name: "Áo Sơ Mi (Shirt)" },
-    { id: "792254090050729591", name: "Giày (Shoes)" },
-    { id: "792254090050729592", name: "Sneaker" },
-  ];
+  // Fetch categories when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchCategories();
+    }
+  }, [open]);
+
+  const fetchCategories = async () => {
+    setIsLoadingCategories(true);
+    try {
+      const response = await clientApi.getCategories();
+
+      if (response.error) {
+        toast.error(response.error.message || "Failed to fetch categories");
+        setCategories([]);
+      } else {
+        const result = response.data as ApiResult<CategoryResponse[]>;
+        setCategories(result?.data || []);
+      }
+    } catch {
+      toast.error("Failed to load categories");
+      setCategories([]);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -82,23 +104,16 @@ export function CreateProductDialog({
     setIsSubmitting(true);
 
     try {
-      // Create draft product with core information
+      // Create draft product with general info only
       const draftProduct = {
         name: formData.name.trim(),
         categoryId: formData.categoryId.trim(),
         description: formData.description.trim(),
         basePrice: formData.basePrice!,
-        // Add default variant for now
-        variants: [
-          {
-            quantity: 0,
-            attributes: { color: "Default", size: "Default" },
-          },
-        ],
       };
 
-      // Call API to create draft product
-      const response = await clientApi.createProduct(draftProduct);
+      // Call API to create draft product using /draft endpoint
+      const response = await clientApi.createDraftProduct(draftProduct);
 
       if (response.error) {
         toast.error(response.error.message || "Failed to create product");
@@ -128,7 +143,7 @@ export function CreateProductDialog({
       setErrors({});
       onOpenChange(false);
 
-      // Redirect to full edit page
+      // Redirect to admin product detail page using ID
       router.push(`/admin/products/${productId}`);
     } catch {
       toast.error("An unexpected error occurred");
@@ -151,20 +166,24 @@ export function CreateProductDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border-2 border-border shadow-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-gray-200 dark:border-amber-900/30 shadow-2xl dark:shadow-amber-950/40">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-foreground">
+          <DialogTitle className="text-2xl font-serif bg-gradient-to-r from-gray-900 to-gray-700 dark:from-amber-200 dark:to-yellow-100 bg-clip-text text-transparent">
             Create New Product
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Enter the core product information to create a draft. You&apos;ll be able to add media, variants, and more details next.
+          <DialogDescription className="text-gray-600 dark:text-amber-100/60">
+            Enter the core product information to create a draft. You&apos;ll be
+            able to add media, variants, and more details next.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-foreground font-medium">
+            <Label
+              htmlFor="name"
+              className="text-gray-700 dark:text-amber-200 font-semibold"
+            >
               Product Name <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -177,7 +196,7 @@ export function CreateProductDialog({
               aria-invalid={!!errors.name}
               className={cn(
                 errors.name && "border-red-500",
-                "bg-background text-foreground border-border text-lg"
+                "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 text-lg focus:border-amber-500 dark:focus:border-amber-500"
               )}
               autoFocus
             />
@@ -189,7 +208,10 @@ export function CreateProductDialog({
           <div className="grid grid-cols-2 gap-4">
             {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="categoryId" className="text-foreground font-medium">
+              <Label
+                htmlFor="categoryId"
+                className="text-gray-700 dark:text-amber-200 font-semibold"
+              >
                 Category <span className="text-red-500">*</span>
               </Label>
               <select
@@ -199,12 +221,17 @@ export function CreateProductDialog({
                   setFormData({ ...formData, categoryId: e.target.value })
                 }
                 aria-invalid={!!errors.categoryId}
+                disabled={isLoadingCategories}
                 className={cn(
                   errors.categoryId && "border-red-500",
-                  "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  "flex h-10 w-full rounded-md border border-gray-300 dark:border-amber-700/40 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                 )}
               >
-                <option value="">Select a category</option>
+                <option value="">
+                  {isLoadingCategories
+                    ? "Loading categories..."
+                    : "Select a category"}
+                </option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -220,7 +247,10 @@ export function CreateProductDialog({
 
             {/* Base Price */}
             <div className="space-y-2">
-              <Label htmlFor="basePrice" className="text-foreground font-medium">
+              <Label
+                htmlFor="basePrice"
+                className="text-gray-700 dark:text-amber-200 font-semibold"
+              >
                 Base Price (VND) <span className="text-red-500">*</span>
               </Label>
               <CurrencyInput
@@ -243,7 +273,10 @@ export function CreateProductDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-foreground font-medium">
+            <Label
+              htmlFor="description"
+              className="text-gray-700 dark:text-amber-200 font-semibold"
+            >
               Description <span className="text-red-500">*</span>
             </Label>
             <Textarea
@@ -257,7 +290,7 @@ export function CreateProductDialog({
               aria-invalid={!!errors.description}
               className={cn(
                 errors.description && "border-red-500",
-                "bg-background text-foreground border-border resize-none"
+                "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 resize-none focus:border-amber-500 dark:focus:border-amber-500"
               )}
             />
             {errors.description && (
@@ -265,8 +298,9 @@ export function CreateProductDialog({
                 {errors.description}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
-              Provide a detailed description - you can enhance it later with rich formatting
+            <p className="text-xs text-gray-500 dark:text-amber-200/50">
+              Provide a detailed description - you can enhance it later with
+              rich formatting
             </p>
           </div>
 
@@ -276,14 +310,14 @@ export function CreateProductDialog({
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
-              className="border-2 border-border text-foreground hover:bg-secondary"
+              className="border border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-gray-50 dark:hover:bg-amber-900/10"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white font-semibold shadow-lg shadow-amber-500/20 dark:shadow-amber-900/30"
             >
               {isSubmitting ? (
                 <>
@@ -300,4 +334,3 @@ export function CreateProductDialog({
     </Dialog>
   );
 }
-

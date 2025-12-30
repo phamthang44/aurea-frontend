@@ -5,11 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clientApi } from "@/lib/api-client";
+import { toast } from "sonner";
 
 interface VariantsTabProps {
   data: {
+    id: string;
     basePrice: number;
     variants?: any[];
   };
@@ -17,8 +20,11 @@ interface VariantsTabProps {
 }
 
 export function VariantsTab({ data, onChange }: VariantsTabProps) {
-  const [hasVariants, setHasVariants] = useState((data.variants?.length || 0) > 0);
+  const [hasVariants, setHasVariants] = useState(
+    (data.variants?.length || 0) > 0
+  );
   const [variants, setVariants] = useState(data.variants || []);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleToggleVariants = () => {
     if (hasVariants) {
@@ -32,8 +38,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
       // Switching to product with variants
       setHasVariants(true);
       const defaultVariant = {
-        id: Date.now().toString(),
-        sku: "",
+        id: null, // New variant, no ID yet
         attributes: { size: "M", color: "Black" },
         priceOverride: 0,
         quantity: 0,
@@ -46,8 +51,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
 
   const addVariant = () => {
     const newVariant = {
-      id: Date.now().toString(),
-      sku: "",
+      id: null, // New variant, no ID yet
       attributes: { size: "", color: "" },
       priceOverride: 0,
       quantity: 0,
@@ -73,11 +77,133 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
     onChange({ variants: updated });
   };
 
-  const removeVariant = (index: number) => {
-    if (confirm("Remove this variant?")) {
-      const updated = variants.filter((_, i) => i !== index);
-      setVariants(updated);
-      onChange({ variants: updated });
+  const saveVariant = async (index: number) => {
+    const variant = variants[index];
+    setIsSaving(true);
+
+    try {
+      // Check if variant has an ID (existing variant) or is new
+      const isExisting = variant.id && variant.id !== null && variant.id !== "";
+
+      console.log("Saving variant:", {
+        index,
+        variantId: variant.id,
+        isExisting,
+        variant,
+      });
+
+      if (isExisting) {
+        // Update existing variant
+        console.log("Updating existing variant:", variant.id);
+        const response = await clientApi.updateVariant(variant.id, {
+          priceOverride: variant.priceOverride,
+          quantity: variant.quantity,
+          attributes: variant.attributes,
+        });
+
+        if (response.error) {
+          toast.error(response.error.message || "Failed to update variant");
+        } else {
+          toast.success("Variant updated successfully");
+          // Update local state with response
+          const result = response.data as any;
+          const updated = [...variants];
+          updated[index] = result.data;
+          setVariants(updated);
+          onChange({ variants: updated });
+        }
+      } else {
+        // Create new variant
+        console.log("Creating new variant for product:", data.id);
+        const response = await clientApi.createVariant(data.id, {
+          priceOverride: variant.priceOverride || null,
+          quantity: variant.quantity,
+          attributes: variant.attributes,
+        });
+
+        if (response.error) {
+          toast.error(response.error.message || "Failed to create variant");
+        } else {
+          toast.success("Variant created successfully");
+          // Update local state with response
+          const result = response.data as any;
+          const updated = [...variants];
+          updated[index] = result.data;
+          setVariants(updated);
+          onChange({ variants: updated });
+        }
+      }
+    } catch (error) {
+      console.error("Error saving variant:", error);
+      toast.error("An error occurred while saving variant");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const removeVariant = async (index: number) => {
+    const variant = variants[index];
+
+    if (!confirm("Remove this variant?")) {
+      return;
+    }
+
+    if (variant.id) {
+      // Delete from backend if it has an ID
+      setIsSaving(true);
+      try {
+        const response = await clientApi.deleteVariant(variant.id);
+
+        if (response.error) {
+          toast.error(response.error.message || "Failed to delete variant");
+          setIsSaving(false);
+          return;
+        }
+
+        toast.success("Variant deleted successfully");
+      } catch (error) {
+        toast.error("An error occurred while deleting variant");
+        setIsSaving(false);
+        return;
+      } finally {
+        setIsSaving(false);
+      }
+    }
+
+    // Remove from local state
+    const updated = variants.filter((_, i) => i !== index);
+    setVariants(updated);
+    onChange({ variants: updated });
+  };
+
+  const toggleVariantStatus = async (index: number) => {
+    const variant = variants[index];
+    const newStatus = !variant.isActive;
+
+    if (!variant.id) {
+      // Just update locally if not saved yet
+      updateVariant(index, "isActive", newStatus);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await clientApi.updateVariantStatus(variant.id, {
+        isActive: newStatus,
+      });
+
+      if (response.error) {
+        toast.error(
+          response.error.message || "Failed to update variant status"
+        );
+      } else {
+        updateVariant(index, "isActive", newStatus);
+        toast.success(`Variant ${newStatus ? "activated" : "deactivated"}`);
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating variant status");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -116,7 +242,10 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
         <div className="space-y-6 max-w-2xl">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="basePrice" className="text-foreground font-medium">
+              <Label
+                htmlFor="basePrice"
+                className="text-foreground font-medium"
+              >
                 Price (VND) <span className="text-red-500">*</span>
               </Label>
               <CurrencyInput
@@ -179,9 +308,6 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                     Color
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                    SKU
-                  </th>
                   <th className="px-4 py-3 text-right font-medium text-muted-foreground">
                     Price (VND)
                   </th>
@@ -198,12 +324,19 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
               </thead>
               <tbody className="divide-y divide-border">
                 {variants.map((variant, index) => (
-                  <tr key={variant.id} className="hover:bg-secondary/20">
+                  <tr
+                    key={variant.id || `new-${index}`}
+                    className="hover:bg-secondary/20"
+                  >
                     <td className="px-4 py-3">
                       <Input
                         value={variant.attributes?.size || ""}
                         onChange={(e) =>
-                          updateVariant(index, "attributes.size", e.target.value)
+                          updateVariant(
+                            index,
+                            "attributes.size",
+                            e.target.value
+                          )
                         }
                         placeholder="M"
                         className="h-9 bg-background"
@@ -213,19 +346,13 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                       <Input
                         value={variant.attributes?.color || ""}
                         onChange={(e) =>
-                          updateVariant(index, "attributes.color", e.target.value)
+                          updateVariant(
+                            index,
+                            "attributes.color",
+                            e.target.value
+                          )
                         }
                         placeholder="Black"
-                        className="h-9 bg-background"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <Input
-                        value={variant.sku || ""}
-                        onChange={(e) =>
-                          updateVariant(index, "sku", e.target.value)
-                        }
-                        placeholder="SKU-001"
                         className="h-9 bg-background"
                       />
                     </td>
@@ -234,7 +361,11 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                         type="number"
                         value={variant.priceOverride || 0}
                         onChange={(e) =>
-                          updateVariant(index, "priceOverride", Number(e.target.value))
+                          updateVariant(
+                            index,
+                            "priceOverride",
+                            Number(e.target.value)
+                          )
                         }
                         placeholder="0"
                         className="h-9 bg-background text-right"
@@ -245,7 +376,11 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                         type="number"
                         value={variant.quantity || 0}
                         onChange={(e) =>
-                          updateVariant(index, "quantity", Number(e.target.value))
+                          updateVariant(
+                            index,
+                            "quantity",
+                            Number(e.target.value)
+                          )
                         }
                         placeholder="0"
                         className="h-9 bg-background text-right"
@@ -253,28 +388,42 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
-                        onClick={() =>
-                          updateVariant(index, "isActive", !variant.isActive)
-                        }
+                        onClick={() => toggleVariantStatus(index)}
+                        disabled={isSaving}
                         className={cn(
-                          "px-3 py-1 rounded-full text-xs font-medium",
+                          "px-3 py-1 rounded-full text-xs font-medium transition-colors",
                           variant.isActive
                             ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                            : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400",
+                          isSaving && "opacity-50 cursor-not-allowed"
                         )}
                       >
                         {variant.isActive ? "Active" : "Inactive"}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeVariant(index)}
-                        className="h-8 w-8 text-red-600 hover:bg-red-600/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => saveVariant(index)}
+                          disabled={isSaving}
+                          className="h-8 w-8 text-blue-600 hover:bg-blue-600/10"
+                          title="Save variant"
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeVariant(index)}
+                          disabled={isSaving}
+                          className="h-8 w-8 text-red-600 hover:bg-red-600/10"
+                          title="Delete variant"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -296,4 +445,3 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
     </div>
   );
 }
-

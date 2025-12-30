@@ -95,6 +95,16 @@ async function handleRequest(
 
     const data = await response.json();
 
+    // Log errors from backend for debugging
+    if (!response.ok) {
+      console.error(`[API Proxy] Backend error ${response.status}:`, {
+        url: backendUrl,
+        method,
+        status: response.status,
+        data,
+      });
+    }
+
     // Handle token refresh if 401
     if (response.status === 401 && accessToken) {
       const refreshToken = cookieStore.get("refreshToken")?.value;

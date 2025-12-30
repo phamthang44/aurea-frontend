@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { ReactNode, useState } from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import {
   Home,
   LogOut,
   Menu,
-  X
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -21,7 +21,7 @@ import { logoutAction } from "@/app/actions/auth";
 import { clearAuth } from "@/lib/store/authSlice";
 import { useCartStore } from "@/lib/store/cartStore";
 import { cn } from "@/lib/utils";
-import {ModeToggle} from "@/components/ui/ModeToggle";
+import { ModeToggle } from "@/components/ui/ModeToggle";
 
 interface NavItem {
   label: string;
@@ -53,11 +53,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-export default function AdminLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -69,26 +65,26 @@ export default function AdminLayout({
     dispatch(clearAuth());
     useCartStore.getState().setAuthenticated(false);
     await logoutAction();
-    router.push('/');
+    router.push("/");
     router.refresh();
   };
 
   // Generate breadcrumbs from pathname
   const generateBreadcrumbs = () => {
-    const paths = pathname.split('/').filter(Boolean);
+    const paths = pathname.split("/").filter(Boolean);
     return paths.map((path, index) => {
-      const href = '/' + paths.slice(0, index + 1).join('/');
+      const href = "/" + paths.slice(0, index + 1).join("/");
       const label = path.charAt(0).toUpperCase() + path.slice(1);
       return { label, href };
     });
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0E0F11]">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-gradient-to-br dark:from-slate-950 dark:to-slate-900">
       {/* Sidebar - Desktop */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-[#1A1A1A] border-r border-border transition-all duration-300 hidden lg:block",
+          "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 border-r border-gray-200 dark:border-amber-900/20 transition-all duration-300 hidden lg:block shadow-xl dark:shadow-amber-950/30",
           isSidebarCollapsed ? "w-20" : "w-64"
         )}
       >
@@ -96,7 +92,10 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="h-16 flex items-center justify-between px-6 ">
             {!isSidebarCollapsed && (
-              <Link href="/" className="text-xl font-light tracking-wider text-[#D4AF37] no-underline">
+              <Link
+                href="/"
+                className="text-xl font-light tracking-wider text-[#D4AF37] no-underline"
+              >
                 AUREA
               </Link>
             )}
@@ -106,7 +105,11 @@ export default function AdminLayout({
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               className="text-muted-foreground hover:text-foreground ml-auto"
             >
-              {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {isSidebarCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
             </Button>
           </div>
 
@@ -127,7 +130,12 @@ export default function AdminLayout({
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                   )}
                 >
-                  <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-white")} />
+                  <Icon
+                    className={cn(
+                      "h-5 w-5 flex-shrink-0",
+                      isActive && "text-white"
+                    )}
+                  />
                   {!isSidebarCollapsed && (
                     <>
                       <span className="flex-1">{item.label}</span>
@@ -191,14 +199,17 @@ export default function AdminLayout({
         {/* Sidebar */}
         <div
           className={cn(
-            "absolute left-0 top-0 h-full w-64 bg-white dark:bg-[#1A1A1A] border-r border-border transition-transform duration-300",
+            "absolute left-0 top-0 h-full w-64 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 border-r border-gray-200 dark:border-amber-900/20 transition-transform duration-300 shadow-xl dark:shadow-amber-950/30",
             isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           <div className="flex flex-col h-full">
             {/* Logo */}
             <div className="h-16 flex items-center justify-between px-6 border-r border-border">
-              <Link href="/" className="text-xl font-light tracking-wider text-[#D4AF37] no-underline">
+              <Link
+                href="/"
+                className="text-xl font-light tracking-wider text-[#D4AF37] no-underline"
+              >
                 AUREA
               </Link>
               <Button
@@ -229,7 +240,12 @@ export default function AdminLayout({
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     )}
                   >
-                    <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-white")} />
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 flex-shrink-0",
+                        isActive && "text-white"
+                      )}
+                    />
                     <span className="flex-1">{item.label}</span>
                     {item.badge && (
                       <span className="px-2 py-0.5 text-xs rounded-full bg-blue-600 text-white">
@@ -276,7 +292,7 @@ export default function AdminLayout({
         )}
       >
         {/* Top Header */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#1A1A1A]/80 backdrop-blur-xl border-b border-border">
+        <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-amber-900/30 shadow-sm dark:shadow-amber-950/20">
           <div className="h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             {/* Mobile Menu Button */}
             <Button
@@ -290,21 +306,26 @@ export default function AdminLayout({
 
             {/* Breadcrumbs */}
             <div className="flex items-center gap-2 text-sm">
-              <Link href="/" className="text-muted-foreground hover:text-foreground no-underline">
+              <Link
+                href="/"
+                className="text-gray-500 dark:text-amber-200/60 hover:text-gray-900 dark:hover:text-amber-200 no-underline transition-colors"
+              >
                 Home
               </Link>
               {generateBreadcrumbs().map((crumb, index) => {
                 const breadcrumbs = generateBreadcrumbs();
                 return (
                   <div key={crumb.href} className="flex items-center gap-2">
-                    <span className="text-muted-foreground">/</span>
+                    <span className="text-gray-400 dark:text-amber-500/50">
+                      /
+                    </span>
                     <Link
                       href={crumb.href}
                       className={cn(
-                        "no-underline",
+                        "no-underline transition-colors",
                         index === breadcrumbs.length - 1
-                          ? "text-foreground font-medium"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "text-gray-900 dark:text-amber-200 font-semibold"
+                          : "text-gray-500 dark:text-amber-200/60 hover:text-gray-900 dark:hover:text-amber-200"
                       )}
                     >
                       {crumb.label}
@@ -320,8 +341,8 @@ export default function AdminLayout({
               <ModeToggle />
 
               {/* User Avatar */}
-              <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
-                {user?.fullName?.charAt(0).toUpperCase() || 'A'}
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 dark:from-amber-600 dark:to-yellow-700 flex items-center justify-center text-white font-semibold shadow-lg shadow-amber-500/30 dark:shadow-amber-900/40 ring-2 ring-white dark:ring-slate-800">
+                {user?.fullName?.charAt(0).toUpperCase() || "A"}
               </div>
             </div>
           </div>
@@ -329,23 +350,23 @@ export default function AdminLayout({
           {/* Welcome Message - Below Navigation */}
           <div className="px-4 sm:px-6 lg:px-8 pb-3 pt-1">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-foreground">
-                Welcome back, <span className="text-blue-600 dark:text-blue-500">{user?.fullName || 'Admin'}</span>
+              <p className="text-sm font-medium text-gray-700 dark:text-amber-100/80">
+                Welcome back,{" "}
+                <span className="bg-gradient-to-r from-amber-600 to-yellow-600 dark:from-amber-400 dark:to-yellow-400 bg-clip-text text-transparent font-semibold">
+                  {user?.fullName || "Admin"}
+                </span>
               </p>
-              <span className="text-muted-foreground">•</span>
-              <p className="text-xs text-muted-foreground">
-                {user?.email || 'admin@aurea.com'}
+              <span className="text-gray-400 dark:text-amber-500/50">•</span>
+              <p className="text-xs text-gray-500 dark:text-amber-200/50">
+                {user?.email || "admin@aurea.com"}
               </p>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </main>
+        <main className="px-4 sm:px-6 lg:px-8 py-8">{children}</main>
       </div>
     </div>
   );
 }
-

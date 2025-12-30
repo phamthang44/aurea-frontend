@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface SettingsTabProps {
   data: {
-    status: "draft" | "active" | "archived";
+    status: "draft" | "active" | "inactive" | "archived";
     seoTitle?: string;
     seoDescription?: string;
     seoKeywords?: string;
@@ -38,7 +38,7 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button
             onClick={() => onChange({ status: "draft" })}
             className={cn(
@@ -70,9 +70,23 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
               <div className="h-3 w-3 rounded-full bg-green-500" />
               <span className="font-medium text-foreground">Active</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Visible in store
-            </p>
+            <p className="text-xs text-muted-foreground">Visible in store</p>
+          </button>
+
+          <button
+            onClick={() => onChange({ status: "inactive" })}
+            className={cn(
+              "p-4 rounded-lg border-2 transition-all text-left",
+              data.status === "inactive"
+                ? "border-orange-500 bg-orange-500/10"
+                : "border-border hover:border-orange-500/50"
+            )}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-3 w-3 rounded-full bg-orange-500" />
+              <span className="font-medium text-foreground">Inactive</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Temporarily hidden</p>
           </button>
 
           <button
@@ -88,9 +102,7 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
               <div className="h-3 w-3 rounded-full bg-gray-500" />
               <span className="font-medium text-foreground">Archived</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Hidden from store
-            </p>
+            <p className="text-xs text-muted-foreground">Permanently hidden</p>
           </button>
         </div>
       </div>
@@ -125,7 +137,10 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="seoDescription" className="text-foreground font-medium">
+            <Label
+              htmlFor="seoDescription"
+              className="text-foreground font-medium"
+            >
               SEO Description
             </Label>
             <Textarea
@@ -143,7 +158,10 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="seoKeywords" className="text-foreground font-medium">
+            <Label
+              htmlFor="seoKeywords"
+              className="text-foreground font-medium"
+            >
               SEO Keywords
             </Label>
             <Input
@@ -180,4 +198,3 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
     </div>
   );
 }
-

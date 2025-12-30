@@ -1,7 +1,7 @@
 /**
  * TypeScript types for Product API DTOs
  * Based on backend Java DTOs
- * 
+ *
  * IMPORTANT: All ID fields (id, categoryId, etc.) use `string` type
  * because the backend uses TSID (Time-Sorted Unique Identifier) which is a Long type in Java.
  * JavaScript's `number` type has a precision limit (Number.MAX_SAFE_INTEGER = 2^53 - 1),
@@ -26,6 +26,7 @@ export interface ProductResponse {
   basePrice: number;
   categoryId: string;
   categoryName?: string;
+  status?: string;
   thumbnail?: string;
   images?: string[];
   variants?: VariantResponse[];
@@ -50,6 +51,13 @@ export interface CreateProductRequest {
   height?: number;
   thumbnail?: string;
   images?: string[];
+}
+
+export interface CreateGeneralInfoProductRequest {
+  name: string;
+  description: string;
+  basePrice: number;
+  categoryId: string;
 }
 
 export interface UpdateProductRequest {
@@ -95,6 +103,16 @@ export interface ProductFilter {
   maxPrice?: number;
 }
 
+export interface CategoryResponse {
+  id: string;
+  name: string;
+  description?: string;
+  slug?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  status?: string;
+}
+
 export interface ApiResult<T> {
   data?: T;
   meta?: {
@@ -115,4 +133,3 @@ export interface ApiResult<T> {
     details?: unknown;
   };
 }
-

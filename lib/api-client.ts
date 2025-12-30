@@ -4,9 +4,14 @@
  * All requests go through Next.js API proxy routes which handle authentication via HttpOnly cookies
  */
 
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from "axios";
 
-const API_BASE_URL = '/api/proxy';
+const API_BASE_URL = "/api/proxy";
 
 interface ApiResponse<T = any> {
   data?: T;
@@ -83,7 +88,7 @@ function createAxiosInstance(): AxiosInstance {
   const instance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     withCredentials: true, // Important: Ensures cookies (including HttpOnly) are sent
   });
@@ -114,23 +119,26 @@ function createAxiosInstance(): AxiosInstance {
       return response;
     },
     async (error: AxiosError) => {
-      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+      const originalRequest = error.config as InternalAxiosRequestConfig & {
+        _retry?: boolean;
+      };
 
       // Only handle 401 Unauthorized errors
-      if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (
+        error.response?.status === 401 &&
+        originalRequest &&
+        !originalRequest._retry
+      ) {
         // Mark this request as retried to prevent infinite loops
         originalRequest._retry = true;
 
         // If refresh is already in progress, queue this request
         if (refreshTokenQueue.getIsRefreshing()) {
           return new Promise((resolve, reject) => {
-            refreshTokenQueue.addToQueue(
-              () => {
-                // Retry the original request after token refresh
-                resolve(instance(originalRequest));
-              },
-              reject
-            );
+            refreshTokenQueue.addToQueue(() => {
+              // Retry the original request after token refresh
+              resolve(instance(originalRequest));
+            }, reject);
           });
         }
 
@@ -151,9 +159,10 @@ function createAxiosInstance(): AxiosInstance {
           // Check if refresh was successful
           // The token might be in the response body OR set as HttpOnly cookie
           // If status is 200/201, consider it successful (cookies are set server-side)
-          const isSuccess = 
-            (refreshResponse.status === 200 || refreshResponse.status === 201) &&
-            (!refreshResponse.data?.error);
+          const isSuccess =
+            (refreshResponse.status === 200 ||
+              refreshResponse.status === 201) &&
+            !refreshResponse.data?.error;
 
           if (isSuccess) {
             // Token refresh successful
@@ -169,7 +178,8 @@ function createAxiosInstance(): AxiosInstance {
             return instance(originalRequest);
           } else {
             // Refresh endpoint returned an error
-            const errorMessage = refreshResponse.data?.error?.message || 'Token refresh failed';
+            const errorMessage =
+              refreshResponse.data?.error?.message || "Token refresh failed";
             throw new Error(errorMessage);
           }
         } catch (refreshError) {
@@ -180,10 +190,10 @@ function createAxiosInstance(): AxiosInstance {
           // Redirect to login page
           // Use window.location for a hard redirect to ensure clean state
           // This ensures cookies are cleared and auth state is reset
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             // Only redirect if we're not already on the login page
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login';
+            if (window.location.pathname !== "/login") {
+              window.location.href = "/login";
             }
           }
 
@@ -211,13 +221,14 @@ function handleResponse<T>(response: any): ApiResponse<T> {
   if (response.data?.error) {
     return {
       error: {
-        message: response.data.error.message || 'Request failed',
+        message: response.data.error.message || "Request failed",
         code: response.data.error.code,
       },
     };
   }
 
-  return { data: response.data?.data || response.data };
+  // Return the entire backend response structure (includes data and meta)
+  return { data: response.data };
 }
 
 /**
@@ -227,7 +238,7 @@ function handleError(error: any): ApiResponse {
   if (error.response?.data?.error) {
     return {
       error: {
-        message: error.response.data.error.message || 'Request failed',
+        message: error.response.data.error.message || "Request failed",
         code: error.response.data.error.code,
       },
     };
@@ -235,7 +246,7 @@ function handleError(error: any): ApiResponse {
 
   return {
     error: {
-      message: error.message || 'Network error',
+      message: error.message || "Network error",
     },
   };
 }
@@ -262,13 +273,13 @@ class ApiClient {
   }
 
   async get<T>(path: string, config?: AxiosRequestConfig) {
-    return this.request<T>(path, { ...config, method: 'GET' });
+    return this.request<T>(path, { ...config, method: "GET" });
   }
 
   async post<T>(path: string, body?: any, config?: AxiosRequestConfig) {
     return this.request<T>(path, {
       ...config,
-      method: 'POST',
+      method: "POST",
       data: body,
     });
   }
@@ -276,7 +287,7 @@ class ApiClient {
   async put<T>(path: string, body?: any, config?: AxiosRequestConfig) {
     return this.request<T>(path, {
       ...config,
-      method: 'PUT',
+      method: "PUT",
       data: body,
     });
   }
@@ -284,13 +295,13 @@ class ApiClient {
   async patch<T>(path: string, body?: any, config?: AxiosRequestConfig) {
     return this.request<T>(path, {
       ...config,
-      method: 'PATCH',
+      method: "PATCH",
       data: body,
     });
   }
 
   async delete<T>(path: string, config?: AxiosRequestConfig) {
-    return this.request<T>(path, { ...config, method: 'DELETE' });
+    return this.request<T>(path, { ...config, method: "DELETE" });
   }
 }
 
@@ -301,32 +312,32 @@ export const clientApi = {
 
   requestOtp: async (email: string) => {
     const client = new ApiClient();
-    return client.post('auth/otp/request', { email });
+    return client.post("auth/otp/request", { email });
   },
 
   verifyOtp: async (email: string, code: string) => {
     const client = new ApiClient();
-    return client.post('auth/otp/verify', { email, code });
+    return client.post("auth/otp/verify", { email, code });
   },
 
   forgotPassword: async (email: string) => {
     const client = new ApiClient();
-    return client.post('auth/forgot-password', { email });
+    return client.post("auth/forgot-password", { email });
   },
 
   resetPassword: async (email: string, otp: string, newPassword: string) => {
     const client = new ApiClient();
-    return client.post('auth/reset-password', { email, otp, newPassword });
+    return client.post("auth/reset-password", { email, otp, newPassword });
   },
 
   googleLogin: async (code: string) => {
     const client = new ApiClient();
-    return client.post('auth/google-login', { code });
+    return client.post("auth/google-login", { code });
   },
 
   refreshToken: async () => {
     const client = new ApiClient();
-    return client.post('auth/refresh');
+    return client.post("auth/refresh");
   },
 
   // Product API methods
@@ -340,15 +351,17 @@ export const clientApi = {
   }) => {
     const client = new ApiClient();
     const queryParams = new URLSearchParams();
-    if (params?.keyword) queryParams.append('keyword', params.keyword);
-    if (params?.categoryId) queryParams.append('categoryId', params.categoryId);
-    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
-    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.size) queryParams.append('size', params.size.toString());
-    
+    if (params?.keyword) queryParams.append("keyword", params.keyword);
+    if (params?.categoryId) queryParams.append("categoryId", params.categoryId);
+    if (params?.minPrice)
+      queryParams.append("minPrice", params.minPrice.toString());
+    if (params?.maxPrice)
+      queryParams.append("maxPrice", params.maxPrice.toString());
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.size) queryParams.append("size", params.size.toString());
+
     const query = queryParams.toString();
-    return client.get(`products${query ? `?${query}` : ''}`);
+    return client.get(`products${query ? `?${query}` : ""}`);
   },
 
   getProductById: async (id: string) => {
@@ -356,9 +369,19 @@ export const clientApi = {
     return client.get(`products/${id}`);
   },
 
+  getProductBySlug: async (slug: string) => {
+    const client = new ApiClient();
+    return client.get(`products/slug/${slug}`);
+  },
+
   createProduct: async (product: any) => {
     const client = new ApiClient();
-    return client.post('products', product);
+    return client.post("products", product);
+  },
+
+  createDraftProduct: async (product: any) => {
+    const client = new ApiClient();
+    return client.post("products/draft", product);
   },
 
   updateProduct: async (id: string, product: any) => {
@@ -374,6 +397,38 @@ export const clientApi = {
   deleteProduct: async (id: string) => {
     const client = new ApiClient();
     return client.delete(`products/${id}`);
+  },
+
+  // Category API methods
+  getCategories: async () => {
+    const client = new ApiClient();
+    return client.get("categories");
+  },
+
+  // Variant API methods
+  createVariant: async (productId: string, variant: any) => {
+    const client = new ApiClient();
+    return client.post(`products/${productId}/variants`, variant);
+  },
+
+  updateVariant: async (variantId: string, variant: any) => {
+    const client = new ApiClient();
+    return client.put(`products/variants/${variantId}`, variant);
+  },
+
+  updateVariantInfo: async (variantId: string, variant: any) => {
+    const client = new ApiClient();
+    return client.put(`products/variants/${variantId}/info`, variant);
+  },
+
+  updateVariantStatus: async (variantId: string, variant: any) => {
+    const client = new ApiClient();
+    return client.put(`products/variants/${variantId}/status`, variant);
+  },
+
+  deleteVariant: async (variantId: string) => {
+    const client = new ApiClient();
+    return client.delete(`products/variants/${variantId}`);
   },
 };
 

@@ -16,10 +16,7 @@ import {
 import { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
-import {
-  ProductResponse,
-  ApiResult,
-} from "@/lib/types/product";
+import { ProductResponse, ApiResult } from "@/lib/types/product";
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -27,7 +24,8 @@ export default function AdminProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductResponse | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductResponse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination state
@@ -36,8 +34,11 @@ export default function AdminProductsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Fetch products
-  const fetchProducts = async (page: number = currentPage, size: number = pageSize) => {
+  // Fetch products - Simple: just call API and use backend data directly
+  const fetchProducts = async (
+    page: number = currentPage,
+    size: number = pageSize
+  ) => {
     setIsLoading(true);
     try {
       const response = await clientApi.getProducts({ page, size });
@@ -48,22 +49,12 @@ export default function AdminProductsPage() {
         setTotalItems(0);
         setTotalPages(0);
       } else {
+        // response.data now contains the full backend structure { data, meta }
         const result = response.data as ApiResult<ProductResponse[]>;
-        if (result?.data) {
-          setProducts(result.data);
-          // Extract pagination metadata from backend response
-          const meta = result.meta;
-          setTotalItems(meta?.totalElements || result.data.length);
-          setTotalPages(meta?.totalPages || Math.ceil((meta?.totalElements || result.data.length) / size));
-        } else if (Array.isArray(response.data)) {
-          setProducts(response.data);
-          setTotalItems(response.data.length);
-          setTotalPages(Math.ceil(response.data.length / size));
-        } else {
-          setProducts([]);
-          setTotalItems(0);
-          setTotalPages(0);
-        }
+        // Trust backend data completely - no frontend calculations
+        setProducts(result?.data || []);
+        setTotalItems(result?.meta?.totalElements || 0);
+        setTotalPages(result?.meta?.totalPages || 0);
       }
     } catch {
       toast.error("An unexpected error occurred while fetching products");
@@ -104,7 +95,7 @@ export default function AdminProductsPage() {
   };
 
   const handleEdit = (product: ProductResponse) => {
-    // Navigate to detail page instead of opening modal
+    // Navigate to admin detail page using ID
     router.push(`/admin/products/${product.id}`);
   };
 
@@ -136,26 +127,30 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Products</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your product catalog
+    <div className="space-y-8">
+      {/* Header with Luxury Design */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-6 border-b border-gray-200 dark:border-amber-900/20">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-serif font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-amber-200 dark:via-yellow-100 dark:to-amber-200 bg-clip-text text-transparent">
+            Product Collection
+          </h1>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-gray-500 dark:text-amber-100/60 font-light tracking-wide">
+              Curated luxury catalog management
+            </p>
             {totalItems > 0 && (
-              <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">
-                {totalItems} total
+              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/40 border border-amber-200 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wide shadow-sm">
+                {totalItems} {totalItems === 1 ? "Item" : "Items"}
               </span>
             )}
-          </p>
+          </div>
         </div>
         <Button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          className="gap-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-lg shadow-amber-500/20 dark:shadow-amber-900/30 border-0 font-semibold tracking-wide h-11 px-6"
         >
-          <Plus className="h-4 w-4" />
-          Create Product
+          <Plus className="h-5 w-5" />
+          New Product
         </Button>
       </div>
 
@@ -167,142 +162,160 @@ export default function AdminProductsPage() {
         isLoading={isLoading}
       />
 
-      {/* Pagination */}
+      {/* Luxury Pagination */}
       {!isLoading && totalItems > 0 && (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1A1A1A] border border-border rounded-lg px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 border border-gray-200 dark:border-amber-900/30 rounded-xl px-8 py-5 shadow-md dark:shadow-amber-950/20">
           {/* Left: Results info and page size selector */}
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Showing{" "}
-              <span className="font-medium text-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <p className="text-sm text-gray-600 dark:text-amber-100/70 font-light">
+              Displaying{" "}
+              <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {(currentPage - 1) * pageSize + 1}
-              </span>{" "}
-              to{" "}
-              <span className="font-medium text-foreground">
+              </span>
+              {" – "}
+              <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {Math.min(currentPage * pageSize, totalItems)}
-              </span>{" "}
-              of{" "}
-              <span className="font-medium text-foreground">{totalItems}</span>{" "}
-              results
+              </span>
+              {" of "}
+              <span className="font-semibold text-gray-900 dark:text-amber-200">
+                {totalItems}
+              </span>
             </p>
 
-            {/* Page size selector */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="pageSize" className="text-sm text-muted-foreground">
-                Per page:
-              </label>
+            {/* Luxury Page size selector */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500 dark:text-amber-100/60 whitespace-nowrap font-light">
+                View:
+              </span>
               <select
                 id="pageSize"
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="h-10 rounded-lg border border-gray-300 dark:border-amber-700/40 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-amber-100 transition-all hover:border-amber-400 dark:hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 focus:ring-offset-2 dark:focus:ring-offset-slate-900 cursor-pointer shadow-sm"
               >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
+                <option
+                  value={5}
+                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
+                >
+                  5 items
+                </option>
+                <option
+                  value={10}
+                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
+                >
+                  10 items
+                </option>
+                <option
+                  value={20}
+                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
+                >
+                  20 items
+                </option>
+                <option
+                  value={50}
+                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
+                >
+                  50 items
+                </option>
+                <option
+                  value={100}
+                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
+                >
+                  100 items
+                </option>
               </select>
             </div>
-            
-            {/* Debug Info - Remove this after testing */}
-            <div className="text-xs text-muted-foreground border-l pl-4">
-              Page: {currentPage} | Total Pages: {totalPages} | Size: {pageSize}
-            </div>
           </div>
 
-          {/* Right: Page navigation - ALWAYS VISIBLE */}
+          {/* Right: Luxury Page navigation */}
           <div className="flex items-center gap-2">
             {/* Previous button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="h-10 px-4 gap-2 font-medium border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </Button>
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              <span className="hidden sm:inline">Previous</span>
+            </Button>
 
-              {/* Page numbers */}
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((page) => {
-                    // Show first page, last page, current page, and pages around current
-                    if (page === 1 || page === totalPages) return true;
-                    if (page >= currentPage - 1 && page <= currentPage + 1) return true;
-                    return false;
-                  })
-                  .map((page, index, array) => {
-                    // Add ellipsis between non-consecutive pages
-                    const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+            {/* Page numbers with luxury styling */}
+            <div className="flex items-center gap-1.5 mx-3">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) => {
+                  if (page === 1 || page === totalPages) return true;
+                  if (page >= currentPage - 1 && page <= currentPage + 1)
+                    return true;
+                  return false;
+                })
+                .map((page, index, array) => {
+                  const showEllipsisBefore =
+                    index > 0 && page - array[index - 1] > 1;
 
-                    return (
-                      <div key={page} className="flex items-center gap-1">
-                        {showEllipsisBefore && (
-                          <span className="px-2 text-muted-foreground">...</span>
-                        )}
-                        <Button
-                          variant={currentPage === page ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handlePageChange(page)}
-                          className={`h-8 w-8 p-0 ${
-                            currentPage === page
-                              ? "bg-blue-600 hover:bg-blue-700 text-white"
-                              : ""
-                          }`}
-                        >
-                          {page}
-                        </Button>
-                      </div>
-                    );
-                  })}
-              </div>
-
-              {/* Next button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-                disabled={currentPage >= totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </Button>
-
-              {/* Debug: Show if only 1 page */}
-              {totalPages <= 1 && (
-                <span className="text-xs text-red-500 ml-2">
-                  ⚠ Only {totalPages} page - Backend should return more pages if data exists
-                </span>
-              )}
+                  return (
+                    <div key={page} className="flex items-center">
+                      {showEllipsisBefore && (
+                        <span className="px-2 text-sm text-gray-400 dark:text-amber-500/50">
+                          •••
+                        </span>
+                      )}
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(page)}
+                        className={`h-10 min-w-[40px] px-3 font-semibold transition-all ${
+                          currentPage === page
+                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 dark:from-amber-600 dark:to-yellow-600 hover:from-amber-600 hover:to-yellow-600 dark:hover:from-amber-700 dark:hover:to-yellow-700 text-white border-0 shadow-lg shadow-amber-500/30 dark:shadow-amber-900/40"
+                            : "border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600"
+                        }`}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                })}
             </div>
+
+            {/* Next button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage >= totalPages}
+              className="h-10 px-4 gap-2 font-medium border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </Button>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Create Product Dialog */}
       <CreateProductDialog
@@ -310,14 +323,16 @@ export default function AdminProductsPage() {
         onOpenChange={setIsCreateDialogOpen}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Luxury Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[#1A1A1A] border border-border">
+        <DialogContent className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-amber-900/30">
           <DialogHeader>
-            <DialogTitle>Delete Product</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{selectedProduct?.name}&quot;? This
-              action cannot be undone.
+            <DialogTitle className="text-xl font-serif text-gray-900 dark:text-amber-100">
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-amber-100/60">
+              Are you certain you wish to remove &quot;{selectedProduct?.name}
+              &quot; from your collection? This action is irreversible.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -325,6 +340,7 @@ export default function AdminProductsPage() {
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
               disabled={isDeleting}
+              className="border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-gray-50 dark:hover:bg-amber-900/10"
             >
               Cancel
             </Button>
@@ -332,14 +348,15 @@ export default function AdminProductsPage() {
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
+              className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 dark:from-red-700 dark:to-rose-700 dark:hover:from-red-800 dark:hover:to-rose-800 shadow-lg shadow-red-500/20"
             >
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  Removing...
                 </>
               ) : (
-                "Delete"
+                "Delete Product"
               )}
             </Button>
           </DialogFooter>

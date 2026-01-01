@@ -100,6 +100,10 @@ function createAxiosInstance(): AxiosInstance {
    */
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+      // If data is FormData, remove Content-Type header to let browser set it with boundary
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
       // Cookies are automatically sent with withCredentials: true
       // No need to manually attach Authorization header for HttpOnly cookies
       return config;
@@ -191,9 +195,9 @@ function createAxiosInstance(): AxiosInstance {
           // Use window.location for a hard redirect to ensure clean state
           // This ensures cookies are cleared and auth state is reset
           if (typeof window !== "undefined") {
-            // Only redirect if we're not already on the login page
-            if (window.location.pathname !== "/login") {
-              window.location.href = "/login";
+            // Only redirect if we're not already on the auth page
+            if (!window.location.pathname.startsWith("/auth")) {
+              window.location.href = "/auth";
             }
           }
 

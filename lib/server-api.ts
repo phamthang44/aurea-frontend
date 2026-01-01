@@ -4,11 +4,16 @@
  * Works within Next.js Server environment using cookies from next/headers
  */
 
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
-import { cookies } from 'next/headers';
-import type { ApiResultAuthResponse } from '@/lib/types/auth';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { cookies } from "next/headers";
+import type { ApiResultAuthResponse } from "@/lib/types/auth";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 interface RefreshTokenResponse {
   data?: {
@@ -65,20 +70,20 @@ const serverRefreshTokenQueue = new ServerRefreshTokenQueue();
 async function setAuthCookies(accessToken: string, refreshToken?: string) {
   const cookieStore = await cookies();
 
-  cookieStore.set('accessToken', accessToken, {
+  cookieStore.set("accessToken", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
   });
 
   if (refreshToken) {
-    cookieStore.set('refreshToken', refreshToken, {
+    cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
       maxAge: 60 * 60 * 24 * 30, // 30 days
     });
   }
@@ -92,7 +97,7 @@ function createServerAxiosInstance(): AxiosInstance {
   const instance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
@@ -106,8 +111,8 @@ function createServerAxiosInstance(): AxiosInstance {
     async (config: InternalAxiosRequestConfig) => {
       try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('accessToken')?.value;
-        const refreshToken = cookieStore.get('refresh_token')?.value;
+        const accessToken = cookieStore.get("accessToken")?.value;
+        const refreshToken = cookieStore.get("refresh_token")?.value;
 
         // Set Authorization header with access token
         if (accessToken) {
@@ -126,7 +131,7 @@ function createServerAxiosInstance(): AxiosInstance {
           }
         }
       } catch (error) {
-        console.error('[Server API] Error getting token from cookies:', error);
+        console.error("[Server API] Error getting token from cookies:", error);
       }
 
       return config;
@@ -145,22 +150,25 @@ function createServerAxiosInstance(): AxiosInstance {
       return response;
     },
     async (error: AxiosError) => {
-      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+      const originalRequest = error.config as InternalAxiosRequestConfig & {
+        _retry?: boolean;
+      };
 
       // Only handle 401 Unauthorized errors
-      if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (
+        error.response?.status === 401 &&
+        originalRequest &&
+        !originalRequest._retry
+      ) {
         originalRequest._retry = true;
 
         // If refresh is already in progress, queue this request
         if (serverRefreshTokenQueue.getIsRefreshing()) {
           return new Promise((resolve, reject) => {
-            serverRefreshTokenQueue.addToQueue(
-              () => {
-                // Retry the original request after token refresh
-                resolve(instance(originalRequest));
-              },
-              reject
-            );
+            serverRefreshTokenQueue.addToQueue(() => {
+              // Retry the original request after token refresh
+              resolve(instance(originalRequest));
+            }, reject);
           });
         }
 
@@ -170,10 +178,10 @@ function createServerAxiosInstance(): AxiosInstance {
         try {
           // Get refresh token from cookies
           const cookieStore = await cookies();
-          const refreshToken = cookieStore.get('refresh_token')?.value;
+          const refreshToken = cookieStore.get("refresh_token")?.value;
 
           if (!refreshToken) {
-            throw new Error('No refresh token found');
+            throw new Error("No refresh token found");
           }
 
           // Backend AuthController reads refresh token from cookie named "refresh_token"
@@ -182,12 +190,12 @@ function createServerAxiosInstance(): AxiosInstance {
           // Note: We can't set cookies in server actions that will be sent to external APIs
           // So we need to send it in a way the backend can read it
           // The backend reads from cookie, so we need to include it in the request
-          
+
           // Create a temporary cookie store for this request
           // Since we're calling the backend directly, we need to send the cookie
           // Axios doesn't automatically send cookies to external APIs, so we need to use a cookie jar
           // OR we can use the Cookie header directly
-          
+
           // Actually, the best approach is to use axios with a cookie jar or set the Cookie header
           // But axios in Node.js doesn't automatically handle cookies for external requests
           // We need to manually set the Cookie header
@@ -196,7 +204,7 @@ function createServerAxiosInstance(): AxiosInstance {
             {},
             {
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 // Set the cookie header with the name the backend expects
                 // Backend expects cookie named "refresh_token"
                 Cookie: `refresh_token=${refreshToken}`,
@@ -217,7 +225,7 @@ function createServerAxiosInstance(): AxiosInstance {
             const newRefreshToken = authData.refreshToken;
 
             if (!newAccessToken) {
-              throw new Error('No access token in refresh response');
+              throw new Error("No access token in refresh response");
             }
 
             // Update cookies with new tokens
@@ -233,7 +241,9 @@ function createServerAxiosInstance(): AxiosInstance {
             // Retry the original request with new token
             return instance(originalRequest);
           } else {
-            throw new Error(refreshData.error?.message || 'Token refresh failed');
+            throw new Error(
+              refreshData.error?.message || "Token refresh failed"
+            );
           }
         } catch (refreshError: any) {
           // Refresh failed - clear queue
@@ -243,10 +253,10 @@ function createServerAxiosInstance(): AxiosInstance {
           // Clear auth cookies
           try {
             const cookieStore = await cookies();
-            cookieStore.delete('accessToken');
-            cookieStore.delete('refreshToken');
+            cookieStore.delete("accessToken");
+            cookieStore.delete("refresh_token");
           } catch (cookieError) {
-            console.error('[Server API] Error clearing cookies:', cookieError);
+            console.error("[Server API] Error clearing cookies:", cookieError);
           }
 
           // Throw error to be handled by the calling server action
@@ -286,7 +296,7 @@ class ServerApiClient {
       if (response.data?.error) {
         return {
           error: {
-            message: response.data.error.message || 'Request failed',
+            message: response.data.error.message || "Request failed",
             code: response.data.error.code,
           },
         };
@@ -297,7 +307,7 @@ class ServerApiClient {
       if (error.response?.data?.error) {
         return {
           error: {
-            message: error.response.data.error.message || 'Request failed',
+            message: error.response.data.error.message || "Request failed",
             code: error.response.data.error.code,
           },
         };
@@ -305,20 +315,20 @@ class ServerApiClient {
 
       return {
         error: {
-          message: error.message || 'Network error',
+          message: error.message || "Network error",
         },
       };
     }
   }
 
   async get<T>(path: string, config?: AxiosRequestConfig) {
-    return this.request<T>(path, { ...config, method: 'GET' });
+    return this.request<T>(path, { ...config, method: "GET" });
   }
 
   async post<T>(path: string, body?: any, config?: AxiosRequestConfig) {
     return this.request<T>(path, {
       ...config,
-      method: 'POST',
+      method: "POST",
       data: body,
     });
   }
@@ -326,7 +336,7 @@ class ServerApiClient {
   async put<T>(path: string, body?: any, config?: AxiosRequestConfig) {
     return this.request<T>(path, {
       ...config,
-      method: 'PUT',
+      method: "PUT",
       data: body,
     });
   }
@@ -334,13 +344,13 @@ class ServerApiClient {
   async patch<T>(path: string, body?: any, config?: AxiosRequestConfig) {
     return this.request<T>(path, {
       ...config,
-      method: 'PATCH',
+      method: "PATCH",
       data: body,
     });
   }
 
   async delete<T>(path: string, config?: AxiosRequestConfig) {
-    return this.request<T>(path, { ...config, method: 'DELETE' });
+    return this.request<T>(path, { ...config, method: "DELETE" });
   }
 }
 
@@ -351,4 +361,3 @@ export const serverApi = new ServerApiClient();
 export { serverAxiosInstance };
 
 export default serverApi;
-

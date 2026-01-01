@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { clientApi } from "@/lib/api-client";
+import apiClient, { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";
 
 interface VariantsTabProps {
@@ -77,60 +77,123 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
     onChange({ variants: updated });
   };
 
+  const handleVariantImageUpload = async (index: number, file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const toastId = toast.loading("Uploading variant image...");
+      const response = await apiClient.post<{ data: string }>("files", formData);
+      toast.dismiss(toastId);
+
+      if (response.error) {
+        toast.error("Failed to upload image");
+      } else {
+        const cloudinaryUrl = response.data?.data;
+        toast.success("Image uploaded (will be saved on Save Changes)");
+
+        // Store image URL in variant
+        updateVariant(index, "imageUrl", cloudinaryUrl);
+      }
+    } catch (error) {
+      toast.error("Failed to upload image");
+      console.error("Image upload error:", error);
+    }
+  };
+
+  const removeVariantImage = (index: number) => {
+    updateVariant(index, "imageUrl", null);
+  };
+
   const saveVariant = async (index: number) => {
     const variant = variants[index];
     setIsSaving(true);
 
+    // Debug logging
+    console.log("=== SAVE VARIANT DEBUG ===");
+    console.log("Variant object:", variant);
+    console.log("Variant ID:", variant.id);
+    console.log("Variant ID type:", typeof variant.id);
+    console.log("Boolean(variant.id):", Boolean(variant.id));
+    console.log("All variant keys:", Object.keys(variant));
+    console.log("=========================");
+
     try {
       // Check if variant has an ID (existing variant) or is new
-      const isExisting = variant.id && variant.id !== null && variant.id !== "";
+      // Use truthy check - if ID exists and is not empty string, it's existing
+      const isExisting = Boolean(variant.id);
 
       console.log("Saving variant:", {
         index,
         variantId: variant.id,
+        variantIdType: typeof variant.id,
         isExisting,
         variant,
       });
 
       if (isExisting) {
-        // Update existing variant
+        // Update existing variant via event-driven architecture
         console.log("Updating existing variant:", variant.id);
-        const response = await clientApi.updateVariant(variant.id, {
+
+        // Update variant price & quantity (quantity triggers VariantStockUpdatedEvent)
+        const variantResponse = await clientApi.updateVariant(variant.id, {
           priceOverride: variant.priceOverride,
-          quantity: variant.quantity,
-          attributes: variant.attributes,
+          quantity: variant.quantity, // ✅ Backend publishes event → Inventory listener updates stock
+          // ❌ DO NOT send attributes - they are immutable (SKU is derived from them)
         });
 
-        if (response.error) {
-          toast.error(response.error.message || "Failed to update variant");
-        } else {
-          toast.success("Variant updated successfully");
-          // Update local state with response
-          const result = response.data as any;
+        if (variantResponse.error) {
+          toast.error(
+            variantResponse.error.message || "Failed to update variant"
+          );
+          setIsSaving(false);
+          return;
+        }
+
+        toast.success("Variant updated successfully");
+
+        // Update local state with backend response
+        const result = variantResponse.data as any;
+        const updatedVariant = result?.data;
+        if (updatedVariant) {
           const updated = [...variants];
-          updated[index] = result.data;
+          updated[index] = { ...updatedVariant, quantity: variant.quantity };
           setVariants(updated);
-          onChange({ variants: updated });
+          // ❌ DO NOT call onChange - variant already saved to DB
+          // Calling onChange triggers parent to include this in next bulk save,
+          // which can cause duplicate/update issues
         }
       } else {
-        // Create new variant
+        // Create new variant - quantity IS used for initial stock
         console.log("Creating new variant for product:", data.id);
         const response = await clientApi.createVariant(data.id, {
           priceOverride: variant.priceOverride || null,
-          quantity: variant.quantity,
+          quantity: variant.quantity, // ✅ Initial stock for new variants
           attributes: variant.attributes,
         });
 
         if (response.error) {
           toast.error(response.error.message || "Failed to create variant");
         } else {
-          toast.success("Variant created successfully");
-          // Update local state with response
+          toast.success("Variant created successfully with initial stock!");
           const result = response.data as any;
-          const updated = [...variants];
-          updated[index] = result.data;
-          setVariants(updated);
-          onChange({ variants: updated });
+          const newVariant = result?.data;
+          console.log("Created variant data:", newVariant);
+          if (newVariant) {
+            const updated = [...variants];
+            updated[index] = newVariant;
+            setVariants(updated);
+            // ❌ DO NOT call onChange - variant already saved to DB
+          }
         }
       }
     } catch (error) {
@@ -303,6 +366,9 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
               <thead className="bg-secondary/50 border-b border-border">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                    Image
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                     Size
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">
@@ -312,7 +378,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                     Price (VND)
                   </th>
                   <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                    Stock
+                    Stock Quantity
                   </th>
                   <th className="px-4 py-3 text-center font-medium text-muted-foreground">
                     Status
@@ -329,6 +395,36 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                     className="hover:bg-secondary/20"
                   >
                     <td className="px-4 py-3">
+                      {variant.imageUrl ? (
+                        <div className="relative w-16 h-16 rounded border overflow-hidden group">
+                          <img
+                            src={variant.imageUrl}
+                            alt="Variant"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => removeVariantImage(index)}
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <X className="h-5 w-5 text-white" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-colors">
+                          <Upload className="h-5 w-5 text-muted-foreground" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleVariantImageUpload(index, file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       <Input
                         value={variant.attributes?.size || ""}
                         onChange={(e) =>
@@ -340,6 +436,12 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                         }
                         placeholder="M"
                         className="h-9 bg-background"
+                        disabled={Boolean(variant.id)}
+                        title={
+                          variant.id
+                            ? "Cannot change attributes of existing variant (SKU is derived from attributes)"
+                            : "Set variant size"
+                        }
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -354,33 +456,29 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                         }
                         placeholder="Black"
                         className="h-9 bg-background"
+                        disabled={Boolean(variant.id)}
+                        title={
+                          variant.id
+                            ? "Cannot change attributes of existing variant (SKU is derived from attributes)"
+                            : "Set variant color"
+                        }
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <Input
-                        type="number"
+                      <CurrencyInput
                         value={variant.priceOverride || 0}
-                        onChange={(e) =>
-                          updateVariant(
-                            index,
-                            "priceOverride",
-                            Number(e.target.value)
-                          )
+                        onChange={(value) =>
+                          updateVariant(index, "priceOverride", value || 0)
                         }
                         placeholder="0"
                         className="h-9 bg-background text-right"
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <Input
-                        type="number"
+                      <CurrencyInput
                         value={variant.quantity || 0}
-                        onChange={(e) =>
-                          updateVariant(
-                            index,
-                            "quantity",
-                            Number(e.target.value)
-                          )
+                        onChange={(value) =>
+                          updateVariant(index, "quantity", value || 0)
                         }
                         placeholder="0"
                         className="h-9 bg-background text-right"

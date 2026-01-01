@@ -66,10 +66,17 @@ async function handleRequest(
       searchParams ? `?${searchParams}` : ""
     }`;
 
-    // Prepare headers
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
+    // Get Content-Type from incoming request
+    const incomingContentType = request.headers.get("content-type");
+
+    // Prepare headers - preserve Content-Type for multipart/form-data
+    const headers: HeadersInit = {};
+
+    // Only set JSON Content-Type if not multipart/form-data
+    if (!incomingContentType?.includes("multipart/form-data")) {
+      headers["Content-Type"] = "application/json";
+    }
+    // For multipart/form-data, don't set Content-Type - let fetch use the original
 
     // Attach Authorization header if token exists
     if (accessToken) {
@@ -77,10 +84,15 @@ async function handleRequest(
     }
 
     // Get request body if present
-    let body: string | undefined;
+    let body: string | FormData | undefined;
     if (method !== "GET" && method !== "DELETE") {
       try {
-        body = await request.text();
+        // Check if this is a multipart/form-data request
+        if (incomingContentType?.includes("multipart/form-data")) {
+          body = await request.formData();
+        } else {
+          body = await request.text();
+        }
       } catch {
         // No body
       }
@@ -107,7 +119,7 @@ async function handleRequest(
 
     // Handle token refresh if 401
     if (response.status === 401 && accessToken) {
-      const refreshToken = cookieStore.get("refreshToken")?.value;
+      const refreshToken = cookieStore.get("refresh_token")?.value;
 
       if (refreshToken) {
         try {
@@ -135,7 +147,7 @@ async function handleRequest(
             });
 
             if (refreshData.data.refreshToken) {
-              cookieStore.set("refreshToken", refreshData.data.refreshToken, {
+              cookieStore.set("refresh_token", refreshData.data.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
@@ -162,7 +174,7 @@ async function handleRequest(
         } catch (refreshError) {
           // Refresh failed, clear cookies
           cookieStore.delete("accessToken");
-          cookieStore.delete("refreshToken");
+          cookieStore.delete("refresh_token");
         }
       } else {
         // No refresh token, clear access token

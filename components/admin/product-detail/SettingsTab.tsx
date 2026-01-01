@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface SettingsTabProps {
   data: {
-    status: "draft" | "active" | "inactive" | "archived";
+    productStatus: "draft" | "active" | "inactive" | "archived";
     seoTitle?: string;
     seoDescription?: string;
     seoKeywords?: string;
@@ -40,10 +40,10 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button
-            onClick={() => onChange({ status: "draft" })}
+            onClick={() => onChange({ productStatus: "draft" })}
             className={cn(
               "p-4 rounded-lg border-2 transition-all text-left",
-              data.status === "draft"
+              data.productStatus === "draft"
                 ? "border-yellow-500 bg-yellow-500/10"
                 : "border-border hover:border-yellow-500/50"
             )}
@@ -58,10 +58,10 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
           </button>
 
           <button
-            onClick={() => onChange({ status: "active" })}
+            onClick={() => onChange({ productStatus: "active" })}
             className={cn(
               "p-4 rounded-lg border-2 transition-all text-left",
-              data.status === "active"
+              data.productStatus === "active"
                 ? "border-green-500 bg-green-500/10"
                 : "border-border hover:border-green-500/50"
             )}
@@ -74,10 +74,10 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
           </button>
 
           <button
-            onClick={() => onChange({ status: "inactive" })}
+            onClick={() => onChange({ productStatus: "inactive" })}
             className={cn(
               "p-4 rounded-lg border-2 transition-all text-left",
-              data.status === "inactive"
+              data.productStatus === "inactive"
                 ? "border-orange-500 bg-orange-500/10"
                 : "border-border hover:border-orange-500/50"
             )}
@@ -90,10 +90,10 @@ export function SettingsTab({ data, onChange }: SettingsTabProps) {
           </button>
 
           <button
-            onClick={() => onChange({ status: "archived" })}
+            onClick={() => onChange({ productStatus: "archived" })}
             className={cn(
               "p-4 rounded-lg border-2 transition-all text-left",
-              data.status === "archived"
+              data.productStatus === "archived"
                 ? "border-gray-500 bg-gray-500/10"
                 : "border-border hover:border-gray-500/50"
             )}

@@ -185,6 +185,22 @@ export function generateSlug(name: string): string {
 }
 
 /**
+ * Schema for asset request
+ */
+export const assetRequestSchema = z.object({
+  id: z.string().optional(),
+  url: z.string().url("Invalid asset URL").min(1, "Asset URL is required"),
+  publicId: z.string().nullable().optional(),
+  type: z.enum(["IMAGE", "VIDEO"], {
+    required_error: "Asset type is required",
+  }),
+  isThumbnail: z.boolean().default(false),
+  position: z.number().int().min(0).default(0),
+  variantId: z.string().nullable().optional(),
+  metaData: z.record(z.any()).nullable().optional(),
+});
+
+/**
  * Schema for creating a complete product
  * POST /api/v1/products
  */
@@ -213,10 +229,15 @@ export const createProductSchema = z.object({
     .min(0, "Base price cannot be negative")
     .max(999999.99, "Base price is too large"),
   categoryId: z.string().min(1, "Category is required"),
-  images: z
-    .array(z.string().url("Invalid image URL"))
-    .min(1, "At least one image is required")
-    .max(10, "Maximum 10 images allowed"),
+  assets: z
+    .array(assetRequestSchema)
+    .min(1, "At least one asset is required")
+    .max(50, "Maximum 50 assets allowed")
+    .refine(
+      (assets) => assets.some((asset) => asset.isThumbnail === true),
+      "At least one asset must be marked as thumbnail"
+    )
+    .optional(),
   isActive: z.boolean().default(true),
   variants: z
     .array(createVariantSchema)
@@ -255,7 +276,7 @@ export const createDraftProductSchema = z.object({
     .min(0, "Base price cannot be negative")
     .max(999999.99, "Base price is too large"),
   categoryId: z.string().min(1, "Category is required"),
-  images: z.array(z.string().url("Invalid image URL")).optional(),
+  assets: z.array(assetRequestSchema).max(50, "Maximum 50 assets allowed").optional(),
 });
 
 export type CreateDraftProductFormData = z.infer<
@@ -282,10 +303,15 @@ export const updateProductSchema = z.object({
     .min(0, "Base price cannot be negative")
     .max(999999.99, "Base price is too large"),
   categoryId: z.string().min(1, "Category is required"),
-  images: z
-    .array(z.string().url("Invalid image URL"))
-    .min(1, "At least one image is required")
-    .max(10, "Maximum 10 images allowed"),
+  assets: z
+    .array(assetRequestSchema)
+    .min(1, "At least one asset is required")
+    .max(50, "Maximum 50 assets allowed")
+    .refine(
+      (assets) => assets.some((asset) => asset.isThumbnail === true),
+      "At least one asset must be marked as thumbnail"
+    )
+    .optional(),
   isActive: z.boolean(),
   variants: z
     .array(
@@ -324,9 +350,9 @@ export const updateProductInfoSchema = z.object({
     .max(999999.99, "Base price is too large")
     .optional(),
   categoryId: z.string().min(1, "Category is required").optional(),
-  images: z
-    .array(z.string().url("Invalid image URL"))
-    .max(10, "Maximum 10 images allowed")
+  assets: z
+    .array(assetRequestSchema)
+    .max(50, "Maximum 50 assets allowed")
     .optional(),
   isActive: z.boolean().optional(),
 });

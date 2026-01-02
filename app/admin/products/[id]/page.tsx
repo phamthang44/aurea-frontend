@@ -16,20 +16,26 @@ import { productApi } from "@/lib/api/product";
 
 type Tab = "general" | "media" | "variants" | "settings";
 
+import { ProductAsset } from "@/lib/types/product";
+
 interface ProductData {
   id: string;
   name: string;
   description: string;
   categoryId: string;
   basePrice: number;
-  thumbnail?: string;
-  images?: string[];
+  assets?: ProductAsset[]; // Replaced thumbnail and images
   variants?: any[];
   slug?: string;
   productStatus: "draft" | "active" | "inactive" | "archived";
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string;
+  // Deprecated fields (kept for backward compatibility)
+  /** @deprecated Use assets array instead */
+  thumbnail?: string;
+  /** @deprecated Use assets array instead */
+  images?: string[];
 }
 
 export default function ProductDetailPage() {
@@ -51,8 +57,7 @@ export default function ProductDetailPage() {
     description: "",
     categoryId: "",
     basePrice: 0,
-    thumbnail: "",
-    images: [],
+    assets: [],
     variants: [],
     slug: "",
     productStatus: "draft",
@@ -95,25 +100,31 @@ export default function ProductDetailPage() {
           console.log("=========================");
 
           if (product) {
-            // Extract variant images from product.images (type: VARIANT)
-            const variantImagesMap = new Map();
-            if (product.images) {
-              product.images.forEach((img: any) => {
-                if (
-                  img.type === "VARIANT" &&
-                  img.key === "color" &&
-                  img.value
-                ) {
-                  variantImagesMap.set(img.value, img.url);
-                }
-              });
-            }
+            // Convert backend assets to frontend format
+            // Backend returns assets array with ProductAsset structure
+            const assets: ProductAsset[] = product.assets
+              ? product.assets.map((asset: any) => ({
+                  id: asset.id?.toString(),
+                  url: asset.url,
+                  publicId: asset.publicId || null,
+                  type: asset.type || "IMAGE",
+                  isThumbnail: asset.isThumbnail || false,
+                  position: asset.position || 0,
+                  variantId: asset.variantId?.toString() || null,
+                  metaData: asset.metaData || null,
+                }))
+              : [];
 
-            // Enrich variants with their images
-            const enrichedVariants = (product.variants || []).map((v: any) => ({
-              ...v,
-              imageUrl: variantImagesMap.get(v.attributes?.color) || null,
-            }));
+            // Enrich variants with their images (for backward compatibility)
+            const enrichedVariants = (product.variants || []).map((v: any) => {
+              const variantAsset = assets.find(
+                (a) => a.variantId === v.id?.toString() || a.variantId === v.sku
+              );
+              return {
+                ...v,
+                imageUrl: variantAsset?.url || null,
+              };
+            });
 
             const loadedData = {
               id: product.id,
@@ -121,15 +132,7 @@ export default function ProductDetailPage() {
               description: product.description || "",
               categoryId: product.categoryId || "",
               basePrice: product.basePrice || 0,
-              thumbnail: product.thumbnail || "",
-              // Convert ProductImage[] to string[] (extract URLs only)
-              images: Array.isArray(product.images)
-                ? product.images
-                    .filter((img: any) => img.type === "GENERAL")
-                    .map((img: any) =>
-                      typeof img === "string" ? img : img.url
-                    )
-                : [],
+              assets: assets,
               variants: enrichedVariants,
               slug: product.slug || "",
               productStatus: (
@@ -179,9 +182,8 @@ export default function ProductDetailPage() {
         productData.basePrice !== originalData.basePrice ||
         productData.categoryId !== originalData.categoryId,
       media:
-        productData.thumbnail !== originalData.thumbnail ||
-        JSON.stringify(productData.images) !==
-          JSON.stringify(originalData.images),
+        JSON.stringify(productData.assets) !==
+        JSON.stringify(originalData.assets),
       variants:
         JSON.stringify(productData.variants) !==
         JSON.stringify(originalData.variants),
@@ -250,39 +252,70 @@ export default function ProductDetailPage() {
       else if (changeType.type === "full") {
         console.log("📍 Calling FULL update endpoint (variants changed)");
 
-        // Collect general images + variant-specific images
-        const generalImages = (productData.images || []).map((url) => ({
-          url,
-          type: "GENERAL",
+        // Transform assets to AssetRequest format
+        const assetsToSend = (productData.assets || []).map((asset) => ({
+          id: asset.id,
+          url: asset.url,
+          publicId: asset.publicId || null,
+          type: asset.type,
+          isThumbnail: asset.isThumbnail,
+          position: asset.position || 0,
+          variantId: asset.variantId || null,
+          metaData: asset.metaData || null,
         }));
 
-        const variantImages = (productData.variants || [])
-          .filter((v: any) => v.imageUrl)
-          .map((v: any) => ({
-            url: v.imageUrl,
-            type: "VARIANT",
-            key: "color",
-            value: v.attributes?.color || "",
-          }));
+        // Validate and filter variants to prevent duplicate attributes
+        const variantsToSend = (productData.variants || [])
+          .map((variant: any) => ({
+            id: variant.id,
+            attributes: variant.attributes || {},
+            priceOverride: variant.priceOverride || variant.price,
+            isActive: variant.isActive !== false,
+          }))
+          .filter((variant: any) => {
+            // Filter out variants with empty attributes (unless they have an ID - existing variants)
+            const hasAttributes = Object.keys(variant.attributes).length > 0;
+            if (!hasAttributes && !variant.id) {
+              console.warn("Skipping variant with empty attributes:", variant);
+              return false;
+            }
+            return true;
+          });
 
-        const allImages = [...generalImages, ...variantImages];
+        // Check for duplicate attribute combinations
+        const attributeSignatures = new Set<string>();
+        const uniqueVariants = variantsToSend.filter((variant: any) => {
+          const signature = JSON.stringify(
+            Object.entries(variant.attributes)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .reduce((acc, [key, val]) => ({ ...acc, [key]: val }), {})
+          );
+          if (attributeSignatures.has(signature)) {
+            console.warn(
+              "Skipping duplicate variant:",
+              variant,
+              "signature:",
+              signature
+            );
+            return false;
+          }
+          attributeSignatures.add(signature);
+          return true;
+        });
+
+        console.log("Original variants count:", productData.variants?.length);
+        console.log("After filtering:", uniqueVariants.length);
+        console.log("Filtered variants:", uniqueVariants);
 
         const updatePayload = {
           name: productData.name,
           description: productData.description,
           basePrice: productData.basePrice,
           categoryId: productData.categoryId,
-          images: allImages.map((img: any) => img.url),
+          assets: assetsToSend, // Send AssetRequest array
           isActive: productData.productStatus === "active",
-          variants:
-            productData.variants?.map((variant: any) => ({
-              id: variant.id,
-              sku: variant.sku,
-              attributes: variant.attributes || {},
-              priceOverride: variant.priceOverride || variant.price,
-              isActive: variant.isActive !== false,
-            })) || [],
-        };
+          variants: uniqueVariants,
+        } as any; // Suppress type error - backend handles variant updates without sku in payload
 
         response = await productApi.updateProduct(productId, updatePayload);
       }
@@ -295,12 +328,24 @@ export default function ProductDetailPage() {
           `📍 Calling GENERAL INFO update endpoint (${changeType.type})`
         );
 
+        // Transform assets to AssetRequest format
+        const assetsToSend = (productData.assets || []).map((asset) => ({
+          id: asset.id,
+          url: asset.url,
+          publicId: asset.publicId || null,
+          type: asset.type,
+          isThumbnail: asset.isThumbnail,
+          position: asset.position || 0,
+          variantId: asset.variantId || null,
+          metaData: asset.metaData || null,
+        }));
+
         const generalInfoPayload = {
           name: productData.name,
           description: productData.description,
           basePrice: productData.basePrice,
           categoryId: productData.categoryId,
-          images: productData.images || [],
+          assets: assetsToSend, // Send AssetRequest array
         };
 
         response = await productApi.updateProductInfo(
@@ -328,22 +373,31 @@ export default function ProductDetailPage() {
         const updatedProduct = result?.data;
 
         if (updatedProduct) {
-          // Extract variant images from product.images
-          const variantImagesMap = new Map();
-          if (updatedProduct.images) {
-            updatedProduct.images.forEach((img: any) => {
-              if (img.type === "VARIANT" && img.key === "color" && img.value) {
-                variantImagesMap.set(img.value, img.url);
-              }
-            });
-          }
+          // Convert backend assets to frontend format
+          const assets: ProductAsset[] = updatedProduct.assets
+            ? updatedProduct.assets.map((asset: any) => ({
+                id: asset.id?.toString(),
+                url: asset.url,
+                publicId: asset.publicId || null,
+                type: asset.type || "IMAGE",
+                isThumbnail: asset.isThumbnail || false,
+                position: asset.position || 0,
+                variantId: asset.variantId?.toString() || null,
+                metaData: asset.metaData || null,
+              }))
+            : [];
 
-          // Enrich variants with their images
+          // Enrich variants with their images (for backward compatibility)
           const enrichedVariants = (updatedProduct.variants || []).map(
-            (v: any) => ({
-              ...v,
-              imageUrl: variantImagesMap.get(v.attributes?.color) || null,
-            })
+            (v: any) => {
+              const variantAsset = assets.find(
+                (a) => a.variantId === v.id?.toString() || a.variantId === v.sku
+              );
+              return {
+                ...v,
+                imageUrl: variantAsset?.url || null,
+              };
+            }
           );
 
           const refreshedData = {
@@ -352,13 +406,7 @@ export default function ProductDetailPage() {
             description: updatedProduct.description || "",
             categoryId: updatedProduct.categoryId || "",
             basePrice: updatedProduct.basePrice || 0,
-            thumbnail: updatedProduct.thumbnail || "",
-            // Convert ProductImage[] to string[] (extract URLs only)
-            images: Array.isArray(updatedProduct.images)
-              ? updatedProduct.images
-                  .filter((img: any) => img.type === "GENERAL")
-                  .map((img: any) => (typeof img === "string" ? img : img.url))
-              : [],
+            assets: assets,
             variants: enrichedVariants,
             slug: updatedProduct.slug || "",
             productStatus: (
@@ -397,13 +445,19 @@ export default function ProductDetailPage() {
     }
   };
 
-  const updateProductData = (updates: Partial<ProductData>) => {
+  const updateProductData = (
+    updates: Partial<ProductData>,
+    skipChangeTracking: boolean = false
+  ) => {
     console.log("=== UPDATE PRODUCT DATA ===");
     console.log("Updates received:", updates);
+    console.log("Skip change tracking:", skipChangeTracking);
     console.log("Current productData:", productData);
     console.log("===========================");
     setProductData((prev) => ({ ...prev, ...updates }));
-    setHasChanges(true);
+    if (!skipChangeTracking) {
+      setHasChanges(true);
+    }
   };
 
   return (

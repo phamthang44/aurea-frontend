@@ -59,16 +59,20 @@ export function ProductFormModal({
 
   useEffect(() => {
     if (product) {
+      // Convert assets to legacy format for backward compatibility
+      const thumbnailAsset = product.assets?.find((a) => a.isThumbnail);
+      const imageUrls = product.assets?.map((a) => a.url) || product.images || [];
+      
       setFormData({
         name: product.name || "",
         description: product.description || "",
         basePrice: product.basePrice,
         categoryId: product.categoryId || "",
-        thumbnail: product.thumbnail || "",
-        images: product.images?.join(", ") || "",
+        thumbnail: thumbnailAsset?.url || product.thumbnail || "",
+        images: imageUrls.join(", "),
       });
-      setThumbnailPreview(product.thumbnail || "");
-      setImagePreviews(product.images || []);
+      setThumbnailPreview(thumbnailAsset?.url || product.thumbnail || "");
+      setImagePreviews(imageUrls);
     } else {
       setFormData({
         name: "",
@@ -185,13 +189,37 @@ export function ProductFormModal({
       .map((img) => img.trim())
       .filter((img) => img.length > 0);
 
+    // Convert to assets format
+    const assets = images.map((url, index) => ({
+      url,
+      type: "IMAGE" as const,
+      isThumbnail: index === 0 && !formData.thumbnail, // First image is thumbnail if no explicit thumbnail
+      position: index,
+      variantId: null,
+    }));
+
+    // Add thumbnail as separate asset if provided
+    if (formData.thumbnail.trim()) {
+      assets.unshift({
+        url: formData.thumbnail.trim(),
+        type: "IMAGE" as const,
+        isThumbnail: true,
+        position: 0,
+        variantId: null,
+      });
+      // Update other assets' positions
+      assets.slice(1).forEach((asset, idx) => {
+        asset.position = idx + 1;
+        asset.isThumbnail = false;
+      });
+    }
+
     const submitData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
       basePrice: formData.basePrice!,
       categoryId: formData.categoryId.trim(),
-      thumbnail: formData.thumbnail.trim() || undefined,
-      images: images.length > 0 ? images : undefined,
+      assets: assets.length > 0 ? assets : undefined,
       // For now, we'll require at least one variant for create
       variants: product ? undefined : [
         {

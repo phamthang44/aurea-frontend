@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -40,6 +41,11 @@ const navItems: NavItem[] = [
     label: "Products",
     href: "/admin/products",
     icon: Package,
+  },
+  {
+    label: "Import",
+    href: "/admin/imports",
+    icon: Upload,
   },
   {
     label: "Users",

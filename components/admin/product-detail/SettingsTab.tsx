@@ -12,7 +12,7 @@ interface SettingsTabProps {
     seoDescription?: string;
     seoKeywords?: string;
   };
-  onChange: (updates: any) => void;
+  onChange: (updates: any, skipChangeTracking?: boolean) => void;
 }
 
 export function SettingsTab({ data, onChange }: SettingsTabProps) {

@@ -85,6 +85,20 @@ export interface VariantResponse {
 }
 
 /**
+ * Product asset (image/video) - matches backend ProductAsset entity
+ */
+export interface ProductAsset {
+  id?: string; // Optional for new assets
+  url: string;
+  publicId?: string | null;
+  type: "IMAGE" | "VIDEO";
+  isThumbnail: boolean;
+  position: number;
+  variantId?: string | null; // Null if it's a general product image
+  metaData?: Record<string, any> | null;
+}
+
+/**
  * Product response with all details
  */
 export interface ProductResponse {
@@ -96,18 +110,22 @@ export interface ProductResponse {
   categoryId: string;
   categoryName?: string;
   isActive: boolean;
-  images: string[];
+  assets: ProductAsset[]; // Replaced images: string[]
   variants: VariantResponse[];
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string | null;
   // Optional fields
   status?: string;
-  thumbnail?: string;
   weight?: number;
   length?: number;
   width?: number;
   height?: number;
+  // Deprecated fields (kept for backward compatibility during migration)
+  /** @deprecated Use assets array instead */
+  images?: string[];
+  /** @deprecated Use assets array with isThumbnail=true instead */
+  thumbnail?: string;
 }
 
 // ============================================================================
@@ -127,6 +145,20 @@ export interface CreateVariantRequest {
 }
 
 /**
+ * Asset request for creating/updating products
+ */
+export interface AssetRequest {
+  id?: string; // Optional for new assets, required for updates
+  url: string;
+  publicId?: string | null;
+  type: "IMAGE" | "VIDEO";
+  isThumbnail?: boolean;
+  position?: number;
+  variantId?: string | null;
+  metaData?: Record<string, any> | null;
+}
+
+/**
  * Request payload for creating a complete product with variants
  * POST /api/v1/products
  */
@@ -136,7 +168,7 @@ export interface CreateProductRequest {
   description: string;
   basePrice: number;
   categoryId: string;
-  images: string[];
+  assets?: AssetRequest[]; // Replaced images: string[]
   isActive?: boolean; // Default: true
   variants: CreateVariantRequest[]; // Can be empty array
   // Optional fields
@@ -144,6 +176,10 @@ export interface CreateProductRequest {
   length?: number;
   width?: number;
   height?: number;
+  // Deprecated fields (kept for backward compatibility during migration)
+  /** @deprecated Use assets array instead */
+  images?: string[];
+  /** @deprecated Use assets array with isThumbnail=true instead */
   thumbnail?: string;
 }
 
@@ -157,6 +193,9 @@ export interface CreateDraftProductRequest {
   description?: string;
   categoryId: string;
   basePrice: number;
+  assets?: AssetRequest[]; // Replaced images?: string[]
+  // Deprecated fields (kept for backward compatibility during migration)
+  /** @deprecated Use assets array instead */
   images?: string[];
 }
 
@@ -188,6 +227,16 @@ export interface UpdateVariantWithId extends UpdateVariantRequest {
 }
 
 /**
+ * @deprecated Use AssetRequest instead. This interface is kept for backward compatibility.
+ */
+export interface ProductImage {
+  url: string;
+  type: "GENERAL" | "VARIANT";
+  key?: string | null;
+  value?: string | null;
+}
+
+/**
  * Request payload for updating complete product
  * PUT /api/v1/products/{id}
  * - Variants WITH id: Updated
@@ -199,16 +248,20 @@ export interface UpdateProductRequest {
   description: string;
   basePrice: number;
   categoryId: string;
-  images: string[];
+  assets?: AssetRequest[]; // Replaced images: ProductImage[]
   isActive: boolean;
   variants: (CreateVariantRequest | UpdateVariantWithId)[]; // Mix of new and existing
   // Optional fields
   slug?: string;
-  thumbnail?: string;
   weight?: number;
   length?: number;
   width?: number;
   height?: number;
+  // Deprecated fields (kept for backward compatibility during migration)
+  /** @deprecated Use assets array instead */
+  images?: ProductImage[] | string[];
+  /** @deprecated Use assets array with isThumbnail=true instead */
+  thumbnail?: string;
 }
 
 /**
@@ -220,14 +273,18 @@ export interface UpdateProductInfoRequest {
   description?: string;
   basePrice?: number;
   categoryId?: string;
-  images?: string[];
+  assets?: AssetRequest[]; // Replaced images?: ProductImage[]
   isActive?: boolean;
   slug?: string;
-  thumbnail?: string;
   weight?: number;
   length?: number;
   width?: number;
   height?: number;
+  // Deprecated fields (kept for backward compatibility during migration)
+  /** @deprecated Use assets array instead */
+  images?: ProductImage[] | string[];
+  /** @deprecated Use assets array with isThumbnail=true instead */
+  thumbnail?: string;
 }
 
 /**
@@ -362,9 +419,14 @@ export interface ProductFormData {
   description: string;
   basePrice: number;
   categoryId: string;
-  images: string[];
+  assets: ProductAsset[]; // Replaced images: string[]
   isActive: boolean;
   variants: VariantFormData[];
+  // Deprecated fields (kept for backward compatibility during migration)
+  /** @deprecated Use assets array instead */
+  images?: string[];
+  /** @deprecated Use assets array with isThumbnail=true instead */
+  thumbnail?: string;
 }
 
 /**

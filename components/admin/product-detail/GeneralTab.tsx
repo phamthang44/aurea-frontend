@@ -16,7 +16,7 @@ interface GeneralTabProps {
     categoryId: string;
     basePrice: number;
   };
-  onChange: (updates: any) => void;
+  onChange: (updates: any, skipChangeTracking?: boolean) => void;
 }
 
 export function GeneralTab({ data, onChange }: GeneralTabProps) {

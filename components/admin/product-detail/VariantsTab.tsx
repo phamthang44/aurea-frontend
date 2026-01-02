@@ -16,7 +16,7 @@ interface VariantsTabProps {
     basePrice: number;
     variants?: any[];
   };
-  onChange: (updates: any) => void;
+  onChange: (updates: any, skipChangeTracking?: boolean) => void;
 }
 
 export function VariantsTab({ data, onChange }: VariantsTabProps) {
@@ -62,7 +62,12 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
     onChange({ variants: updated });
   };
 
-  const updateVariant = (index: number, field: string, value: any) => {
+  const updateVariant = (
+    index: number,
+    field: string,
+    value: any,
+    skipChangeTracking: boolean = false
+  ) => {
     const updated = [...variants];
     if (field.startsWith("attributes.")) {
       const attrKey = field.split(".")[1];
@@ -74,7 +79,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
       updated[index][field] = value;
     }
     setVariants(updated);
-    onChange({ variants: updated });
+    onChange({ variants: updated }, skipChangeTracking);
   };
 
   const handleVariantImageUpload = async (index: number, file: File) => {
@@ -92,17 +97,22 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
       formData.append("file", file);
 
       const toastId = toast.loading("Uploading variant image...");
-      const response = await apiClient.post<{ data: string }>("files", formData);
+      const response = await apiClient.post<{ data: string }>(
+        "files",
+        formData
+      );
       toast.dismiss(toastId);
 
       if (response.error) {
         toast.error("Failed to upload image");
       } else {
         const cloudinaryUrl = response.data?.data;
-        toast.success("Image uploaded (will be saved on Save Changes)");
+        toast.success(
+          "Image uploaded. Click 'Save Changes' to save it to the product."
+        );
 
-        // Store image URL in variant
-        updateVariant(index, "imageUrl", cloudinaryUrl);
+        // Store image URL in variant locally (will be saved to product when clicking main Save Changes button)
+        updateVariant(index, "imageUrl", cloudinaryUrl, false);
       }
     } catch (error) {
       toast.error("Failed to upload image");
@@ -111,7 +121,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
   };
 
   const removeVariantImage = (index: number) => {
-    updateVariant(index, "imageUrl", null);
+    updateVariant(index, "imageUrl", null, false); // Mark as changed - needs Save Changes
   };
 
   const saveVariant = async (index: number) => {
@@ -149,6 +159,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
           priceOverride: variant.priceOverride,
           quantity: variant.quantity, // ✅ Backend publishes event → Inventory listener updates stock
           // ❌ DO NOT send attributes - they are immutable (SKU is derived from them)
+          // ❌ DO NOT send imageUrl - images are saved at product level via main "Save Changes" button
         });
 
         if (variantResponse.error) {
@@ -179,6 +190,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
           priceOverride: variant.priceOverride || null,
           quantity: variant.quantity, // ✅ Initial stock for new variants
           attributes: variant.attributes,
+          // ❌ DO NOT send imageUrl - images are saved at product level via main "Save Changes" button
         });
 
         if (response.error) {
@@ -245,7 +257,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
 
     if (!variant.id) {
       // Just update locally if not saved yet
-      updateVariant(index, "isActive", newStatus);
+      updateVariant(index, "isActive", newStatus); // Keep change tracking for unsaved variants
       return;
     }
 
@@ -260,7 +272,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
           response.error.message || "Failed to update variant status"
         );
       } else {
-        updateVariant(index, "isActive", newStatus);
+        updateVariant(index, "isActive", newStatus, true); // Skip change tracking - already saved
         toast.success(`Variant ${newStatus ? "activated" : "deactivated"}`);
       }
     } catch (error) {

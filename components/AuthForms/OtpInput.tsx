@@ -74,17 +74,16 @@ export function OtpInput({
               "bg-transparent border-0 border-b-2 border-border",
               "focus:outline-none focus:border-foreground transition-all duration-300",
               "disabled:opacity-50 disabled:cursor-not-allowed",
-              error && "border-destructive focus:border-destructive"
+              error && "border-red-500 focus:border-red-500"
             )}
           />
         ))}
       </div>
       {error && (
-        <p className="text-xs text-destructive font-light text-center">
-          {error}
+        <p className="text-xs font-medium text-center bg-red-50 dark:bg-red-950/20 px-3 py-2 rounded mt-2 text-red-600 dark:text-red-400">
+          ⚠ {error}
         </p>
       )}
     </div>
   );
 }
-

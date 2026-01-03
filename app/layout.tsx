@@ -7,6 +7,7 @@ import { GoogleOAuthProviderWrapper } from "@/components/providers/GoogleOAuthPr
 import { SuppressCOOPWarnings } from "@/components/providers/SuppressCOOPWarnings";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthInitProvider } from "@/components/providers/AuthInitProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -73,14 +74,16 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <GoogleOAuthProviderWrapper>
-            <ReduxProvider>
-              <AuthInitProvider>
-                {children}
-                <Toaster position="top-center" richColors />
-              </AuthInitProvider>
-            </ReduxProvider>
-          </GoogleOAuthProviderWrapper>
+          <QueryProvider>
+            <GoogleOAuthProviderWrapper>
+              <ReduxProvider>
+                <AuthInitProvider>
+                  {children}
+                  <Toaster position="top-center" richColors />
+                </AuthInitProvider>
+              </ReduxProvider>
+            </GoogleOAuthProviderWrapper>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

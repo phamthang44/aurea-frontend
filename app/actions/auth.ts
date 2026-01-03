@@ -624,6 +624,7 @@ export async function fetchUserProfileAction() {
               fullName: undefined,
               avatarUrl: undefined,
               userId: undefined,
+              roles: undefined
             },
           };
         }

@@ -5,18 +5,37 @@ import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
-interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface PasswordInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ label, error, className, id, ...props }, ref) => {
+  ({ label, error, className, id, onBlur, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [touched, setTouched] = useState(false);
+    const [internalError, setInternalError] = useState("");
 
     const toggleVisibility = () => {
       setShowPassword((prev) => !prev);
     };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setTouched(true);
+
+      // Validate required fields
+      if (props.required && !e.target.value.trim()) {
+        setInternalError("This field is required");
+      } else {
+        setInternalError("");
+      }
+
+      // Call parent onBlur if provided
+      onBlur?.(e);
+    };
+
+    const displayError = error || (touched && internalError);
 
     return (
       <div className="flex flex-col space-y-2">
@@ -26,6 +45,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             className="text-xs font-light tracking-wider uppercase text-muted-foreground"
           >
             {label}
+            {props.required && <span className="text-red-500 ml-1">*</span>}
           </Label>
         )}
         <div className="relative">
@@ -38,9 +58,10 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
               "text-foreground placeholder:text-muted-foreground/50",
               "focus:outline-none focus:border-foreground transition-colors",
               "font-light tracking-wide",
-              error && "border-destructive focus:border-destructive",
+              displayError && "border-red-500 focus:border-red-500",
               className
             )}
+            onBlur={handleBlur}
             {...props}
           />
           <button
@@ -56,9 +77,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
               <Eye className="h-4 w-4" />
             )}
           </button>
-          {error && (
-            <p className="absolute -bottom-5 left-0 text-xs text-destructive font-light">
-              {error}
+          {displayError && (
+            <p className="absolute -bottom-6 left-0 text-xs font-medium bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded text-red-600 dark:text-red-400">
+              ⚠ {displayError}
             </p>
           )}
         </div>
@@ -68,4 +89,3 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 );
 
 PasswordInput.displayName = "PasswordInput";
-

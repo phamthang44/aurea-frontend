@@ -517,3 +517,103 @@ export function computeProductFields(
     variantCount: variants.length,
   };
 }
+
+// ============================================================================
+// New API DTOs for Public/Admin Separation
+// ============================================================================
+
+/**
+ * Auditor response - user who created/updated the entity
+ */
+export interface AuditorResponse {
+  username: string;
+  email: string;
+  id: string;
+  avatarUrl?: string;
+}
+
+/**
+ * Lightweight DTO for customer-facing storefront (Public API)
+ * Returned by GET /api/v1/products (forces ACTIVE status)
+ */
+export interface ProductListingDto {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  thumbnail: string;
+  categoryName: string;
+}
+
+/**
+ * Asset response for admin
+ */
+export interface AssetResponse {
+  id: string;
+  url: string;
+  type: "IMAGE" | "VIDEO";
+  variantId?: string;
+  position: number;
+}
+
+/**
+ * Detailed DTO for admin backoffice
+ * Returned by GET /api/v1/products/admin
+ */
+export interface ProductResponseAdmin {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  basePrice: number;
+  categoryId: string;
+  categoryName: string;
+  status: "ACTIVE" | "DRAFT" | "HIDDEN" | "ARCHIVED";
+  assets: AssetResponse[];
+  variants: VariantResponse[];
+  createdBy?: AuditorResponse | null;
+  updatedBy?: AuditorResponse | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Product search request for both public and admin APIs
+ */
+export interface ProductSearchRequest {
+  keyword?: string;
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  status?: "ACTIVE" | "DRAFT" | "HIDDEN" | "ARCHIVED";
+  page?: number;
+  size?: number;
+  sort?: "newest" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
+}
+
+/**
+ * API Result with pagination support - matches backend ApiResult structure
+ */
+export interface PaginatedApiResult<T> {
+  data: T;
+  meta?: {
+    serverTime?: number;
+    apiVersion?: string;
+    traceId?: string;
+    message?: string;
+    // Offset Pagination
+    page?: number;
+    size?: number;
+    totalElements?: number;
+    totalPages?: number;
+    // Sort & Filter
+    sort?: string;
+    filter?: Record<string, any>;
+  };
+  error?: {
+    code: string;
+    message: string;
+    traceId?: string;
+    details?: any;
+  };
+}

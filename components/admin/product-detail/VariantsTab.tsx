@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { Plus, Trash2, Save, Upload, X } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import apiClient, { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";
@@ -80,48 +80,6 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
     }
     setVariants(updated);
     onChange({ variants: updated }, skipChangeTracking);
-  };
-
-  const handleVariantImageUpload = async (index: number, file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const toastId = toast.loading("Uploading variant image...");
-      const response = await apiClient.post<{ data: string }>(
-        "files",
-        formData
-      );
-      toast.dismiss(toastId);
-
-      if (response.error) {
-        toast.error("Failed to upload image");
-      } else {
-        const cloudinaryUrl = response.data?.data;
-        toast.success(
-          "Image uploaded. Click 'Save Changes' to save it to the product."
-        );
-
-        // Store image URL in variant locally (will be saved to product when clicking main Save Changes button)
-        updateVariant(index, "imageUrl", cloudinaryUrl, false);
-      }
-    } catch (error) {
-      toast.error("Failed to upload image");
-      console.error("Image upload error:", error);
-    }
-  };
-
-  const removeVariantImage = (index: number) => {
-    updateVariant(index, "imageUrl", null, false); // Mark as changed - needs Save Changes
   };
 
   const saveVariant = async (index: number) => {
@@ -408,32 +366,19 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
                   >
                     <td className="px-4 py-3">
                       {variant.imageUrl ? (
-                        <div className="relative w-16 h-16 rounded border overflow-hidden group">
+                        <div className="w-16 h-16 rounded border overflow-hidden">
                           <img
                             src={variant.imageUrl}
                             alt="Variant"
                             className="w-full h-full object-cover"
                           />
-                          <button
-                            onClick={() => removeVariantImage(index)}
-                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                          >
-                            <X className="h-5 w-5 text-white" />
-                          </button>
                         </div>
                       ) : (
-                        <label className="w-16 h-16 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-colors">
-                          <Upload className="h-5 w-5 text-muted-foreground" />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleVariantImageUpload(index, file);
-                            }}
-                          />
-                        </label>
+                        <div className="w-16 h-16 border border-dashed border-border rounded flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">
+                            No image
+                          </span>
+                        </div>
                       )}
                     </td>
                     <td className="px-4 py-3">

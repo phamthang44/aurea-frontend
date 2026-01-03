@@ -70,27 +70,32 @@ export default function AuthPage() {
       if (result.success && result.data) {
         // Fetch user profile from backend (single source of truth)
         const profileResult = await fetchUserProfileAction();
-        
+
         if (profileResult.success && profileResult.data) {
           // Merge roles from login response with profile data
           const userData = {
             ...profileResult.data,
             roles: result.data.roles || profileResult.data.roles || [],
           };
-          
+
           console.log("[Auth Page] User profile fetched:", userData);
           dispatch(setAuthenticated({ user: userData }));
         } else {
           // If profile fetch fails, still set authenticated with roles from login
-          console.warn("[Auth Page] Profile fetch failed, using roles from login:", result.data.roles);
-          dispatch(setAuthenticated({ 
-            user: { 
-              email: identifier, // Fallback to identifier
-              roles: result.data.roles || [],
-            } 
-          }));
+          console.warn(
+            "[Auth Page] Profile fetch failed, using roles from login:",
+            result.data.roles
+          );
+          dispatch(
+            setAuthenticated({
+              user: {
+                email: identifier, // Fallback to identifier
+                roles: result.data.roles || [],
+              },
+            })
+          );
         }
-        
+
         // Merge guest cart after successful login
         const { mergeGuestCartOnLogin } = await import("@/lib/utils/cartMerge");
         await mergeGuestCartOnLogin();
@@ -149,27 +154,35 @@ export default function AuthPage() {
         if (!result.data.requiresRegistration) {
           // Fetch user profile from backend (single source of truth)
           const profileResult = await fetchUserProfileAction();
-          
+
           if (profileResult.success && profileResult.data) {
             // Merge roles from OTP response with profile data
             const userData = {
               ...profileResult.data,
               roles: result.data.roles || profileResult.data.roles || [],
             };
-            
-            console.log("[Auth Page] OTP Login - User profile fetched:", userData);
+
+            console.log(
+              "[Auth Page] OTP Login - User profile fetched:",
+              userData
+            );
             dispatch(setAuthenticated({ user: userData }));
           } else {
             // If profile fetch fails, still set authenticated with roles from OTP
-            console.warn("[Auth Page] Profile fetch failed, using roles from OTP:", result.data.roles);
-            dispatch(setAuthenticated({ 
-              user: { 
-                email: otpEmail, // Use email from form
-                roles: result.data.roles || [],
-              } 
-            }));
+            console.warn(
+              "[Auth Page] Profile fetch failed, using roles from OTP:",
+              result.data.roles
+            );
+            dispatch(
+              setAuthenticated({
+                user: {
+                  email: otpEmail, // Use email from form
+                  roles: result.data.roles || [],
+                },
+              })
+            );
           }
-          
+
           // Merge guest cart after successful OTP login
           const { mergeGuestCartOnLogin } = await import(
             "@/lib/utils/cartMerge"
@@ -223,28 +236,36 @@ export default function AuthPage() {
       if (result.success && result.data) {
         // Fetch user profile from backend (single source of truth)
         const profileResult = await fetchUserProfileAction();
-        
+
         if (profileResult.success && profileResult.data) {
           // Merge roles from registration response with profile data
           const userData = {
             ...profileResult.data,
             roles: result.data.roles || profileResult.data.roles || [],
           };
-          
-          console.log("[Auth Page] Registration - User profile fetched:", userData);
+
+          console.log(
+            "[Auth Page] Registration - User profile fetched:",
+            userData
+          );
           dispatch(setAuthenticated({ user: userData }));
         } else {
           // If profile fetch fails, still set authenticated with roles from registration
-          console.warn("[Auth Page] Profile fetch failed, using roles from registration:", result.data.roles);
-          dispatch(setAuthenticated({ 
-            user: { 
-              email: otpEmail, // Use email from form
-              fullName: fullName, // Use fullName from form
-              roles: result.data.roles || [],
-            } 
-          }));
+          console.warn(
+            "[Auth Page] Profile fetch failed, using roles from registration:",
+            result.data.roles
+          );
+          dispatch(
+            setAuthenticated({
+              user: {
+                email: otpEmail, // Use email from form
+                fullName: fullName, // Use fullName from form
+                roles: result.data.roles || [],
+              },
+            })
+          );
         }
-        
+
         // Merge guest cart after successful registration
         const { mergeGuestCartOnLogin } = await import("@/lib/utils/cartMerge");
         await mergeGuestCartOnLogin();
@@ -289,18 +310,25 @@ export default function AuthPage() {
       {/* Blurred "Orb" of Color in Background Corner */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/15 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-      <div className="pt-20 min-h-screen flex relative z-10">
+      <div className="pt-20 min-h-screen flex relative z-10 overflow-hidden">
         {/* Left Side - Fashion Image */}
         <div className="hidden lg:block lg:w-1/2 relative">
-          <div className="sticky top-0 h-screen">
+          <div className="sticky top-1 h-[91vh] rounded-lg ">
             <Image
-              src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=1200&fit=crop"
+              src="/background-4.jpg"
               alt="Luxury Fashion"
               fill
-              className="object-cover"
+              className="object-cover object-center"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
+            <div
+              className="
+                absolute inset-0
+                bg-gradient-to-t
+                from-white/40 via-white/10 to-transparent
+                dark:from-black/60 dark:via-black/30
+              "
+            />
           </div>
         </div>
 
@@ -393,12 +421,12 @@ export default function AuthPage() {
                 </form>
 
                 {/* Divider */}
-                <div className="relative">
+                <div className="relative py-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
+                    <div className="w-full border-t border-border bg-background/40 dark:bg-background/40" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-4 text-muted-foreground font-light tracking-wider">
+                    <span className="bg-white dark:bg-[#121212] px-6 py-1 text-muted-foreground font-light tracking-wider">
                       Or continue with
                     </span>
                   </div>

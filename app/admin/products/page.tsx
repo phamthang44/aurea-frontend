@@ -13,20 +13,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { clientApi } from "@/lib/api-client";
+import { searchAdminProducts } from "@/lib/api/products";
 import { toast } from "sonner";
-import { Plus, Loader2 } from "lucide-react";
-import { ProductResponse, ApiResult } from "@/lib/types/product";
+import { Plus, Loader2, Search, UserCircle2 } from "lucide-react";
+import {
+  ProductResponse,
+  ProductResponseAdmin,
+  ProductSearchRequest,
+  ApiResult,
+} from "@/lib/types/product";
 
 export default function AdminProductsPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [products, setProducts] = useState<ProductResponseAdmin[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
-    useState<ProductResponse | null>(null);
+    useState<ProductResponseAdmin | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Search and filter state
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchParams, setSearchParams] = useState<ProductSearchRequest>({
+    page: 1,
+    size: 10,
+    sort: "newest",
+  });
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,30 +56,23 @@ export default function AdminProductsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Fetch products - Simple: just call API and use backend data directly
-  const fetchProducts = async (
-    page: number = currentPage,
-    size: number = pageSize
-  ) => {
+  // Fetch products using new admin API
+  // Authentication is handled via HttpOnly cookies automatically
+  const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const response = await clientApi.getProducts({ page, size });
+      const result = await searchAdminProducts(searchParams);
 
-      if (response.error) {
-        toast.error(response.error.message || "Failed to fetch products");
-        setProducts([]);
-        setTotalItems(0);
-        setTotalPages(0);
-      } else {
-        // response.data now contains the full backend structure { data, meta }
-        const result = response.data as ApiResult<ProductResponse[]>;
-        // Trust backend data completely - no frontend calculations
-        setProducts(result?.data || []);
-        setTotalItems(result?.meta?.totalElements || 0);
-        setTotalPages(result?.meta?.totalPages || 0);
-      }
-    } catch {
-      toast.error("An unexpected error occurred while fetching products");
+      setProducts(result.data);
+      // Backend calculates everything in meta object
+      setTotalItems(result.meta?.totalElements || 0);
+      setTotalPages(result.meta?.totalPages || 0);
+      setCurrentPage(result.meta?.page || 1);
+      setPageSize(result.meta?.size || 10);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to fetch products"
+      );
       setProducts([]);
       setTotalItems(0);
       setTotalPages(0);
@@ -67,9 +82,24 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
-    fetchProducts(currentPage, pageSize);
+    fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize]);
+  }, [searchParams]);
+
+  // Handle search
+  const handleSearch = () => {
+    setSearchParams((prev) => ({ ...prev, keyword: searchKeyword, page: 1 }));
+  };
+
+  // Handle status filter
+  const handleStatusFilter = (status?: ProductSearchRequest["status"]) => {
+    setSearchParams((prev) => ({ ...prev, status, page: 1 }));
+  };
+
+  // Handle sort change
+  const handleSortChange = (sort: ProductSearchRequest["sort"]) => {
+    setSearchParams((prev) => ({ ...prev, sort, page: 1 }));
+  };
 
   // Handle delete
   const handleDelete = async () => {
@@ -85,7 +115,7 @@ export default function AdminProductsPage() {
         toast.success("Product deleted successfully");
         setIsDeleteDialogOpen(false);
         setSelectedProduct(null);
-        fetchProducts(currentPage, pageSize);
+        fetchProducts();
       }
     } catch {
       toast.error("An unexpected error occurred");
@@ -94,36 +124,60 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleEdit = (product: ProductResponse) => {
+  const handleEdit = (product: ProductResponseAdmin) => {
     // Navigate to admin detail page using ID
     router.push(`/admin/products/${product.id}`);
   };
 
-  const handleDeleteClick = (product: ProductResponse) => {
+  const handleDeleteClick = (product: ProductResponseAdmin) => {
     setSelectedProduct(product);
     setIsDeleteDialogOpen(true);
   };
 
   // Pagination handlers
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setSearchParams((prev) => ({ ...prev, page }));
   };
 
   const handlePageSizeChange = (size: number) => {
+    setSearchParams((prev) => ({ ...prev, size, page: 1 }));
     setPageSize(size);
-    setCurrentPage(1); // Reset to first page when changing page size
   };
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      handlePageChange(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      handlePageChange(currentPage + 1);
     }
+  };
+
+  // Format currency to VND with decimal places
+  const formatVND = (amount: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Format datetime to local format with seconds and AM/PM
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }).format(date);
   };
 
   return (
@@ -154,16 +208,289 @@ export default function AdminProductsPage() {
         </Button>
       </div>
 
-      {/* Products Table */}
-      <ProductTable
-        products={products}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-        isLoading={isLoading}
-      />
+      {/* Search and Filters */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow border border-gray-200 dark:border-amber-900/30">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Search Input */}
+          <div className="md:col-span-2 flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search products by name..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              onClick={handleSearch}
+              className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-md shadow-amber-500/20 dark:shadow-amber-900/30 border-0 font-semibold px-6"
+            >
+              Search
+            </Button>
+          </div>
+
+          {/* Status Filter */}
+          <Select
+            value={searchParams.status || "all"}
+            onValueChange={(value: string) =>
+              handleStatusFilter(value === "all" ? undefined : (value as any))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="DRAFT">Draft</SelectItem>
+              <SelectItem value="INACTIVE">Hidden</SelectItem>
+              <SelectItem value="ARCHIVED">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort Filter */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-amber-200 whitespace-nowrap">
+              Sort:
+            </label>
+            <Select
+              value={searchParams.sort || "newest"}
+              onValueChange={(value: string) => handleSortChange(value as any)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                <SelectItem value="name_asc">Name: A to Z</SelectItem>
+                <SelectItem value="name_desc">Name: Z to A</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Products Table - Custom implementation for ProductResponseAdmin */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow border border-gray-200 dark:border-amber-900/30 overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 dark:text-amber-100/60">
+            No products found
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-amber-900/30">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Category
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Variants
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Created
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Updated
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-amber-900/20">
+                {products.map((product) => (
+                  <tr
+                    key={product.id}
+                    className="hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-amber-100">
+                      {product.id}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900 dark:text-amber-100">
+                        {product.name}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-amber-100/60">
+                        {product.slug}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-amber-100">
+                      {product.categoryName}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-amber-100">
+                      {formatVND(product.basePrice)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          product.status === "ACTIVE"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                            : product.status === "DRAFT"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                            : product.status === "HIDDEN"
+                            ? "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                        }`}
+                      >
+                        {product.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        {product.variants && product.variants.length > 0 ? (
+                          product.variants.map((variant) => (
+                            <span
+                              key={variant.id}
+                              className="text-xs text-gray-600 dark:text-amber-100/70"
+                            >
+                              {variant.attributes.size &&
+                                `Size: ${variant.attributes.size}`}
+                              {variant.attributes.size &&
+                                variant.attributes.color &&
+                                " | "}
+                              {variant.attributes.color &&
+                                `Color: ${variant.attributes.color}`}
+                              {!variant.attributes.size &&
+                                !variant.attributes.color &&
+                                `SKU: ${variant.sku}`}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400 dark:text-amber-100/40">
+                            No variants
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {product.createdBy ? (
+                        <div className="flex items-center gap-2">
+                          {product.createdBy.avatarUrl ? (
+                            <img
+                              src={product.createdBy.avatarUrl}
+                              alt={product.createdBy.username}
+                              className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-amber-700/40"
+                            />
+                          ) : (
+                            <UserCircle2 className="w-8 h-8 text-gray-400 dark:text-amber-600" />
+                          )}
+                          <div className="flex flex-col">
+                            <a
+                              href={`/admin/users/${product.createdBy.id}`}
+                              className="text-sm text-blue-600 dark:text-amber-400 font-medium hover:underline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              {product.createdBy.username ||
+                                product.createdBy.email}
+                            </a>
+                            <div className="text-xs text-gray-500 dark:text-amber-100/60">
+                              {formatDateTime(product.createdAt)}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-400 dark:text-amber-100/40 italic">
+                            Unknown
+                          </span>
+                          <div className="text-xs text-gray-500 dark:text-amber-100/60">
+                            {formatDateTime(product.createdAt)}
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {product.updatedBy ? (
+                        <div className="flex items-center gap-2">
+                          {product.updatedBy.avatarUrl ? (
+                            <img
+                              src={product.updatedBy.avatarUrl}
+                              alt={product.updatedBy.username}
+                              className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-amber-700/40"
+                            />
+                          ) : (
+                            <UserCircle2 className="w-8 h-8 text-gray-400 dark:text-amber-600" />
+                          )}
+                          <div className="flex flex-col">
+                            <a
+                              href={`/admin/users/${product.updatedBy.id}`}
+                              className="text-sm text-blue-600 dark:text-amber-400 font-medium hover:underline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              {product.updatedBy.username ||
+                                product.updatedBy.email}
+                            </a>
+                            <div className="text-xs text-gray-500 dark:text-amber-100/60">
+                              {formatDateTime(product.updatedAt)}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-400 dark:text-amber-100/40 italic">
+                            Unknown
+                          </span>
+                          <div className="text-xs text-gray-500 dark:text-amber-100/60">
+                            {formatDateTime(product.updatedAt)}
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(product)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Luxury Pagination */}
-      {!isLoading && totalItems > 0 && (
+      {!isLoading && (totalItems > 0 || products.length > 0) && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 border border-gray-200 dark:border-amber-900/30 rounded-xl px-8 py-5 shadow-md dark:shadow-amber-950/20">
           {/* Left: Results info and page size selector */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">

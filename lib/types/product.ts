@@ -121,6 +121,9 @@ export interface ProductResponse {
   length?: number;
   width?: number;
   height?: number;
+  // Stock information (computed from inventory)
+  availableStock?: number; // Total available stock across all variants
+  inStock?: boolean; // Whether product has any available stock
   // Deprecated fields (kept for backward compatibility during migration)
   /** @deprecated Use assets array instead */
   images?: string[];
@@ -571,6 +574,8 @@ export interface ProductListingDto {
   price: number;
   thumbnail: string;
   categoryName: string;
+  availableStock: number;
+  inStock: boolean;
 }
 
 /**

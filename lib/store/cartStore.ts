@@ -8,6 +8,13 @@ export interface CartItem {
   quantity: number;
   imageUrl?: string;
   brand?: string;
+  // Stock information from ProductListingDto
+  inStock?: boolean; // Whether product has any available stock
+  availableStock?: number; // Total available stock across all variants
+  // Variant information (for products with variants)
+  variantId?: string; // Selected variant ID
+  variantSku?: string; // Selected variant SKU
+  variantAttributes?: Record<string, string>; // Selected variant attributes (e.g., { Size: "M", Color: "Red" })
 }
 
 interface CartState {
@@ -22,6 +29,7 @@ interface CartState {
   setAuthenticated: (isAuth: boolean) => void;
   mergeGuestCart: (guestItems: CartItem[]) => void;
   syncToServer: () => Promise<void>;
+  updateItemStock: (itemId: string, inStock: boolean, availableStock: number) => void;
 }
 
 const CART_STORAGE_KEY = 'aurea-guest-cart';
@@ -37,10 +45,20 @@ export const useCartStore = create<CartState>()(
         if (state.isAuthenticated) {
           // If authenticated, sync to server immediately
           set((state) => {
-            const existingItem = state.items.find((i) => i.id === item.id);
+            // For products with variants, check if same variant already exists
+            // For products without variants, check by product ID only
+            const existingItem = item.variantId
+              ? state.items.find(
+                  (i) => i.id === item.id && i.variantId === item.variantId
+                )
+              : state.items.find((i) => i.id === item.id && !i.variantId);
+            
             const newItems = existingItem
               ? state.items.map((i) =>
-                  i.id === item.id
+                  i.id === item.id &&
+                  (item.variantId
+                    ? i.variantId === item.variantId
+                    : !i.variantId)
                     ? { ...i, quantity: i.quantity + item.quantity }
                     : i
                 )
@@ -52,10 +70,20 @@ export const useCartStore = create<CartState>()(
         } else {
           // Guest mode: save to localStorage only
           set((state) => {
-            const existingItem = state.items.find((i) => i.id === item.id);
+            // For products with variants, check if same variant already exists
+            // For products without variants, check by product ID only
+            const existingItem = item.variantId
+              ? state.items.find(
+                  (i) => i.id === item.id && i.variantId === item.variantId
+                )
+              : state.items.find((i) => i.id === item.id && !i.variantId);
+            
             const newItems = existingItem
               ? state.items.map((i) =>
-                  i.id === item.id
+                  i.id === item.id &&
+                  (item.variantId
+                    ? i.variantId === item.variantId
+                    : !i.variantId)
                     ? { ...i, quantity: i.quantity + item.quantity }
                     : i
                 )
@@ -153,6 +181,16 @@ export const useCartStore = create<CartState>()(
         } catch (error) {
           console.error('Failed to sync cart to server:', error);
         }
+      },
+
+      updateItemStock: (itemId, inStock, availableStock) => {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === itemId
+              ? { ...item, inStock, availableStock }
+              : item
+          ),
+        }));
       },
     }),
     {

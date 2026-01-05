@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Eye, ShoppingBag } from 'lucide-react';
 import { ProductResponse } from '@/lib/types/product';
 import { Button } from '@/components/ui/button';
+import { ProductQuickViewModal } from './ProductQuickViewModal';
 
 interface ProductCardProps {
   product: ProductResponse;
@@ -38,9 +39,17 @@ function isNewProduct(createdAt?: string): boolean {
 }
 
 /**
- * Check if product is sold out (all variants have 0 quantity or are inactive)
+ * Check if product is sold out
+ * Uses inStock field from backend if available, otherwise falls back to variant calculation
  */
-function isSoldOut(variants: ProductResponse['variants']): boolean {
+function isSoldOut(product: ProductResponse): boolean {
+  // Prefer backend computed inStock field
+  if (product.inStock !== undefined) {
+    return !product.inStock;
+  }
+  
+  // Fallback: calculate from variants (for backward compatibility)
+  const variants = product.variants;
   if (!variants || variants.length === 0) return false;
   return variants.every(
     (variant) => variant.quantity === 0 || !variant.isActive
@@ -94,10 +103,11 @@ export function ProductCard({
   onQuickView,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const images = getProductImages(product);
   const primaryImage = getPrimaryImage(images);
   const secondaryImage = getSecondaryImage(images);
-  const soldOut = isSoldOut(product.variants);
+  const soldOut = isSoldOut(product);
   const isNew = isNewProduct(product.createdAt);
 
   // Calculate display price (use lowest variant price if available, otherwise basePrice)
@@ -115,15 +125,24 @@ export function ProductCard({
     e.stopPropagation();
     if (onQuickView) {
       onQuickView(product);
+    } else {
+      // Open modal for variant selection
+      setIsModalOpen(true);
     }
   };
 
   return (
-    <div
-      className="group relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
+      <ProductQuickViewModal
+        product={product}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+      />
+      <div
+        className="group relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       <Link
         href={`/products/${product.slug}`}
         className="block no-underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
@@ -232,6 +251,7 @@ export function ProductCard({
         </div>
       </Link>
     </div>
+    </>
   );
 }
 

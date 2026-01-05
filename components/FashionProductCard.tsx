@@ -15,6 +15,9 @@ interface FashionProductCardProps {
   price: number;
   currency?: string;
   spanCols?: number;
+  // Stock information (optional)
+  availableStock?: number;
+  inStock?: boolean;
 }
 
 export function FashionProductCard({
@@ -25,6 +28,8 @@ export function FashionProductCard({
   price,
   currency = 'USD',
   spanCols = 1,
+  availableStock,
+  inStock = true, // Default to true if not provided
 }: FashionProductCardProps) {
   const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
@@ -54,27 +59,38 @@ export function FashionProductCard({
             {/* Dark overlay to reduce brightness in dark mode */}
             <div className="absolute inset-0  pointer-events-none transition-opacity duration-300 group-hover:opacity-0" />
 
+            {/* Sold Out Overlay */}
+            {!inStock && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                <span className="px-4 py-2 text-sm font-bold uppercase tracking-wider bg-destructive text-destructive-foreground rounded-md shadow-lg">
+                  {t("cart.soldOut", { defaultValue: "Sold Out" })}
+                </span>
+              </div>
+            )}
+
             {/* Quick View Button - Appears on hover */}
-            <div
-              className={`
-                absolute inset-0 flex items-center justify-center
-                bg-white/60 dark:bg-black/60 backdrop-blur-sm
-                transition-all duration-300 ease-out
-                ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-              `}
-            >
-              <Button
-                variant="outline"
-                className="rounded-sm border-2 border-[#D4AF37] bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md text-[#B8A072] hover:text-white hover:bg-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-[#1A1A1A] dark:hover:bg-[#D4AF37] transition-all duration-300"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Quick view logic would go here
-                }}
+            {inStock && (
+              <div
+                className={`
+                  absolute inset-0 flex items-center justify-center
+                  bg-white/60 dark:bg-black/60 backdrop-blur-sm
+                  transition-all duration-300 ease-out
+                  ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                `}
               >
-                <Eye className="h-4 w-4 mr-2" />
-                {t("productCard.quickView")}
-              </Button>
-            </div>
+                <Button
+                  variant="outline"
+                  className="rounded-sm border-2 border-[#D4AF37] bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md text-[#B8A072] hover:text-white hover:bg-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-[#1A1A1A] dark:hover:bg-[#D4AF37] transition-all duration-300"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // Quick view logic would go here
+                  }}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {t("productCard.quickView")}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Product Info */}

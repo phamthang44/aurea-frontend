@@ -6,9 +6,8 @@ import { useState } from "react";
 import { Eye, ShoppingBag, Plus, Check } from "lucide-react";
 import { ProductListingDto } from "@/lib/types/product";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/lib/store/cartStore";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { ProductQuickViewModal } from "./ProductQuickViewModal";
 
 interface ProductCardListingProps {
   product: ProductListingDto;
@@ -38,57 +37,42 @@ export function ProductCardListing({
   onQuickView,
 }: ProductCardListingProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { t } = useTranslation();
+  
+  // Check if product is in stock (use backend field if available)
+  const isInStock = product.inStock !== undefined ? product.inStock : true; // Default to true if not provided
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (onQuickView) {
       onQuickView(product);
+    } else {
+      // Open modal for variant selection
+      setIsModalOpen(true);
     }
   };
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    setIsAdding(true);
-
-    // Add to cart
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      imageUrl: product.thumbnail,
-      brand: "AUREA",
-    });
-
-    // Show success animation
-    setTimeout(() => {
-      setIsAdding(false);
-      setJustAdded(true);
-      toast.success(t("cart.addToCartSuccess"), {
-        description: product.name,
-        duration: 2000,
-      });
-
-      // Reset after animation
-      setTimeout(() => {
-        setJustAdded(false);
-      }, 2000);
-    }, 600);
+    // Open modal for variant selection instead of directly adding to cart
+    setIsModalOpen(true);
   };
 
   return (
-    <div
-      className="group relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
+      <ProductQuickViewModal
+        product={product}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+      />
+      <div
+        className="group relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       <Link
         href={`/products/${product.slug}`}
         className="block no-underline focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 rounded-lg"
@@ -122,8 +106,17 @@ export function ProductCardListing({
               }`}
             />
 
+            {/* Sold Out Overlay */}
+            {!isInStock && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                <span className="px-4 py-2 text-sm font-bold uppercase tracking-wider bg-destructive text-destructive-foreground rounded-md shadow-lg">
+                  {t("cart.soldOut", { defaultValue: "Sold Out" })}
+                </span>
+              </div>
+            )}
+
             {/* Action Buttons - Centered on hover with luxury styling */}
-            {showQuickView && (
+            {showQuickView && isInStock && (
               <div
                 className={`absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 p-6 z-30 transition-all duration-500 ${
                   isHovered
@@ -135,32 +128,10 @@ export function ProductCardListing({
                   variant="outline"
                   size="sm"
                   onClick={handleAddToCart}
-                  disabled={isAdding || justAdded}
-                  className={`
-                    bg-white/95 dark:bg-zinc-900/95 
-                    border-2 transition-all duration-300
-                    ${
-                      justAdded
-                        ? "border-green-500 text-green-600 dark:text-green-400"
-                        : "border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
-                    }
-                    shadow-lg backdrop-blur-sm font-light tracking-wide
-                    ${isAdding ? "scale-95" : "scale-100"}
-                  `}
+                  className="bg-white/95 dark:bg-zinc-900/95 border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white shadow-lg backdrop-blur-sm font-light tracking-wide transition-all duration-300"
                 >
-                  {isAdding ? (
-                    <div className="h-4 w-4 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
-                  ) : justAdded ? (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      {t("cart.addToCartSuccess", { defaultValue: "Added" })}
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t("cart.addToCart")}
-                    </>
-                  )}
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t("cart.addToCart")}
                 </Button>
 
                 <Button
@@ -202,5 +173,6 @@ export function ProductCardListing({
         </div>
       </Link>
     </div>
+    </>
   );
 }

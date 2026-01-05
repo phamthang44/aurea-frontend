@@ -10,6 +10,7 @@ import { AuthInitProvider } from "@/components/providers/AuthInitProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 import { LangUpdater } from "@/components/providers/LangUpdater";
+import { CartProvider } from "@/components/providers/CartProvider";
 import { Toaster } from "sonner";
 
 const poppins = Poppins({
@@ -93,8 +94,10 @@ export default function RootLayout({
               <GoogleOAuthProviderWrapper>
                 <ReduxProvider>
                   <AuthInitProvider>
-                    {children}
-                    <Toaster position="top-center" richColors />
+                    <CartProvider>
+                      {children}
+                      <Toaster position="top-center" richColors />
+                    </CartProvider>
                   </AuthInitProvider>
                 </ReduxProvider>
               </GoogleOAuthProviderWrapper>

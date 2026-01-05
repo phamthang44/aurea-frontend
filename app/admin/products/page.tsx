@@ -72,9 +72,8 @@ export default function AdminProductsPage() {
       setCurrentPage(result.meta?.page || 1);
       setPageSize(result.meta?.size || 10);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to fetch products"
-      );
+      const errorMsg = error instanceof Error ? error.message : t("admin.products.fetchProductsError");
+      toast.error(errorMsg);
       setProducts([]);
       setTotalItems(0);
       setTotalPages(0);
@@ -112,15 +111,15 @@ export default function AdminProductsPage() {
       const response = await clientApi.deleteProduct(selectedProduct.id);
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to delete product");
+        toast.error(response.error.message || t("admin.products.deleteProductError"));
       } else {
-        toast.success("Product deleted successfully");
+        toast.success(t("admin.products.deleteProductSuccess"));
         setIsDeleteDialogOpen(false);
         setSelectedProduct(null);
         fetchProducts();
       }
     } catch {
-      toast.error("An unexpected error occurred");
+      toast.error(t("admin.products.unexpectedError"));
     } finally {
       setIsDeleting(false);
     }

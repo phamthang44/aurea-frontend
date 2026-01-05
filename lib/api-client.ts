@@ -10,6 +10,8 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
+import I18nUtils from "../i18n";
+import { getOrCreateGuestId } from "./utils/guestId";
 
 const API_BASE_URL = "/api/proxy";
 
@@ -95,17 +97,33 @@ function createAxiosInstance(): AxiosInstance {
 
   /**
    * Request Interceptor
-   * Attach any additional headers if needed
-   * Note: HttpOnly cookies are automatically sent, so we don't need to manually attach tokens
+   * Attach X-Guest-ID, Accept-Language, and Authorization headers
    */
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+      // Always attach X-Guest-ID header for hybrid cart support
+      const guestId = getOrCreateGuestId();
+      if (guestId) {
+        config.headers["X-Guest-ID"] = guestId;
+      }
+
+      // Always attach Accept-Language header
+      const lang = I18nUtils.language || "vi"; // Default to 'vi' if not set
+      config.headers["Accept-Language"] = lang;
+
+      // Attach Authorization header if access token exists in localStorage
+      if (typeof window !== "undefined") {
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+          config.headers["Authorization"] = `Bearer ${accessToken}`;
+        }
+      }
+
       // If data is FormData, remove Content-Type header to let browser set it with boundary
       if (config.data instanceof FormData) {
         delete config.headers['Content-Type'];
       }
-      // Cookies are automatically sent with withCredentials: true
-      // No need to manually attach Authorization header for HttpOnly cookies
+
       return config;
     },
     (error) => {
@@ -309,7 +327,7 @@ function handleError(error: any): ApiResponse {
   };
 }
 
-class ApiClient {
+export class ApiClient {
   private async request<T>(
     path: string,
     config?: AxiosRequestConfig

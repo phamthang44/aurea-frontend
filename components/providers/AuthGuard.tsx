@@ -4,6 +4,7 @@ import { useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/lib/store/hooks";
 import { useAuthInit } from "@/hooks/useAuthInit";
+import { useTranslation } from "react-i18next";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -27,6 +28,7 @@ export function AuthGuard({
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const userRoles = useAppSelector((state) => state.auth.user?.roles);
   const isAdmin = userRoles?.includes("ADMIN") ?? false;
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Only check auth after initialization is complete
@@ -61,7 +63,7 @@ export function AuthGuard({
             <div className="h-16 w-16 rounded-full border-4 border-[#D4AF37]/20 border-t-[#D4AF37] animate-spin"></div>
           </div>
           <p className="text-sm font-light tracking-wider text-muted-foreground">
-            Verifying access...
+          {t("auth.verifyingAccess")}
           </p>
         </div>
       </div>

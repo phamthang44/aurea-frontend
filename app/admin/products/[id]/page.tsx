@@ -151,10 +151,9 @@ export default function ProductDetailPage() {
         }
       } catch (error) {
         console.error("Error fetching product:", error);
+        const errorMsg = error instanceof Error ? error.message : "Unknown error";
         toast.error(
-          `Failed to load product: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`
+          `${t("admin.productDetail.loadProductError")}: ${errorMsg}`
         );
         router.push("/admin/products");
       } finally {
@@ -238,7 +237,7 @@ export default function ProductDetailPage() {
       console.log("============================");
 
       if (changeType.type === "none") {
-        toast.info("No changes to save");
+        toast.info(t("admin.productDetail.noChangesToSave"));
         setIsSaving(false);
         return;
       }
@@ -379,7 +378,9 @@ export default function ProductDetailPage() {
         });
         toast.error(traceId ? `${errorMsg} (Trace: ${traceId})` : errorMsg);
       } else {
-        toast.success(`Product saved successfully (${changeType.type} update)`);
+        const updateTypeKey = `admin.productDetail.updateType.${changeType.type}`;
+        const updateType = t(updateTypeKey);
+        toast.success(t("admin.productDetail.saveProductSuccess", { type: updateType }));
         setHasChanges(false);
 
         // Refresh product data from backend
@@ -436,13 +437,12 @@ export default function ProductDetailPage() {
           setOriginalData(JSON.parse(JSON.stringify(refreshedData))); // Update baseline
         }
       }
-    } catch (error) {
-      console.error("Error saving product:", error);
-      toast.error(
-        `Failed to save product: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      } catch (error) {
+        console.error("Error saving product:", error);
+        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+        toast.error(
+          `${t("admin.productDetail.saveProductError")}: ${errorMsg}`
+        );
     } finally {
       setIsSaving(false);
     }

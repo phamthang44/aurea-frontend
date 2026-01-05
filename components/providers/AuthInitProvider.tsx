@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAuthInit } from "@/hooks/useAuthInit";
 import { useCartStore } from "@/lib/store/cartStore";
+import { useTranslation } from "react-i18next";
 
 /**
  * Client component that initializes auth state on app load
@@ -13,7 +14,7 @@ export function AuthInitProvider({ children }: { children: React.ReactNode }) {
   // This hook will fetch user profile if token exists but user data is missing
   const { isAuthenticated, isInitializing } = useAuthInit();
   const hasMergedRef = useRef(false); // Track if we've already merged cart
-
+  const { t } = useTranslation();
   // Sync cart state with auth state
   useEffect(() => {
     // Skip if still initializing to avoid race conditions
@@ -61,7 +62,7 @@ export function AuthInitProvider({ children }: { children: React.ReactNode }) {
             <div className="h-16 w-16 rounded-full border-4 border-[#D4AF37]/20 border-t-[#D4AF37] animate-spin"></div>
           </div>
           <p className="text-sm font-light tracking-wider text-muted-foreground">
-            Initializing...
+            {t("auth.loading")}
           </p>
         </div>
       </div>

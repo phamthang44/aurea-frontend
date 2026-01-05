@@ -120,7 +120,13 @@
       "passwordPlaceholder": "At least 10 characters",
       "passwordRequirements": "Password must contain uppercase, lowercase, number, and special character",
       "createAccount": "Create Account"
-    }
+    },
+    "loading": "Loading...",
+    "verifyingAccess": "Verifying access...",
+    "verifyingAccessDescription": "Please wait while we verify your access...",
+    "verifyingAccessFailed": "Access verification failed",
+    "verifyingAccessFailedDescription": "Please try again",
+    "verifyingAccessFailedButton": "Try again"
   },
   "forgotPassword": {
     "title": "Reset Password",
@@ -207,7 +213,15 @@
     "easyReturns": "Easy Returns",
     "returnPolicy": "30-day return policy",
     "securePayment": "Secure Payment",
-    "dataProtected": "Your data is protected"
+    "dataProtected": "Your data is protected",
+    "quantityUpdated": "Quantity updated",
+    "updateFailed": "Failed to update quantity",
+    "removeFailed": "Failed to remove item",
+    "removeAllCartItems": "Failed to remove all items from cart",
+    "clearCartFailed": "Failed to clear cart",
+    "removedFromCartSuccess": "Removed from cart successfully",
+    "clearCartSuccess": "Cart cleared successfully",
+    "clearCartFailedDescription": "Failed to clear cart. Please try again"
   },
   "admin": {
     "dashboard": {
@@ -263,7 +277,11 @@
       "deleteProduct": "Delete Product",
       "quantityUpdatesNotice": "Quantity Updates Notice of Product Stock",
       "quantityUpdatesNoticeDescription": "<strong>Important: To update quantity, click the edit action in the product row below to go to the product detail page and then click the variants tab to update the quantity.",
-      "quantityUpdatesNoticeImportant": "Important: To update quantity, click the edit action in the product row below to go to the product detail page and then click the variants tab to update the quantity."
+      "quantityUpdatesNoticeImportant": "Important: To update quantity, click the edit action in the product row below to go to the product detail page and then click the variants tab to update the quantity.",
+      "deleteProductSuccess": "Product deleted successfully",
+      "deleteProductError": "Failed to delete product",
+      "fetchProductsError": "Failed to fetch products",
+      "unexpectedError": "An unexpected error occurred"
     },
     "productDetail": {
       "unsavedChanges": "Unsaved changes",
@@ -289,7 +307,17 @@
       "quantityUpdatesNoticeSave": "Save",
       "quantityUpdatesNoticeRow": "row in the table below",
       "quantityUpdatesNoticeNewVariants": "new variants",
-      "quantityUpdatesNoticeSaveAction": "variant-specific save action"
+      "quantityUpdatesNoticeSaveAction": "variant-specific save action",
+      "saveProductSuccess": "Product saved successfully ({{type}} update)",
+      "saveProductError": "Failed to save product",
+      "loadProductError": "Failed to load product",
+      "noChangesToSave": "No changes to save",
+      "updateType": {
+        "generalInfo": "general info",
+        "media": "media",
+        "status": "status",
+        "full": "full"
+      }
     },
     "imports": {
       "title": "Product Import",

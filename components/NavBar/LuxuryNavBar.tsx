@@ -8,7 +8,7 @@ import { ModeToggle } from '@/components/ui/ModeToggle';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
-import { useCartStore } from '@/lib/store/cartStore';
+import { useCart } from '@/hooks/useCart';
 import { MegaMenu } from './MegaMenu';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -105,23 +105,18 @@ export function LuxuryNavBar() {
   const user = useAppSelector((state) => state.auth.user);
   const userRoles = useAppSelector((state) => state.auth.user?.roles);
   const isAdmin = userRoles?.includes('ADMIN') ?? false;
-  const cartItems = useCartStore((state) => state.items);
-  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  // Debugging logs - will appear in browser console
+  
+  // Use shared cart state from CartProvider
+  // Cart is automatically fetched on mount and when auth state changes
+  const { items } = useCart();
+  const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleLogout = async () => {
     dispatch(clearAuth());
-    useCartStore.getState().setAuthenticated(false);
     await logoutAction();
     router.push('/');
     router.refresh();
   };
-
-  // Sync cart store with auth state
-  useEffect(() => {
-    useCartStore.getState().setAuthenticated(isAuthenticated);
-  }, [isAuthenticated]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border-b border-[#D4AF37]/30 dark:border-[#3D3D3D]/50">

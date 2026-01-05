@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { VariantSelector } from "./VariantSelector";
 import { ProductListingDto, ProductResponse, VariantResponse } from "@/lib/types/product";
-import { useCartStore } from "@/lib/store/cartStore";
+import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { productApi } from "@/lib/api/product";
@@ -47,7 +47,7 @@ export function ProductQuickViewModal({
   onOpenChange,
 }: ProductQuickViewModalProps) {
   const { t } = useTranslation();
-  const addItem = useCartStore((state) => state.addItem);
+  const { addItemToCart } = useCart();
   const [fullProduct, setFullProduct] = useState<ProductResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<VariantResponse | null>(null);
@@ -157,49 +157,43 @@ export function ProductQuickViewModal({
       ("thumbnail" in fullProduct ? fullProduct.thumbnail : null) ||
       undefined;
 
-    // Add to cart with variant information (if applicable)
-    addItem({
-      id: fullProduct.id,
-      name: fullProduct.name,
-      price: selectedVariant
-        ? selectedVariant.priceOverride || fullProduct.basePrice
-        : basePrice,
+    // Determine product variant ID - required for backend API
+    // Ensure IDs are strings (they should already be strings from API, but ensure type safety)
+    const productId = String(fullProduct.id);
+    const productVariantId = String(selectedVariant?.id || fullProduct.id);
+    
+    // Add to cart using new API
+    addItemToCart({
+      productId: productId,
+      productVariantId: productVariantId,
       quantity: 1,
-      imageUrl: variantImage,
-      brand: "AUREA",
-      inStock: selectedVariant
-        ? selectedVariant.isActive && selectedVariant.quantity > 0
-        : "inStock" in displayProduct
-        ? displayProduct.inStock
-        : true,
-      availableStock: selectedVariant
-        ? selectedVariant.quantity
-        : "availableStock" in displayProduct
-        ? displayProduct.availableStock
-        : undefined,
-      // Variant information (only for products with variants)
-      variantId: selectedVariant?.id,
-      variantSku: selectedVariant?.sku,
-      variantAttributes: selectedVariant?.attributes,
-    });
+    })
+      .then(() => {
+        // Cart state is automatically updated via shared context
+        // Navigation bar will reflect the change immediately
+        
+        // Show success animation
+        setIsAdding(false);
+        setJustAdded(true);
+        const variantDescription = selectedVariant
+          ? ` - ${Object.values(selectedVariant.attributes).join(", ")}`
+          : "";
+        toast.success(t("cart.addToCartSuccess"), {
+          description: `${fullProduct.name}${variantDescription}`,
+          duration: 2000,
+        });
 
-      // Show success animation
-    setTimeout(() => {
-      setIsAdding(false);
-      setJustAdded(true);
-      const variantDescription = selectedVariant
-        ? ` - ${Object.values(selectedVariant.attributes).join(", ")}`
-        : "";
-      toast.success(t("cart.addToCartSuccess"), {
-        description: `${fullProduct.name}${variantDescription}`,
-        duration: 2000,
+        // Reset after animation
+        setTimeout(() => {
+          setJustAdded(false);
+        }, 2000);
+      })
+      .catch((error) => {
+        setIsAdding(false);
+        toast.error(t("cart.addToCartFailed"), {
+          description: error.message || t("cart.addToCartFailedDescription"),
+        });
       });
-
-      // Reset after animation
-      setTimeout(() => {
-        setJustAdded(false);
-      }, 2000);
-    }, 600);
   };
 
   if (!product) return null;

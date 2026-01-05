@@ -83,6 +83,18 @@ async function handleRequest(
       headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
+    // Forward X-Guest-ID header for cart operations (hybrid cart support)
+    const guestId = request.headers.get("X-Guest-ID");
+    if (guestId) {
+      headers["X-Guest-ID"] = guestId;
+    }
+
+    // Forward Accept-Language header for i18n support
+    const acceptLanguage = request.headers.get("Accept-Language");
+    if (acceptLanguage) {
+      headers["Accept-Language"] = acceptLanguage;
+    }
+
     // Get request body if present
     let body: string | FormData | undefined;
     if (method !== "GET" && method !== "DELETE") {

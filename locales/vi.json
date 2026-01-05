@@ -124,7 +124,13 @@
       "passwordPlaceholder": "Ít nhất 10 ký tự",
       "passwordRequirements": "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt",
       "createAccount": "Tạo tài khoản"
-    }
+    },
+    "loading": "Đang tải...",
+    "verifyingAccess": "Đang xác thực quyền truy cập...",
+    "verifyingAccessDescription": "Vui lòng đợi trong khi chúng tôi xác thực quyền truy cập của bạn...",
+    "verifyingAccessFailed": "Xác thực quyền truy cập thất bại",
+    "verifyingAccessFailedDescription": "Vui lòng thử lại",
+    "verifyingAccessFailedButton": "Thử lại"
   },
   "forgotPassword": {
     "title": "Đặt lại mật khẩu",
@@ -211,7 +217,13 @@
     "easyReturns": "Trả hàng dễ dàng",
     "returnPolicy": "Chính sách trả hàng 30 ngày",
     "securePayment": "Thanh toán an toàn",
-    "dataProtected": "Dữ liệu của bạn được bảo vệ"
+    "dataProtected": "Dữ liệu của bạn được bảo vệ",
+    "quantityUpdated": "Số lượng đã cập nhật",
+    "updateFailed": "Không thể cập nhật số lượng",
+    "removeFailed": "Không thể xóa sản phẩm khỏi giỏ hàng",
+    "removedFromCartSuccess": "Đã xóa sản phẩm khỏi giỏ hàng thành công",
+    "clearCartSuccess": "Đã xóa giỏ hàng thành công",
+    "clearCartFailedDescription": "Không thể xóa giỏ hàng. Vui lòng thử lại"
   },
   "admin": {
     "dashboard": {
@@ -267,7 +279,11 @@
       "deleteProduct": "Xóa sản phẩm",
       "quantityUpdatesNotice": "Thông báo cập nhật số lượng tồn kho của sản phẩm",
       "quantityUpdatesNoticeDescription": "<strong>Quan trọng: Muốn cập nhật số lượng thì nhấn vào hành động chỉnh sửa của sản phẩm trong bảng bên dưới để vào trang chỉnh sửa chi tiết của sản phẩm rồi nhấn vào tab biến thể để chỉnh sửa số lượng tồn kho.",
-      "quantityUpdatesNoticeImportant": "Quan trọng: Muốn cập nhật số lượng thì nhấn vào hành động chỉnh sửa của sản phẩm trong bảng bên dưới"
+      "quantityUpdatesNoticeImportant": "Quan trọng: Muốn cập nhật số lượng thì nhấn vào hành động chỉnh sửa của sản phẩm trong bảng bên dưới",
+      "deleteProductSuccess": "Đã xóa sản phẩm thành công",
+      "deleteProductError": "Không thể xóa sản phẩm",
+      "fetchProductsError": "Không thể tải danh sách sản phẩm",
+      "unexpectedError": "Đã xảy ra lỗi không mong muốn"
     },
     "productDetail": {
       "unsavedChanges": "Thay đổi chưa lưu",
@@ -293,7 +309,17 @@
       "quantityUpdatesNoticeSave": "Lưu",
       "quantityUpdatesNoticeRow": "hàng trong bảng bên dưới sẽ không được lưu",
       "quantityUpdatesNoticeNewVariants": "các biến thể mới",
-      "quantityUpdatesNoticeSaveAction": "hành động 'Lưu' cụ thể cho biến thể đó"
+      "quantityUpdatesNoticeSaveAction": "hành động 'Lưu' cụ thể cho biến thể đó",
+      "saveProductSuccess": "Đã lưu sản phẩm thành công (cập nhật {{type}})",
+      "saveProductError": "Không thể lưu sản phẩm",
+      "loadProductError": "Không thể tải sản phẩm",
+      "noChangesToSave": "Không có thay đổi để lưu",
+      "updateType": {
+        "generalInfo": "thông tin chung",
+        "media": "phương tiện",
+        "status": "trạng thái",
+        "full": "đầy đủ"
+      }
     },
     "imports": {
       "title": "Nhập sản phẩm",

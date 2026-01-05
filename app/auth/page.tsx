@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { LuxuryNavBar } from "@/components/NavBar/LuxuryNavBar";
 import { LuxuryInput } from "@/components/AuthForms/LuxuryInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { LuxuryButton } from "@/components/AuthForms/LuxuryButton";
 import { OtpInput } from "@/components/AuthForms/OtpInput";
+import { useTranslation } from "react-i18next";
 
 // Dynamically import GoogleLoginButton to avoid SSR issues
 const GoogleLoginButton = dynamic(
@@ -33,6 +35,7 @@ type AuthMode = "password" | "otp";
 type OtpStep = "email" | "otp" | "register";
 
 export default function AuthPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -102,10 +105,10 @@ export default function AuthPage() {
         router.push("/");
         router.refresh();
       } else {
-        setPasswordError(result.error || "Invalid credentials");
+        setPasswordError(result.error || t("error.invalidCredentials"));
       }
     } catch (err: any) {
-      setPasswordError("An error occurred. Please try again.");
+      setPasswordError(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -125,10 +128,10 @@ export default function AuthPage() {
       if (result.success) {
         setOtpStep("otp");
       } else {
-        setOtpError(result.error || "Failed to send OTP");
+        setOtpError(result.error || t("error.failedToSendOtp"));
       }
     } catch (err: any) {
-      setOtpError("An error occurred. Please try again.");
+      setOtpError(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +143,7 @@ export default function AuthPage() {
     setOtpError("");
 
     if (otp.length !== 6) {
-      setOtpError("Please enter a 6-digit code");
+      setOtpError(t("validation.otp6Digits"));
       return;
     }
 
@@ -198,10 +201,10 @@ export default function AuthPage() {
           setOtpStep("register");
         }
       } else {
-        setOtpError(result.error || "Invalid OTP code");
+        setOtpError(result.error || t("error.invalidOtpCode"));
       }
     } catch (err: any) {
-      setOtpError("An error occurred. Please try again.");
+      setOtpError(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -213,14 +216,12 @@ export default function AuthPage() {
     setRegisterError("");
 
     if (!fullName.trim()) {
-      setRegisterError("Full name is required");
+      setRegisterError(t("validation.fullNameRequired"));
       return;
     }
 
     if (regPassword.length < 10) {
-      setRegisterError(
-        "Password must be at least 10 characters with uppercase, lowercase, number, and special character"
-      );
+      setRegisterError(t("validation.passwordMinLength"));
       return;
     }
 
@@ -272,10 +273,10 @@ export default function AuthPage() {
         router.push("/");
         router.refresh();
       } else {
-        setRegisterError(result.error || "Registration failed");
+        setRegisterError(result.error || t("error.registrationFailed"));
       }
     } catch (err: any) {
-      setRegisterError("An error occurred. Please try again.");
+      setRegisterError(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -335,33 +336,47 @@ export default function AuthPage() {
         {/* Right Side - Auth Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center px-6 sm:px-8 lg:px-16 py-24">
           <div className="w-full max-w-md space-y-8">
-            {/* Mode Toggle */}
-            <div className="flex items-center justify-center gap-1 p-1 bg-muted/30 rounded-sm">
+            {/* Mode Toggle - Luxury Design */}
+            <div className="relative flex items-center justify-center gap-1.5 p-1.5 bg-gradient-to-br from-white/40 to-white/20 dark:from-[#1A1A1A]/60 dark:to-[#1A1A1A]/40 border border-[#D4AF37]/30 dark:border-[#D4AF37]/40 rounded-xl backdrop-blur-md shadow-lg shadow-[#D4AF37]/5">
               <button
                 onClick={() => switchMode("password")}
                 className={`
-                  flex-1 px-4 py-2 text-sm font-light tracking-wide transition-all duration-300
+                  relative flex-1 px-5 py-2.5 text-sm font-light tracking-wide transition-all duration-300 rounded-lg z-10
                   ${
                     authMode === "password"
-                      ? "bg-background text-foreground"
+                      ? "text-[#D4AF37] dark:text-[#E5C96B]"
                       : "text-muted-foreground hover:text-foreground"
                   }
                 `}
               >
-                Password
+                {t("auth.mode.password")}
+                {authMode === "password" && (
+                  <motion.span
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/15 to-[#D4AF37]/5 dark:from-[#D4AF37]/25 dark:to-[#D4AF37]/10 rounded-lg border border-[#D4AF37]/40 dark:border-[#D4AF37]/50 shadow-sm -z-10"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
               </button>
               <button
                 onClick={() => switchMode("otp")}
                 className={`
-                  flex-1 px-4 py-2 text-sm font-light tracking-wide transition-all duration-300
+                  relative flex-1 px-5 py-2.5 text-sm font-light tracking-wide transition-all duration-300 rounded-lg z-10
                   ${
                     authMode === "otp"
-                      ? "bg-background text-foreground"
+                      ? "text-[#D4AF37] dark:text-[#E5C96B]"
                       : "text-muted-foreground hover:text-foreground"
                   }
                 `}
               >
-                OTP / Magic Link
+                {t("auth.mode.otp")}
+                {authMode === "otp" && (
+                  <motion.span
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/15 to-[#D4AF37]/5 dark:from-[#D4AF37]/25 dark:to-[#D4AF37]/10 rounded-lg border border-[#D4AF37]/40 dark:border-[#D4AF37]/50 shadow-sm -z-10"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
               </button>
             </div>
 
@@ -373,17 +388,17 @@ export default function AuthPage() {
               >
                 <div className="space-y-4">
                   <h1 className="text-4xl md:text-5xl font-light tracking-[0.05em]">
-                    Welcome Back
+                    {t("auth.password.welcomeBack")}
                   </h1>
                   <p className="text-sm font-light tracking-wide text-muted-foreground">
-                    Sign in to continue your journey with AUREA
+                    {t("auth.password.subtitle")}
                   </p>
                 </div>
 
                 <form onSubmit={handlePasswordLogin} className="space-y-6">
                   <LuxuryInput
                     id="identifier"
-                    label="Email or Username"
+                    label={t("auth.password.emailOrUsername")}
                     type="text"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
@@ -394,11 +409,11 @@ export default function AuthPage() {
                   <div className="space-y-2">
                     <PasswordInput
                       id="password"
-                      label="Password"
+                      label={t("auth.password.password")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      placeholder="Enter your password"
+                      placeholder={t("auth.password.passwordPlaceholder")}
                       error={passwordError}
                     />
                     <div className="flex justify-end">
@@ -406,7 +421,7 @@ export default function AuthPage() {
                         href="/forgot-password"
                         className="text-xs font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 no-underline"
                       >
-                        Forgot Password?
+                        {t("auth.password.forgotPassword")}
                       </Link>
                     </div>
                   </div>
@@ -416,7 +431,7 @@ export default function AuthPage() {
                     isLoading={isLoading}
                     className="w-full py-6"
                   >
-                    Sign In
+                    {t("auth.password.signIn")}
                   </LuxuryButton>
                 </form>
 
@@ -427,7 +442,7 @@ export default function AuthPage() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white dark:bg-[#121212] px-6 py-1 text-muted-foreground font-light tracking-wider">
-                      Or continue with
+                      {t("auth.orContinueWith")}
                     </span>
                   </div>
                 </div>
@@ -448,17 +463,17 @@ export default function AuthPage() {
                   <div className="space-y-8">
                     <div className="space-y-4">
                       <h1 className="text-4xl md:text-5xl font-light tracking-[0.05em]">
-                        Welcome to AUREA
+                        {t("auth.otp.welcome")}
                       </h1>
                       <p className="text-sm font-light tracking-wide text-muted-foreground">
-                        Enter your email to join the exclusive circle
+                        {t("auth.otp.enterEmail")}
                       </p>
                     </div>
 
                     <form onSubmit={handleRequestOtp} className="space-y-8">
                       <LuxuryInput
                         id="otp-email"
-                        label="Email"
+                        label={t("auth.otp.email")}
                         type="email"
                         value={otpEmail}
                         onChange={(e) => setOtpEmail(e.target.value)}
@@ -472,7 +487,7 @@ export default function AuthPage() {
                         isLoading={isLoading}
                         className="w-full py-6"
                       >
-                        Send Code
+                        {t("auth.otp.sendCode")}
                       </LuxuryButton>
                     </form>
                   </div>
@@ -486,13 +501,13 @@ export default function AuthPage() {
                         onClick={resetOtpFlow}
                         className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 mb-4"
                       >
-                        ← Back
+                        ← {t("common.back")}
                       </button>
                       <h1 className="text-4xl md:text-5xl font-light tracking-[0.05em]">
-                        Verify Your Email
+                        {t("auth.otp.verifyEmail")}
                       </h1>
                       <p className="text-sm font-light tracking-wide text-muted-foreground">
-                        Enter the 6-digit code sent to {otpEmail}
+                        {t("auth.otp.enterCode", { email: otpEmail })}
                       </p>
                     </div>
 
@@ -510,7 +525,7 @@ export default function AuthPage() {
                         disabled={otp.length !== 6}
                         className="w-full py-6"
                       >
-                        Verify
+                        {t("auth.otp.verify")}
                       </LuxuryButton>
                     </form>
                   </div>
@@ -524,13 +539,13 @@ export default function AuthPage() {
                         onClick={() => setOtpStep("otp")}
                         className="text-sm font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 mb-4"
                       >
-                        ← Back
+                        ← {t("common.back")}
                       </button>
                       <h1 className="text-4xl md:text-5xl font-light tracking-[0.05em]">
-                        Complete Your Profile
+                        {t("auth.register.completeProfile")}
                       </h1>
                       <p className="text-sm font-light tracking-wide text-muted-foreground">
-                        Welcome! Let's finish setting up your account
+                        {t("auth.register.welcome")}
                       </p>
                     </div>
 
@@ -540,7 +555,7 @@ export default function AuthPage() {
                     >
                       <LuxuryInput
                         id="fullName"
-                        label="Full Name"
+                        label={t("auth.register.fullName")}
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
@@ -550,17 +565,16 @@ export default function AuthPage() {
 
                       <PasswordInput
                         id="reg-password"
-                        label="Password"
+                        label={t("auth.register.password")}
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
                         required
-                        placeholder="At least 10 characters"
+                        placeholder={t("auth.register.passwordPlaceholder")}
                         error={registerError}
                       />
 
                       <p className="text-xs font-light text-muted-foreground">
-                        Password must contain uppercase, lowercase, number, and
-                        special character
+                        {t("auth.register.passwordRequirements")}
                       </p>
 
                       <LuxuryButton
@@ -568,7 +582,7 @@ export default function AuthPage() {
                         isLoading={isLoading}
                         className="w-full py-6"
                       >
-                        Create Account
+                        {t("auth.register.createAccount")}
                       </LuxuryButton>
                     </form>
                   </div>

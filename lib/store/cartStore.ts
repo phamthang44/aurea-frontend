@@ -104,7 +104,23 @@ export const useCartStore = create<CartState>()(
         if (guestItems.length === 0) return;
         
         // Merge guest items into current cart
+        // Only merge if items are different to prevent duplicates
         set((state) => {
+          // Check if guestItems are the same as current items (prevent self-merge)
+          const currentItemIds = new Set(state.items.map(i => i.id));
+          const guestItemIds = new Set(guestItems.map(i => i.id));
+          
+          // If all guest items already exist with same quantities, skip merge
+          const isDuplicate = guestItems.every(guestItem => {
+            const existing = state.items.find(i => i.id === guestItem.id);
+            return existing && existing.quantity === guestItem.quantity;
+          });
+          
+          if (isDuplicate && currentItemIds.size === guestItemIds.size) {
+            console.log("[Cart Merge] Skipping duplicate merge - items already in cart");
+            return state; // No changes needed
+          }
+          
           const mergedItems = [...state.items];
           guestItems.forEach((guestItem) => {
             const existingItem = mergedItems.find((i) => i.id === guestItem.id);

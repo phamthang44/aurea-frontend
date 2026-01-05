@@ -8,6 +8,7 @@ import { ProductListingDto } from "@/lib/types/product";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cartStore";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface ProductCardListingProps {
   product: ProductListingDto;
@@ -40,6 +41,7 @@ export function ProductCardListing({
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
+  const { t } = useTranslation();
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -69,7 +71,7 @@ export function ProductCardListing({
     setTimeout(() => {
       setIsAdding(false);
       setJustAdded(true);
-      toast.success("Added to cart", {
+      toast.success(t("cart.addToCartSuccess"), {
         description: product.name,
         duration: 2000,
       });
@@ -108,7 +110,7 @@ export function ProductCardListing({
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F5F0] to-[#E8E8E0] dark:from-[#1A1A1A] dark:to-[#252525]">
                 <ShoppingBag className="h-16 w-16 text-[#D4AF37]/30 mb-3" />
                 <p className="text-sm font-light text-[#D4AF37]/50 tracking-wider">
-                  No Image
+                  {t("cart.noImage", { defaultValue: "No Image" })}
                 </p>
               </div>
             )}
@@ -151,12 +153,12 @@ export function ProductCardListing({
                   ) : justAdded ? (
                     <>
                       <Check className="h-4 w-4 mr-2" />
-                      Added
+                      {t("cart.addToCartSuccess", { defaultValue: "Added" })}
                     </>
                   ) : (
                     <>
                       <Plus className="h-4 w-4 mr-2" />
-                      Add to Cart
+                      {t("cart.addToCart")}
                     </>
                   )}
                 </Button>
@@ -190,6 +192,9 @@ export function ProductCardListing({
             {/* Price with luxury formatting */}
             <div className="flex items-baseline gap-2">
               <p className="text-base font-semibold text-[#D4AF37] dark:text-[#E5C96B] tracking-wide">
+                <span className="text-xs font-normal text-gray-500 mr-1">
+                  {t("cart.from", { defaultValue: "From" })}
+                </span>
                 {formatVND(product.price)}
               </p>
             </div>

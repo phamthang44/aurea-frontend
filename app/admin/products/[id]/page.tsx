@@ -13,6 +13,7 @@ import { SettingsTab } from "@/components/admin/product-detail/SettingsTab";
 import { clientApi } from "@/lib/api-client";
 import { ProductResponse, ApiResult } from "@/lib/types/product";
 import { productApi } from "@/lib/api/product";
+import { useTranslation, Trans } from "react-i18next";
 
 type Tab = "general" | "media" | "variants" | "settings";
 
@@ -39,6 +40,7 @@ interface ProductData {
 }
 
 export default function ProductDetailPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
@@ -164,10 +166,10 @@ export default function ProductDetailPage() {
   }, [productId, router]);
 
   const tabs = [
-    { id: "general" as Tab, label: "General", icon: "📝" },
-    { id: "media" as Tab, label: "Media", icon: "🖼️" },
-    { id: "variants" as Tab, label: "Variants & Pricing", icon: "💰" },
-    { id: "settings" as Tab, label: "Settings", icon: "⚙️" },
+    { id: "general" as Tab, label: t("admin.productDetail.general"), icon: "📝" },
+    { id: "media" as Tab, label: t("admin.productDetail.media"), icon: "🖼️" },
+    { id: "variants" as Tab, label: t("admin.productDetail.variants"), icon: "💰" },
+    { id: "settings" as Tab, label: t("admin.productDetail.settings"), icon: "⚙️" },
   ];
 
   // Detect what changed to call the minimal API
@@ -265,13 +267,26 @@ export default function ProductDetailPage() {
         }));
 
         // Validate and filter variants to prevent duplicate attributes
+        // IMPORTANT: quantity is intentionally excluded for existing variants (id present)
+        // Quantity is only sent for NEW variants (id is null/undefined) for initial inventory setup
         const variantsToSend = (productData.variants || [])
-          .map((variant: any) => ({
-            id: variant.id,
-            attributes: variant.attributes || {},
-            priceOverride: variant.priceOverride || variant.price,
-            isActive: variant.isActive !== false,
-          }))
+          .map((variant: any) => {
+            const variantPayload: any = {
+              id: variant.id,
+              attributes: variant.attributes || {},
+              priceOverride: variant.priceOverride || variant.price,
+              isActive: variant.isActive !== false,
+            };
+            
+            // Only include quantity for NEW variants (no id) - backend ignores it for existing variants anyway
+            if (!variant.id && variant.quantity !== undefined && variant.quantity !== null) {
+              variantPayload.quantity = variant.quantity;
+            }
+            // Note: For existing variants, quantity is intentionally omitted
+            // Users must use individual variant save button to update quantity
+            
+            return variantPayload;
+          })
           .filter((variant: any) => {
             // Filter out variants with empty attributes (unless they have an ID - existing variants)
             const hasAttributes = Object.keys(variant.attributes).length > 0;
@@ -436,7 +451,7 @@ export default function ProductDetailPage() {
   const handleCancel = () => {
     if (hasChanges) {
       if (
-        confirm("You have unsaved changes. Are you sure you want to leave?")
+        confirm(t("admin.productDetail.unsavedChangesConfirm"))
       ) {
         router.push("/admin/products");
       }
@@ -468,7 +483,7 @@ export default function ProductDetailPage() {
           <div className="text-center">
             <div className="inline-block h-12 w-12 border-4 border-amber-200 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin" />
             <p className="mt-4 text-sm text-gray-500 dark:text-amber-100/60">
-              Loading product...
+              {t("common.loading")}
             </p>
           </div>
         </div>
@@ -490,7 +505,7 @@ export default function ProductDetailPage() {
                   </Button>
                   <div className="min-w-0 flex-1">
                     <h1 className="text-base sm:text-lg md:text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-amber-200 dark:to-yellow-100 bg-clip-text text-transparent truncate">
-                      {productData.name || "New Product"}
+                      {productData.name || t("admin.products.newProduct")}
                     </h1>
                     <p className="text-xs text-gray-500 dark:text-amber-200/50 truncate">
                       ID: {productId}
@@ -498,7 +513,7 @@ export default function ProductDetailPage() {
                   </div>
                   {hasChanges && (
                     <span className="px-2 py-1 text-xs rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 whitespace-nowrap">
-                      Unsaved changes
+                      {t("admin.productDetail.unsavedChanges")}
                     </span>
                   )}
                 </div>
@@ -508,9 +523,7 @@ export default function ProductDetailPage() {
                   <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-800">
                     <span className="text-blue-600 dark:text-blue-400">💡</span>
                     <span>
-                      <strong>Individual saves:</strong> Click save icon in each
-                      row | <strong>Bulk save:</strong> Click &apos;Save All
-                      Changes&apos; below
+                      <strong>{t("admin.productDetail.individualSaves")}</strong> {t("admin.productDetail.clickSaveIcon")} | <strong>{t("admin.productDetail.bulkSave")}</strong> {t("admin.productDetail.clickSaveAll")}
                     </span>
                   </div>
                 )}
@@ -524,7 +537,7 @@ export default function ProductDetailPage() {
                     className="border border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-gray-50 dark:hover:bg-amber-900/10 flex-1 sm:flex-initial h-9 sm:h-10"
                   >
                     <CloseIcon className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Cancel</span>
+                    <span className="hidden sm:inline">{t("admin.productDetail.cancel")}</span>
                   </Button>
                   <Button
                     onClick={handleSave}
@@ -532,20 +545,20 @@ export default function ProductDetailPage() {
                     className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-lg shadow-amber-500/20 dark:shadow-amber-900/30 font-semibold flex-1 sm:flex-initial h-9 sm:h-10"
                     title={
                       activeTab === "variants"
-                        ? "Save all product info & new variants (existing variants must be saved individually)"
-                        : "Save product information"
+                        ? t("admin.productDetail.saveAllChanges")
+                        : t("admin.productDetail.saveChanges")
                     }
                   >
                     <Save className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">
                       {isSaving
-                        ? "Saving..."
+                        ? t("admin.productDetail.saving")
                         : activeTab === "variants"
-                        ? "Save All Changes"
-                        : "Save Changes"}
+                        ? t("admin.productDetail.saveAllChanges")
+                        : t("admin.productDetail.saveChanges")}
                     </span>
                     <span className="sm:hidden">
-                      {isSaving ? "..." : "Save"}
+                      {isSaving ? "..." : t("admin.productDetail.save")}
                     </span>
                   </Button>
                 </div>
@@ -580,6 +593,28 @@ export default function ProductDetailPage() {
           {/* Tab Content */}
           <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
             <div className="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 border border-gray-200 dark:border-amber-900/30 rounded-lg sm:rounded-xl shadow-xl dark:shadow-amber-950/30 p-4 sm:p-5 md:p-6 min-h-[400px] sm:min-h-[500px] md:min-h-[600px]">
+              {/* Warning Message for Variants Tab */}
+              {activeTab === "variants" && (
+                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-lg shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <span className="text-amber-600 dark:text-amber-400 text-lg sm:text-xl flex-shrink-0 mt-0.5">⚠️</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200 mb-1.5">
+                        {t("admin.productDetail.quantityUpdatesNotice")}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 leading-relaxed">
+                        <Trans
+                          i18nKey="admin.productDetail.quantityUpdatesNoticeDescription"
+                          components={{
+                            strong: <strong />
+                          }}
+                        />
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {activeTab === "general" && (
                 <GeneralTab data={productData} onChange={updateProductData} />
               )}

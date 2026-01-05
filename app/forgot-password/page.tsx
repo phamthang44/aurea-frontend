@@ -11,10 +11,12 @@ import { OtpInput } from "@/components/AuthForms/OtpInput";
 import { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Step = 1 | 2 | 3;
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [email, setEmail] = useState("");
@@ -40,14 +42,14 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     if (!email.trim()) {
-      toast.error("Email is required");
+      toast.error(t("validation.emailRequired"));
       setIsLoading(false);
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
+      toast.error(t("validation.emailInvalid"));
       setIsLoading(false);
       return;
     }
@@ -56,16 +58,16 @@ export default function ForgotPasswordPage() {
       const response = await clientApi.forgotPassword(email);
       
       if (response.error) {
-        toast.error(response.error.message || "Failed to send OTP");
+        toast.error(response.error.message || t("error.failedToSendOtp"));
       } else if (response.data?.error) {
-        toast.error(response.data.error.message || "Failed to send OTP");
+        toast.error(response.data.error.message || t("error.failedToSendOtp"));
       } else {
-        toast.success("OTP has been sent to your email");
+        toast.success(t("success.otpSent"));
         setStep(2);
         setResendCooldown(60); // 60 second cooldown
       }
     } catch (err: any) {
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +79,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     if (otp.length !== 6) {
-      toast.error("Please enter a 6-digit OTP code");
+      toast.error(t("validation.otp6Digits"));
       setIsLoading(false);
       return;
     }
@@ -96,43 +98,43 @@ export default function ForgotPasswordPage() {
 
     // Validation
     if (!newPassword) {
-      toast.error("New password is required");
+      toast.error(t("validation.passwordRequired"));
       setIsLoading(false);
       return;
     }
 
     if (newPassword.length < 10) {
-      toast.error("Password must be at least 10 characters");
+      toast.error(t("validation.passwordMinLength"));
       setIsLoading(false);
       return;
     }
 
     if (!/(?=.*[a-z])/.test(newPassword)) {
-      toast.error("Password must contain at least one lowercase letter");
+      toast.error(t("validation.passwordLowercase"));
       setIsLoading(false);
       return;
     }
 
     if (!/(?=.*[A-Z])/.test(newPassword)) {
-      toast.error("Password must contain at least one uppercase letter");
+      toast.error(t("validation.passwordUppercase"));
       setIsLoading(false);
       return;
     }
 
     if (!/(?=.*\d)/.test(newPassword)) {
-      toast.error("Password must contain at least one number");
+      toast.error(t("validation.passwordNumber"));
       setIsLoading(false);
       return;
     }
 
     if (!/(?=.*[^A-Za-z0-9])/.test(newPassword)) {
-      toast.error("Password must contain at least one special character");
+      toast.error(t("validation.passwordSpecialChar"));
       setIsLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("validation.passwordsDoNotMatch"));
       setIsLoading(false);
       return;
     }
@@ -141,17 +143,17 @@ export default function ForgotPasswordPage() {
       const response = await clientApi.resetPassword(email, otp, newPassword);
       
       if (response.error) {
-        toast.error(response.error.message || "Failed to reset password");
+        toast.error(response.error.message || t("error.failedToResetPassword"));
       } else if (response.data?.error) {
-        toast.error(response.data.error.message || "Failed to reset password");
+        toast.error(response.data.error.message || t("error.failedToResetPassword"));
       } else {
-        toast.success("Password has been reset successfully");
+        toast.success(t("success.passwordReset"));
         setTimeout(() => {
           router.push("/auth");
         }, 1500);
       }
     } catch (err: any) {
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -166,15 +168,15 @@ export default function ForgotPasswordPage() {
       const response = await clientApi.forgotPassword(email);
       
       if (response.error) {
-        toast.error(response.error.message || "Failed to resend OTP");
+        toast.error(response.error.message || t("error.failedToResendOtp"));
       } else if (response.data?.error) {
-        toast.error(response.data.error.message || "Failed to resend OTP");
+        toast.error(response.data.error.message || t("error.failedToResendOtp"));
       } else {
-        toast.success("OTP has been resent to your email");
+        toast.success(t("success.otpResent"));
         setResendCooldown(60);
       }
     } catch (err: any) {
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }

@@ -3,6 +3,7 @@
 import { Package, Users, ShoppingCart, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface StatCard {
   label: string;
@@ -14,9 +15,10 @@ interface StatCard {
   href: string;
 }
 
-const stats: StatCard[] = [
+// Stats will be translated in component
+const getStats = (t: any): StatCard[] => [
   {
-    label: "Total Products",
+    label: t("admin.dashboard.totalProducts"),
     value: "248",
     change: "+12%",
     trend: "up",
@@ -25,7 +27,7 @@ const stats: StatCard[] = [
     href: "/admin/products",
   },
   {
-    label: "Total Users",
+    label: t("admin.dashboard.totalUsers"),
     value: "1,234",
     change: "+8%",
     trend: "up",
@@ -34,7 +36,7 @@ const stats: StatCard[] = [
     href: "/admin/users",
   },
   {
-    label: "Total Orders",
+    label: t("admin.dashboard.totalOrders"),
     value: "567",
     change: "-3%",
     trend: "down",
@@ -43,7 +45,7 @@ const stats: StatCard[] = [
     href: "/admin/orders",
   },
   {
-    label: "Revenue",
+    label: t("admin.dashboard.revenue"),
     value: "$45,678",
     change: "+15%",
     trend: "up",
@@ -92,21 +94,22 @@ const recentActivities = [
 ];
 
 export default function AdminDashboardPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-8">
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-light tracking-wide text-foreground mb-2">
-          Dashboard Overview
+          {t("admin.dashboard.title")}
         </h1>
         <p className="text-muted-foreground">
-          Monitor your store&apos;s performance and activities
+          {t("admin.dashboard.subtitle")}
         </p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
+        {getStats(t).map((stat) => {
           const Icon = stat.icon;
           return (
             <Link
@@ -149,7 +152,7 @@ export default function AdminDashboardPage() {
       <div className="bg-white dark:bg-[#1A1A1A] border border-border rounded-lg">
         <div className="p-6 border-b border-border">
           <h2 className="text-xl font-light tracking-wide text-foreground">
-            Recent Activity
+            {t("admin.dashboard.recentActivity")}
           </h2>
         </div>
         <div className="divide-y divide-border">
@@ -192,10 +195,10 @@ export default function AdminDashboardPage() {
         >
           <Package className="h-8 w-8 text-blue-600 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">
-            Manage Products
+            {t("admin.dashboard.manageProducts")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Add, edit, or remove products from your catalog
+            {t("admin.dashboard.manageProductsDesc")}
           </p>
         </Link>
 
@@ -205,10 +208,10 @@ export default function AdminDashboardPage() {
         >
           <Users className="h-8 w-8 text-blue-600 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">
-            User Management
+            {t("admin.dashboard.userManagement")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            View and manage user accounts and permissions
+            {t("admin.dashboard.userManagementDesc")}
           </p>
         </Link>
 
@@ -218,10 +221,10 @@ export default function AdminDashboardPage() {
         >
           <TrendingUp className="h-8 w-8 text-blue-600 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">
-            Settings
+            {t("admin.dashboard.settings")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Configure store settings and preferences
+            {t("admin.dashboard.settingsDesc")}
           </p>
         </Link>
       </div>

@@ -22,6 +22,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 /**
  * Format currency to VND with luxury styling
@@ -39,6 +40,7 @@ function formatVND(amount: number): string {
 }
 
 export default function CartPage() {
+  const { t } = useTranslation();
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -63,20 +65,20 @@ export default function CartPage() {
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
     removeItem(itemId);
-    toast.success("Removed from cart", {
+    toast.success(t("cart.removedFromCart"), {
       description: itemName,
     });
   };
 
   const handleClearCart = () => {
     clearCart();
-    toast.success("Cart cleared");
+    toast.success(t("cart.cartCleared"));
   };
 
   const handleApplyCoupon = () => {
     if (couponCode.trim()) {
-      toast.error("Invalid coupon code", {
-        description: "This coupon does not exist or has expired.",
+      toast.error(t("cart.invalidCoupon"), {
+        description: t("cart.couponExpired"),
       });
     }
   };
@@ -89,10 +91,10 @@ export default function CartPage() {
       <ConfirmDialog
         open={showClearCartDialog}
         onOpenChange={setShowClearCartDialog}
-        title="Clear Shopping Cart"
-        description="Are you sure you want to remove all items from your cart? This action cannot be undone."
-        confirmText="Clear Cart"
-        cancelText="Keep Items"
+        title={t("cart.clearCartTitle")}
+        description={t("cart.clearCartDescription")}
+        confirmText={t("cart.clearCart")}
+        cancelText={t("cart.keepItems")}
         onConfirm={handleClearCart}
         variant="destructive"
       />
@@ -106,19 +108,19 @@ export default function CartPage() {
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors duration-200 no-underline group"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
-              Continue Shopping
+              {t("cart.continueShopping")}
             </Link>
           </div>
 
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-light tracking-wider text-foreground mb-2">
-              Shopping Cart
+              {t("cart.shoppingCart")}
             </h1>
             {!isAuthenticated && items.length > 0 && (
               <p className="text-sm text-muted-foreground">
                 <ShieldCheck className="inline h-4 w-4 mr-1 text-[#D4AF37]" />
-                Your cart is saved locally. Sign in to sync across devices.
+                {t("cart.cartSavedLocally")}
               </p>
             )}
           </div>
@@ -130,13 +132,13 @@ export default function CartPage() {
                 <div className="mb-6">
                   <ShoppingBag className="h-24 w-24 mx-auto text-[#D4AF37]/40" />
                 </div>
-                <h2 className="text-2xl font-light mb-3">Your cart is empty</h2>
+                <h2 className="text-2xl font-light mb-3">{t("cart.emptyCartTitle")}</h2>
                 <p className="text-muted-foreground mb-8">
-                  Discover our luxury collection and add items to your cart
+                  {t("cart.emptyCartDescription")}
                 </p>
                 <Link href="/shop">
                   <Button className="bg-[#D4AF37] hover:bg-[#B8941F] text-white px-8">
-                    Start Shopping
+                    {t("cart.startShopping")}
                   </Button>
                 </Link>
               </div>
@@ -155,7 +157,7 @@ export default function CartPage() {
                     className="text-destructive hover:text-destructive/80"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Clear Cart
+                    {t("cart.clearCart")}
                   </Button>
                 </div>
 
@@ -175,8 +177,11 @@ export default function CartPage() {
                           sizes="96px"
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <ShoppingBag className="h-8 w-8 text-[#D4AF37]/30" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F5F0] to-[#E8E8E0] dark:from-[#1A1A1A] dark:to-[#252525]">
+                          <ShoppingBag className="h-16 w-16 text-[#D4AF37]/30 mb-3" />
+                          <p className="text-sm font-light text-[#D4AF37]/50 tracking-wider">
+                            {t("cart.noImage", { defaultValue: "No Image" })}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -233,7 +238,7 @@ export default function CartPage() {
                           className="text-destructive hover:text-destructive/80"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Remove
+                          {t("common.remove")}
                         </Button>
                       </div>
                     </div>
@@ -253,7 +258,7 @@ export default function CartPage() {
                 <div className="sticky top-24">
                   <div className="bg-card border-2 border-[#D4AF37]/30 rounded-lg p-6 space-y-6">
                     <h2 className="text-xl font-light tracking-wider">
-                      Order Summary
+                      {t("cart.orderSummary")}
                     </h2>
 
                     <Separator className="bg-[#D4AF37]/20" />
@@ -261,12 +266,12 @@ export default function CartPage() {
                     {/* Coupon Code */}
                     <div className="space-y-2">
                       <label className="text-sm text-muted-foreground">
-                        Coupon Code
+                        {t("cart.couponCode")}
                       </label>
                       <div className="flex gap-2">
                         <Input
                           type="text"
-                          placeholder="Enter code"
+                          placeholder={t("cart.enterCode")}
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value)}
                           className="border-[#D4AF37]/30"
@@ -276,7 +281,7 @@ export default function CartPage() {
                           onClick={handleApplyCoupon}
                           className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
                         >
-                          Apply
+                          {t("common.apply")}
                         </Button>
                       </div>
                     </div>
@@ -286,16 +291,16 @@ export default function CartPage() {
                     {/* Price Breakdown */}
                     <div className="space-y-3">
                       <div className="flex justify-between text-base">
-                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="text-muted-foreground">{t("cart.subtotal")}</span>
                         <span className="font-medium">
                           {formatVND(subtotal)}
                         </span>
                       </div>
                       <div className="flex justify-between text-base">
-                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="text-muted-foreground">{t("cart.shipping")}</span>
                         <span className="font-medium">
                           {shipping === 0 ? (
-                            <span className="text-green-600">Free</span>
+                            <span className="text-green-600">{t("cart.free")}</span>
                           ) : (
                             formatVND(shipping)
                           )}
@@ -303,8 +308,7 @@ export default function CartPage() {
                       </div>
                       {subtotal > 0 && subtotal < 1000000 && (
                         <p className="text-xs text-muted-foreground">
-                          Add {formatVND(1000000 - subtotal)} more for free
-                          shipping
+                          {t("cart.addMoreForFreeShipping", { amount: formatVND(1000000 - subtotal) })}
                         </p>
                       )}
                     </div>
@@ -313,7 +317,7 @@ export default function CartPage() {
 
                     {/* Total */}
                     <div className="flex justify-between text-lg">
-                      <span className="font-medium">Total</span>
+                      <span className="font-medium">{t("cart.total")}</span>
                       <span className="font-bold text-[#D4AF37]">
                         {formatVND(total)}
                       </span>
@@ -324,15 +328,15 @@ export default function CartPage() {
                       className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-white h-12 text-base font-medium tracking-wide"
                       onClick={() => {
                         if (!isAuthenticated) {
-                          toast.info("Please sign in to checkout", {
-                            description: "Your cart will be saved",
+                          toast.info(t("cart.pleaseSignIn"), {
+                            description: t("cart.cartWillBeSaved"),
                           });
                         } else {
-                          toast.info("Checkout coming soon!");
+                          toast.info(t("cart.checkoutComingSoon"));
                         }
                       }}
                     >
-                      Proceed to Checkout
+                      {t("cart.proceedToCheckout")}
                     </Button>
 
                     {/* Trust Badges */}
@@ -340,27 +344,27 @@ export default function CartPage() {
                       <div className="flex items-start gap-3 text-sm">
                         <Truck className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium">Free Shipping</p>
+                          <p className="font-medium">{t("cart.freeShipping")}</p>
                           <p className="text-xs text-muted-foreground">
-                            On orders over 1,000,000₫
+                            {t("cart.freeShippingOver")}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3 text-sm">
                         <RotateCcw className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium">Easy Returns</p>
+                          <p className="font-medium">{t("cart.easyReturns")}</p>
                           <p className="text-xs text-muted-foreground">
-                            30-day return policy
+                            {t("cart.returnPolicy")}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3 text-sm">
                         <ShieldCheck className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium">Secure Payment</p>
+                          <p className="font-medium">{t("cart.securePayment")}</p>
                           <p className="text-xs text-muted-foreground">
-                            Your data is protected
+                            {t("cart.dataProtected")}
                           </p>
                         </div>
                       </div>

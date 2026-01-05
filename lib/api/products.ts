@@ -5,19 +5,32 @@ import {
   PaginatedApiResult,
   ApiResult,
 } from "@/lib/types/product";
+import { getCategoryBySlug } from "./category";
 
 // Use Next.js API proxy route which handles HttpOnly cookie authentication
 const API_BASE_URL = "/api/proxy";
 
 /**
  * Build query string from ProductSearchRequest
+ * Converts categorySlug to categoryId if needed
  */
-function buildQueryString(params: ProductSearchRequest): string {
+async function buildQueryString(params: ProductSearchRequest): Promise<string> {
   const searchParams = new URLSearchParams();
 
   if (params.keyword) searchParams.append("keyword", params.keyword);
-  if (params.categoryId)
+
+  // Handle category: convert slug to ID if slug is provided
+  if (params.categorySlug) {
+    // Fetch category by slug to get its ID
+    const categoryResult = await getCategoryBySlug(params.categorySlug);
+    if (categoryResult.data) {
+      searchParams.append("categoryId", categoryResult.data.id);
+    }
+    // If slug lookup fails, skip category filter (don't break the search)
+  } else if (params.categoryId) {
     searchParams.append("categoryId", params.categoryId.toString());
+  }
+
   if (params.minPrice)
     searchParams.append("minPrice", params.minPrice.toString());
   if (params.maxPrice)
@@ -38,7 +51,7 @@ function buildQueryString(params: ProductSearchRequest): string {
 export async function searchPublicProducts(
   params: ProductSearchRequest = {}
 ): Promise<PaginatedApiResult<ProductListingDto[]>> {
-  const queryString = buildQueryString({
+  const queryString = await buildQueryString({
     page: 1,
     size: 20,
     sort: "newest",
@@ -69,7 +82,7 @@ export async function searchPublicProducts(
 export async function searchAdminProducts(
   params: ProductSearchRequest = {}
 ): Promise<PaginatedApiResult<ProductResponseAdmin[]>> {
-  const queryString = buildQueryString({
+  const queryString = await buildQueryString({
     page: 1,
     size: 20,
     sort: "newest",

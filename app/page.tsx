@@ -9,23 +9,35 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { searchPublicProducts } from "@/lib/api/products";
+import { getAllCategories } from "@/lib/api/category";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
-  // Fetch featured/newest products for homepage
-  const { data: productsResult, isLoading } = useQuery({
-    queryKey: ["featured-products"],
+  const { t } = useTranslation();
+  // Fetch featured/newest products and categories in parallel using Promise.all
+  const { data, isLoading } = useQuery({
+    queryKey: ["homepage-data"],
     queryFn: async () => {
-      const result = await searchPublicProducts({
-        page: 1,
-        size: 8,
-        sort: "newest",
-      });
-      return result;
+      // Parallel API calls - both execute simultaneously
+      const [productsResult, categoriesResult] = await Promise.all([
+        searchPublicProducts({
+          page: 1,
+          size: 8,
+          sort: "newest",
+        }),
+        getAllCategories(),
+      ]);
+
+      return {
+        products: productsResult,
+        categories: categoriesResult,
+      };
     },
   });
 
-  const products = productsResult?.data || [];
+  const products = data?.products?.data || [];
+  const categories = data?.categories?.data || [];
 
   return (
     <div className="min-h-screen bg-background dark:bg-background">
@@ -56,7 +68,7 @@ export default function HomePage() {
             AUREA
           </h1>
           <p className="text-lg md:text-xl lg:text-2xl font-light tracking-wider text-black dark:text-[#E5C96B] max-w-2xl drop-shadow-lg [text-shadow:_0_2px_12px_rgb(0_0_0_/50)]">
-            Where timeless elegance meets modern luxury
+            {t("home.hero.subtitle")}
           </p>
         </div>
       </section>
@@ -66,17 +78,17 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-16 text-center">
             <h2 className="text-3xl md:text-4xl font-light tracking-[0.05em] mb-4">
-              New Arrivals
+              {t("home.newArrivals.title")}
             </h2>
             <p className="text-base font-light tracking-wide text-muted-foreground mb-8">
-              Discover our latest collection
+              {t("home.newArrivals.description")}
             </p>
             <Link href="/shop">
               <Button
                 variant="outline"
                 className="border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition-all duration-300"
               >
-                View All Products
+                {t("home.newArrivals.viewAll")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -98,10 +110,10 @@ export default function HomePage() {
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
-                No products available yet
+                {t("home.newArrivals.noProducts")}
               </p>
               <Link href="/shop">
-                <Button variant="outline">Browse Shop</Button>
+                <Button variant="outline">{t("home.newArrivals.browseShop")}</Button>
               </Link>
             </div>
           )}

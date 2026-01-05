@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProductFilters } from "@/hooks/useProductStorefront";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface FilterSidebarProps {
   filters: ProductFilters;
@@ -30,23 +31,23 @@ interface FilterSidebarProps {
  */
 function CategoryTreeItem({
   category,
-  selectedCategoryId,
+  selectedCategorySlug,
   onSelect,
   level = 0,
 }: {
   category: CategoryResponse;
-  selectedCategoryId: string | null;
-  onSelect: (categoryId: string) => void;
+  selectedCategorySlug: string | null;
+  onSelect: (categorySlug: string) => void;
   level?: number;
 }) {
   const hasChildren = category.children && category.children.length > 0;
-  const isSelected = selectedCategoryId === category.id;
+  const isSelected = selectedCategorySlug === category.slug;
 
   return (
     <div className="w-full">
       <button
         type="button"
-        onClick={() => onSelect(category.id)}
+        onClick={() => onSelect(category.slug)}
         className={`w-full text-left py-2 px-3 rounded-md transition-colors ${
           level > 0 ? "pl-6" : ""
         } ${
@@ -64,7 +65,7 @@ function CategoryTreeItem({
             <CategoryTreeItem
               key={child.id}
               category={child}
-              selectedCategoryId={selectedCategoryId}
+              selectedCategorySlug={selectedCategorySlug}
               onSelect={onSelect}
               level={level + 1}
             />
@@ -80,6 +81,7 @@ export function FilterSidebar({
   onFilterChange,
   onReset,
 }: FilterSidebarProps) {
+  const { t } = useTranslation();
   const [minPrice, setMinPrice] = useState<string>(
     filters.priceRange[0]?.toString() || ""
   );
@@ -96,9 +98,9 @@ export function FilterSidebar({
     queryKey: ["categories"],
     queryFn: async () => {
       const result = await getAllCategories();
-      console.log("Categories API Response:", result);
-      console.log("result.data:", result.data);
-      console.log("Type of result.data:", typeof result.data);
+      // console.log("Categories API Response:", result);
+      // console.log("result.data:", result.data);
+      // console.log("Type of result.data:", typeof result.data);
 
       if (result.error) {
         console.error("Categories fetch error:", result.error);
@@ -108,7 +110,7 @@ export function FilterSidebar({
       // Backend returns { data: { data: [...categories] } }
       const categories = (result.data as any)?.data || [];
 
-      console.log("Final categories array:", categories);
+      // console.log("Final categories array:", categories);
       return categories;
     },
   });
@@ -125,17 +127,17 @@ export function FilterSidebar({
     onFilterChange("priceRange", [min, max]);
   };
 
-  const handleCategorySelect = (categoryId: string) => {
+  const handleCategorySelect = (categorySlug: string) => {
     // Toggle: if already selected, deselect
-    if (filters.categoryId === categoryId) {
-      onFilterChange("categoryId", null);
+    if (filters.categorySlug === categorySlug) {
+      onFilterChange("categorySlug", null);
     } else {
-      onFilterChange("categoryId", categoryId);
+      onFilterChange("categorySlug", categorySlug);
     }
   };
 
   const hasActiveFilters =
-    filters.categoryId !== null ||
+    filters.categorySlug !== null ||
     filters.priceRange[0] !== null ||
     filters.priceRange[1] !== null;
 
@@ -143,7 +145,7 @@ export function FilterSidebar({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Filters</h2>
+        <h2 className="text-lg font-semibold">{t("filters.title")}</h2>
         {hasActiveFilters && (
           <Button
             variant="ghost"
@@ -151,7 +153,7 @@ export function FilterSidebar({
             onClick={onReset}
             className="text-xs"
           >
-            Clear All
+            {t("filters.clearAll")}
           </Button>
         )}
       </div>
@@ -166,7 +168,7 @@ export function FilterSidebar({
         >
           <AccordionItem value="categories">
             <AccordionTrigger className="text-sm font-medium">
-              Categories
+              {t("filters.categories")}
             </AccordionTrigger>
             <AccordionContent>
               {categoriesLoading ? (
@@ -180,7 +182,7 @@ export function FilterSidebar({
                 </div>
               ) : categoriesError ? (
                 <p className="text-sm text-destructive">
-                  Error loading categories
+                  {t("filters.errorLoadingCategories")}
                 </p>
               ) : categoriesResult && categoriesResult.length > 0 ? (
                 <div className="space-y-1 max-h-[400px] overflow-y-auto">
@@ -189,7 +191,7 @@ export function FilterSidebar({
                       <CategoryTreeItem
                         key={category.id}
                         category={category}
-                        selectedCategoryId={filters.categoryId}
+                        selectedCategorySlug={filters.categorySlug}
                         onSelect={handleCategorySelect}
                       />
                     )
@@ -197,7 +199,7 @@ export function FilterSidebar({
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No categories available
+                  {t("filters.noCategoriesAvailable")}
                 </p>
               )}
             </AccordionContent>
@@ -213,16 +215,16 @@ export function FilterSidebar({
           defaultValue="price"
           className="w-full"
         >
-          <AccordionItem value="price">
+            <AccordionItem value="price">
             <AccordionTrigger className="text-sm font-medium">
-              Price Range
+              {t("filters.priceRange")}
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="min-price" className="text-xs">
-                      Min (₫)
+                      {t("filters.min")} (₫)
                     </Label>
                     <Input
                       id="min-price"
@@ -242,12 +244,12 @@ export function FilterSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="max-price" className="text-xs">
-                      Max (₫)
+                      {t("filters.max")} (₫)
                     </Label>
                     <Input
                       id="max-price"
                       type="number"
-                      placeholder="No limit"
+                      placeholder={t("filters.noLimit")}
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
                       onBlur={handlePriceChange}
@@ -267,7 +269,7 @@ export function FilterSidebar({
                   onClick={handlePriceChange}
                   className="w-full"
                 >
-                  Apply Price Range
+                  {t("filters.applyPriceRange")}
                 </Button>
               </div>
             </AccordionContent>

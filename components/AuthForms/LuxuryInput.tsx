@@ -3,6 +3,7 @@
 import { forwardRef, InputHTMLAttributes, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 
 interface LuxuryInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -11,6 +12,7 @@ interface LuxuryInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const LuxuryInput = forwardRef<HTMLInputElement, LuxuryInputProps>(
   ({ label, error, className, onBlur, ...props }, ref) => {
+    const { t } = useTranslation();
     const [touched, setTouched] = useState(false);
     const [internalError, setInternalError] = useState("");
 
@@ -19,7 +21,20 @@ export const LuxuryInput = forwardRef<HTMLInputElement, LuxuryInputProps>(
 
       // Validate required fields
       if (props.required && !e.target.value.trim()) {
-        setInternalError("This field is required");
+        // Determine field type for better error message
+        let errorKey = "validation.fieldRequired";
+        if (props.type === "email") {
+          errorKey = "validation.emailRequired";
+        } else if (props.type === "password") {
+          errorKey = "validation.passwordRequired";
+        }
+        try {
+          const translated = t(errorKey);
+          // Only set if translation is valid (not the key itself)
+          setInternalError(translated && translated !== errorKey ? translated : t("validation.fieldRequired"));
+        } catch {
+          setInternalError(t("validation.fieldRequired"));
+        }
       } else {
         setInternalError("");
       }
@@ -56,7 +71,7 @@ export const LuxuryInput = forwardRef<HTMLInputElement, LuxuryInputProps>(
             {...props}
           />
           {displayError && (
-            <p className="absolute -bottom-6 left-0 text-xs font-medium bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded text-red-600 dark:text-red-400">
+            <p className="absolute -bottom-6 left-0 text-xs font-light bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded text-red-600 dark:text-red-400">
               ⚠ {displayError}
             </p>
           )}

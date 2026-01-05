@@ -9,8 +9,10 @@ import { LuxuryButton } from "@/components/AuthForms/LuxuryButton";
 import { LuxuryNavBar } from "@/components/NavBar/LuxuryNavBar";
 import { resetPasswordAction } from "@/app/actions/auth";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function ResetPasswordContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -29,19 +31,19 @@ function ResetPasswordContent() {
   // Validate password strength
   const validatePassword = (password: string): string | null => {
     if (password.length < 10) {
-      return "Password must be at least 10 characters";
+      return t("validation.passwordMinLength");
     }
     if (!/(?=.*[a-z])/.test(password)) {
-      return "Password must contain at least one lowercase letter";
+      return t("validation.passwordLowercase");
     }
     if (!/(?=.*[A-Z])/.test(password)) {
-      return "Password must contain at least one uppercase letter";
+      return t("validation.passwordUppercase");
     }
     if (!/(?=.*\d)/.test(password)) {
-      return "Password must contain at least one number";
+      return t("validation.passwordNumber");
     }
     if (!/(?=.*[^A-Za-z0-9])/.test(password)) {
-      return "Password must contain at least one special character";
+      return t("validation.passwordSpecialChar");
     }
     return null;
   };
@@ -52,22 +54,22 @@ function ResetPasswordContent() {
 
     // Validation
     if (!email.trim()) {
-      setError("Email is required");
+      setError(t("validation.emailRequired"));
       return;
     }
 
     if (!otp.trim()) {
-      setError("OTP code is required");
+      setError(t("validation.otpRequired"));
       return;
     }
 
     if (otp.length !== 6) {
-      setError("OTP code must be 6 digits");
+      setError(t("validation.otpMustBe6Digits"));
       return;
     }
 
     if (!newPassword) {
-      setError("New password is required");
+      setError(t("validation.passwordRequired"));
       return;
     }
 
@@ -78,7 +80,7 @@ function ResetPasswordContent() {
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("validation.passwordsDoNotMatch"));
       return;
     }
 
@@ -94,10 +96,10 @@ function ResetPasswordContent() {
           router.push("/auth");
         }, 2000);
       } else {
-        setError(result.error || "Failed to reset password");
+        setError(result.error || t("error.failedToResetPassword"));
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("error.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -116,17 +118,17 @@ function ResetPasswordContent() {
             <>
               <div className="space-y-4">
                 <h1 className="text-4xl md:text-5xl font-light tracking-[0.05em]">
-                  Reset Password
+                  {t("resetPassword.title")}
                 </h1>
                 <p className="text-sm font-light tracking-wide text-muted-foreground">
-                  Enter your email, OTP code, and new password
+                  {t("resetPassword.subtitle")}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <LuxuryInput
                   id="email"
-                  label="Email"
+                  label={t("resetPassword.email")}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -137,7 +139,7 @@ function ResetPasswordContent() {
 
                 <LuxuryInput
                   id="otp"
-                  label="OTP Code"
+                  label={t("resetPassword.otpCode")}
                   type="text"
                   value={otp}
                   onChange={(e) => {
@@ -154,21 +156,21 @@ function ResetPasswordContent() {
 
                 <PasswordInput
                   id="newPassword"
-                  label="New Password"
+                  label={t("resetPassword.newPassword")}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                  placeholder="At least 10 characters"
+                  placeholder={t("resetPassword.newPassword")}
                   error={error}
                 />
 
                 <PasswordInput
                   id="confirmPassword"
-                  label="Confirm New Password"
+                  label={t("resetPassword.confirmPassword")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  placeholder="Re-enter your password"
+                  placeholder={t("resetPassword.confirmPassword")}
                 />
 
                 {error && (
@@ -179,8 +181,7 @@ function ResetPasswordContent() {
                 )}
 
                 <p className="text-xs font-light text-muted-foreground">
-                  Password must contain uppercase, lowercase, number, and
-                  special character
+                  {t("resetPassword.passwordRequirements")}
                 </p>
 
                 <LuxuryButton
@@ -188,7 +189,7 @@ function ResetPasswordContent() {
                   isLoading={isLoading}
                   className="w-full py-6"
                 >
-                  Reset Password
+                  {t("resetPassword.resetPassword")}
                 </LuxuryButton>
               </form>
 
@@ -197,7 +198,7 @@ function ResetPasswordContent() {
                   href="/auth"
                   className="text-xs font-light tracking-wide text-muted-foreground hover:text-foreground transition-all duration-300 no-underline"
                 >
-                  ← Back to Sign In
+                  {t("resetPassword.backToSignIn")}
                 </Link>
               </div>
             </>
@@ -210,11 +211,10 @@ function ResetPasswordContent() {
               </div>
               <div className="space-y-4">
                 <h1 className="text-4xl md:text-5xl font-light tracking-[0.05em]">
-                  Password Reset Successful
+                  {t("resetPassword.successTitle")}
                 </h1>
                 <p className="text-sm font-light tracking-wide text-muted-foreground">
-                  Your password has been reset successfully. Redirecting to sign
-                  in...
+                  {t("resetPassword.successMessage")}
                 </p>
               </div>
 
@@ -222,7 +222,7 @@ function ResetPasswordContent() {
                 onClick={() => router.push("/auth")}
                 className="w-full py-6"
               >
-                Go to Sign In
+                {t("resetPassword.goToSignIn")}
               </LuxuryButton>
             </div>
           )}

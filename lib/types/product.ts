@@ -219,11 +219,29 @@ export interface UpdateVariantRequest {
 
 /**
  * Variant with ID for update operations
- * Used when updating product with existing variants
+ * Used when updating product with existing variants via PUT /api/v1/products/{id}
+ * 
+ * ⚠️ IMPORTANT: quantity is NOT included in full product updates
+ * - When updating a product via PUT /api/v1/products/{id}, quantity changes for existing variants are IGNORED
+ * - To update quantity for an existing variant, use PUT /api/v1/products/variants/{id} with VariantStockUpdatedEvent
+ * - Quantity is only used when creating NEW variants (for initial inventory initialization)
+ * 
+ * This design ensures:
+ * - Full product updates focus on product-level and variant metadata (price, attributes, status)
+ * - Stock quantity updates go through dedicated variant endpoints for proper inventory event handling
  */
 export interface UpdateVariantWithId extends UpdateVariantRequest {
   id: string; // Required for updates
   sku: string; // Required but immutable - sent for reference
+  /**
+   * ⚠️ DO NOT INCLUDE quantity in UpdateVariantWithId
+   * Quantity updates for existing variants must be done via:
+   * - PUT /api/v1/products/variants/{id} (single variant update with quantity)
+   * - Or use Inventory Module APIs directly
+   * 
+   * Quantity is only accepted for NEW variants (when id is null in CreateVariantRequest)
+   */
+  // quantity is intentionally omitted - will be ignored by backend if included
 }
 
 /**
@@ -239,9 +257,17 @@ export interface ProductImage {
 /**
  * Request payload for updating complete product
  * PUT /api/v1/products/{id}
- * - Variants WITH id: Updated
- * - Variants WITHOUT id: Created (new variants)
+ * - Variants WITH id: Updated (metadata only - price, attributes, status)
+ * - Variants WITHOUT id: Created (new variants with initial quantity)
  * - Existing variants NOT in list: Preserved unchanged
+ * 
+ * ⚠️ IMPORTANT LIMITATION: Quantity Updates
+ * - Quantity changes for EXISTING variants (UpdateVariantWithId) are IGNORED in full product updates
+ * - To update quantity for an existing variant, use the variant-specific endpoint:
+ *   PUT /api/v1/products/variants/{id} with quantity field
+ * - Quantity is ONLY used when creating NEW variants (CreateVariantRequest) for initial inventory setup
+ * 
+ * This design ensures proper inventory event handling and separation of concerns.
  */
 export interface UpdateProductRequest {
   name: string;
@@ -431,13 +457,15 @@ export interface ProductFormData {
 
 /**
  * Form state for variant creation/editing
+ * Note: quantity is included in form state for UI display,
+ * but will be filtered out when converting to UpdateVariantWithId for full product updates
  */
 export interface VariantFormData {
   id?: string; // Only for editing existing variants
   sku: string;
   attributes: VariantAttributes;
   priceOverride: number | null;
-  quantity: number;
+  quantity: number; // Used in UI, but filtered out for UpdateVariantWithId in full product updates
   isActive: boolean;
 }
 
@@ -582,7 +610,8 @@ export interface ProductResponseAdmin {
  */
 export interface ProductSearchRequest {
   keyword?: string;
-  categoryId?: number;
+  categoryId?: number; // Backend still uses numeric ID internally
+  categorySlug?: string; // Frontend-friendly slug for filtering
   minPrice?: number;
   maxPrice?: number;
   status?: "ACTIVE" | "DRAFT" | "HIDDEN" | "ARCHIVED";

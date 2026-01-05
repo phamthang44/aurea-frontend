@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { searchPublicProducts } from '@/lib/api/products';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { searchPublicProducts } from "@/lib/api/products";
 import {
   ProductListingDto,
   ProductSearchRequest,
   PaginatedApiResult,
-} from '@/lib/types/product';
+} from "@/lib/types/product";
 
 /**
  * Filter state interface
  */
 export interface ProductFilters {
   keyword: string;
-  categoryId: string | null;
+  categorySlug: string | null; // Changed from categoryId to categorySlug for SEO-friendly URLs
   priceRange: [number | null, number | null]; // [min, max]
-  sort: ProductSearchRequest['sort'];
+  sort: ProductSearchRequest["sort"];
 }
 
 /**
@@ -54,10 +54,10 @@ export interface UseProductStorefrontReturn {
  * Default filter values
  */
 const DEFAULT_FILTERS: ProductFilters = {
-  keyword: '',
-  categoryId: null,
+  keyword: "",
+  categorySlug: null,
   priceRange: [null, null],
-  sort: 'newest',
+  sort: "newest",
 };
 
 /**
@@ -91,11 +91,11 @@ function useDebounce<T>(value: T, delay: number): T {
  * Custom hook for managing product storefront state and data fetching
  *
  * Features:
- * - State management for filters (keyword, categoryId, priceRange, sort)
+ * - State management for filters (keyword, categorySlug, priceRange, sort)
  * - Pagination state (page, limit)
  * - TanStack Query integration for data fetching
  * - Debounced keyword search (400ms)
- * - URL sync with query parameters
+ * - URL sync with query parameters (SEO-friendly slugs)
  *
  * @example
  * ```tsx
@@ -112,8 +112,8 @@ function useDebounce<T>(value: T, delay: number): T {
  * // Update keyword
  * setFilter('keyword', 'shirt');
  *
- * // Update category
- * setFilter('categoryId', '101');
+ * // Update category by slug
+ * setFilter('categorySlug', 'mens-clothing');
  *
  * // Update price range
  * setFilter('priceRange', [100000, 500000]);
@@ -130,26 +130,26 @@ export function useProductStorefront(): UseProductStorefrontReturn {
   // Initialize state from URL params
   const [filters, setFiltersState] = useState<ProductFilters>(() => {
     return {
-      keyword: searchParams.get('keyword') || DEFAULT_FILTERS.keyword,
-      categoryId: searchParams.get('category') || null,
+      keyword: searchParams.get("keyword") || DEFAULT_FILTERS.keyword,
+      categorySlug: searchParams.get("category") || null, // URL param 'category' now contains slug
       priceRange: [
-        searchParams.get('minPrice')
-          ? Number(searchParams.get('minPrice'))
+        searchParams.get("minPrice")
+          ? Number(searchParams.get("minPrice"))
           : null,
-        searchParams.get('maxPrice')
-          ? Number(searchParams.get('maxPrice'))
+        searchParams.get("maxPrice")
+          ? Number(searchParams.get("maxPrice"))
           : null,
       ] as [number | null, number | null],
       sort:
-        (searchParams.get('sort') as ProductSearchRequest['sort']) ||
+        (searchParams.get("sort") as ProductSearchRequest["sort"]) ||
         DEFAULT_FILTERS.sort,
     };
   });
 
   const [pagination, setPaginationState] = useState(() => {
     return {
-      page: Number(searchParams.get('page')) || DEFAULT_PAGINATION.page,
-      limit: Number(searchParams.get('limit')) || DEFAULT_PAGINATION.limit,
+      page: Number(searchParams.get("page")) || DEFAULT_PAGINATION.page,
+      limit: Number(searchParams.get("limit")) || DEFAULT_PAGINATION.limit,
       totalElements: 0,
       totalPages: 0,
     };
@@ -159,6 +159,7 @@ export function useProductStorefront(): UseProductStorefrontReturn {
   const debouncedKeyword = useDebounce(filters.keyword, 400);
 
   // Build API request params
+  // Note: Backend still expects categoryId as number, so we'll need to convert slug to ID
   const apiParams = useMemo<ProductSearchRequest>(() => {
     const params: ProductSearchRequest = {
       page: pagination.page,
@@ -170,8 +171,10 @@ export function useProductStorefront(): UseProductStorefrontReturn {
       params.keyword = debouncedKeyword.trim();
     }
 
-    if (filters.categoryId) {
-      params.categoryId = Number(filters.categoryId);
+    // Note: filters.categorySlug is now a slug, but we'll handle conversion in the query
+    // For now, we'll pass it as a string and let the API handle it
+    if (filters.categorySlug) {
+      params.categorySlug = filters.categorySlug; // Pass slug to backend
     }
 
     if (filters.priceRange[0] !== null) {
@@ -185,7 +188,7 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     return params;
   }, [
     debouncedKeyword,
-    filters.categoryId,
+    filters.categorySlug,
     filters.priceRange,
     filters.sort,
     pagination.page,
@@ -198,12 +201,12 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     isLoading,
     error: queryError,
   } = useQuery<PaginatedApiResult<ProductListingDto[]>>({
-    queryKey: ['products', 'storefront', apiParams],
+    queryKey: ["products", "storefront", apiParams],
     queryFn: async () => {
       const result = await searchPublicProducts(apiParams);
       // Check for API-level errors in response
       if (result.error) {
-        throw new Error(result.error.message || 'API request failed');
+        throw new Error(result.error.message || "API request failed");
       }
       return result;
     },
@@ -233,27 +236,27 @@ export function useProductStorefront(): UseProductStorefrontReturn {
 
     // Add filters to URL
     if (debouncedKeyword.trim()) {
-      params.set('keyword', debouncedKeyword.trim());
+      params.set("keyword", debouncedKeyword.trim());
     }
-    if (filters.categoryId) {
-      params.set('category', filters.categoryId);
+    if (filters.categorySlug) {
+      params.set("category", filters.categorySlug); // Now using slug in URL
     }
     if (filters.priceRange[0] !== null) {
-      params.set('minPrice', filters.priceRange[0]!.toString());
+      params.set("minPrice", filters.priceRange[0]!.toString());
     }
     if (filters.priceRange[1] !== null) {
-      params.set('maxPrice', filters.priceRange[1]!.toString());
+      params.set("maxPrice", filters.priceRange[1]!.toString());
     }
     if (filters.sort && filters.sort !== DEFAULT_FILTERS.sort) {
-      params.set('sort', filters.sort);
+      params.set("sort", filters.sort);
     }
 
     // Add pagination to URL
     if (pagination.page > 1) {
-      params.set('page', pagination.page.toString());
+      params.set("page", pagination.page.toString());
     }
     if (pagination.limit !== DEFAULT_PAGINATION.limit) {
-      params.set('limit', pagination.limit.toString());
+      params.set("limit", pagination.limit.toString());
     }
 
     // Update URL without causing navigation
@@ -263,7 +266,7 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     router.replace(newUrl, { scroll: false });
   }, [
     debouncedKeyword,
-    filters.categoryId,
+    filters.categorySlug,
     filters.priceRange,
     filters.sort,
     pagination.page,
@@ -274,23 +277,17 @@ export function useProductStorefront(): UseProductStorefrontReturn {
 
   // Set filter function
   const setFilter = useCallback<
-    <K extends keyof ProductFilters>(
-      key: K,
-      value: ProductFilters[K]
-    ) => void
-  >(
-    (key, value) => {
-      setFiltersState((prev) => {
-        const newFilters = { ...prev, [key]: value };
-        // Reset to page 1 when filters change (except pagination)
-        if (key !== 'sort') {
-          setPaginationState((prev) => ({ ...prev, page: 1 }));
-        }
-        return newFilters;
-      });
-    },
-    []
-  );
+    <K extends keyof ProductFilters>(key: K, value: ProductFilters[K]) => void
+  >((key, value) => {
+    setFiltersState((prev) => {
+      const newFilters = { ...prev, [key]: value };
+      // Reset to page 1 when filters change (except pagination)
+      if (key !== "sort") {
+        setPaginationState((prev) => ({ ...prev, page: 1 }));
+      }
+      return newFilters;
+    });
+  }, []);
 
   // Set page function
   const setPage = useCallback((page: number) => {
@@ -330,4 +327,3 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     hasPreviousPage,
   };
 }
-

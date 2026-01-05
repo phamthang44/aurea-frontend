@@ -5,12 +5,14 @@ import { useAppSelector, useAppDispatch } from '@/lib/store/hooks';
 import { User, Heart, ShoppingBag, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/ui/ModeToggle';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { useCartStore } from '@/lib/store/cartStore';
 import { MegaMenu } from './MegaMenu';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const megaMenuItems = [
   {
@@ -95,6 +97,7 @@ const megaMenuItems = [
 ];
 
 export function LuxuryNavBar() {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
@@ -139,6 +142,9 @@ export function LuxuryNavBar() {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-4">
+            {/* Language Switcher - Always visible */}
+            <LanguageSwitcher />
+            
             {/* Theme Toggle - Always visible */}
             <ModeToggle />
             
@@ -152,7 +158,7 @@ export function LuxuryNavBar() {
                       className="font-light tracking-wide px-4 py-2 text-xs text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 border border-[#D4AF37]/30 dark:border-[#3D3D3D]/50 transition-colors duration-300"
                     >
                       <Settings className="h-4 w-4 mr-2" />
-                      Admin
+                      {t("navbar.admin")}
                     </Button>
                   </Link>
                 )}
@@ -202,7 +208,7 @@ export function LuxuryNavBar() {
                   className="font-light tracking-wide px-4 py-2 text-xs text-[#B8A072] hover:text-[#D4AF37] transition-colors duration-300"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  {t("navbar.logout")}
                 </Button>
               </>
             ) : (
@@ -211,7 +217,7 @@ export function LuxuryNavBar() {
                   variant="outline"
                   className="font-light tracking-wide px-6 py-2 border-2 border-[#D4AF37] text-[#D4AF37] hover:text-white hover:bg-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-[#1A1A1A] dark:hover:bg-[#D4AF37] transition-all duration-300"
                 >
-                  Sign In
+                  {t("navbar.signIn")}
                 </Button>
               </Link>
             )}

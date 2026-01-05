@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins, Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ReduxProvider } from "@/components/providers/ReduxProvider";
@@ -8,11 +8,24 @@ import { SuppressCOOPWarnings } from "@/components/providers/SuppressCOOPWarning
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthInitProvider } from "@/components/providers/AuthInitProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { I18nProvider } from "@/components/providers/I18nProvider";
+import { LangUpdater } from "@/components/providers/LangUpdater";
 import { Toaster } from "sonner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  preload: true,
+});
+
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam",
+  subsets: ["latin", "vietnamese"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
@@ -31,9 +44,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="luxury-dark" suppressHydrationWarning>
+    <html lang="vi" className="luxury-dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} ${beVietnamPro.variable} ${geistMono.variable} antialiased`}
       >
         <Script
           id="suppress-coop-warnings"
@@ -74,16 +87,19 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <QueryProvider>
-            <GoogleOAuthProviderWrapper>
-              <ReduxProvider>
-                <AuthInitProvider>
-                  {children}
-                  <Toaster position="top-center" richColors />
-                </AuthInitProvider>
-              </ReduxProvider>
-            </GoogleOAuthProviderWrapper>
-          </QueryProvider>
+          <I18nProvider>
+            <LangUpdater />
+            <QueryProvider>
+              <GoogleOAuthProviderWrapper>
+                <ReduxProvider>
+                  <AuthInitProvider>
+                    {children}
+                    <Toaster position="top-center" richColors />
+                  </AuthInitProvider>
+                </ReduxProvider>
+              </GoogleOAuthProviderWrapper>
+            </QueryProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

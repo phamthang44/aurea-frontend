@@ -6,8 +6,10 @@ import { loginWithGoogleAction, fetchUserProfileAction } from "@/app/actions/aut
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setAuthenticated } from "@/lib/store/authSlice";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function GoogleCallbackContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -119,10 +121,10 @@ function GoogleCallbackContent() {
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-light tracking-wide">
-                Completing your sign in
+                {t("googleCallback.completingSignIn")}
               </h1>
               <p className="text-sm text-muted-foreground font-light">
-                Please wait while we authenticate with Google...
+                {t("googleCallback.pleaseWait")}
               </p>
             </div>
           </>
@@ -135,13 +137,13 @@ function GoogleCallbackContent() {
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-light tracking-wide text-destructive">
-                Authentication Failed
+                {t("googleCallback.authenticationFailed")}
               </h1>
               <p className="text-sm text-muted-foreground font-light">
                 {errorMessage}
               </p>
               <p className="text-xs text-muted-foreground font-light">
-                Redirecting to sign in page...
+                {t("googleCallback.redirecting")}
               </p>
             </div>
           </>

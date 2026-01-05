@@ -4,6 +4,7 @@ import { forwardRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 
 interface PasswordInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -13,6 +14,7 @@ interface PasswordInputProps
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ label, error, className, id, onBlur, ...props }, ref) => {
+    const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
     const [touched, setTouched] = useState(false);
     const [internalError, setInternalError] = useState("");
@@ -26,7 +28,13 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
       // Validate required fields
       if (props.required && !e.target.value.trim()) {
-        setInternalError("This field is required");
+        try {
+          const translated = t("validation.passwordRequired");
+          // Only set if translation is valid (not the key itself)
+          setInternalError(translated && translated !== "validation.passwordRequired" ? translated : t("validation.fieldRequired"));
+        } catch {
+          setInternalError(t("validation.fieldRequired"));
+        }
       } else {
         setInternalError("");
       }
@@ -78,7 +86,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             )}
           </button>
           {displayError && (
-            <p className="absolute -bottom-6 left-0 text-xs font-medium bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded text-red-600 dark:text-red-400">
+            <p className="absolute -bottom-6 left-0 text-xs font-light bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded text-red-600 dark:text-red-400">
               ⚠ {displayError}
             </p>
           )}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface FashionProductCardProps {
   id: string;
@@ -25,6 +26,7 @@ export function FashionProductCard({
   currency = 'USD',
   spanCols = 1,
 }: FashionProductCardProps) {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -70,7 +72,7 @@ export function FashionProductCard({
                 }}
               >
                 <Eye className="h-4 w-4 mr-2" />
-                Quick View
+                {t("productCard.quickView")}
               </Button>
             </div>
           </div>

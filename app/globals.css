@@ -43,8 +43,10 @@
   --color-chart-5: hsl(var(--chart-5));
 
   /* Fonts */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
+  --font-poppins: var(--font-poppins);
+  --font-be-vietnam: var(--font-be-vietnam);
 
   /* Border radius */
   --radius-sm: calc(var(--radius) - 4px);
@@ -222,9 +224,53 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-geist-sans), "Inter", -apple-system,
-      BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* Default: Poppins */
+    font-family: var(--font-poppins), "Poppins", -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 300 !important;
     letter-spacing: 0.01em;
+  }
+  
+  /* Vietnamese: Be Vietnam Pro */
+  html[lang="vi"] body {
+    font-family: var(--font-be-vietnam), "Be Vietnam Pro", -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
+  
+  /* Apply default font to all text elements */
+  body *,
+  body *::before,
+  body *::after {
+    font-family: var(--font-poppins), "Poppins", -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
+  
+  /* Apply Be Vietnam Pro for Vietnamese */
+  html[lang="vi"] body *,
+  html[lang="vi"] body *::before,
+  html[lang="vi"] body *::after {
+    font-family: var(--font-be-vietnam), "Be Vietnam Pro", -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
+  
+  /* Default font-weight for all text (light) - but allow overrides */
+  p, span, div, a, button, input, textarea, select, label {
+    font-weight: 300;
+  }
+  
+  /* Ensure headings and titles are light */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 300 !important;
+  }
+  
+  /* Exception for monospace elements */
+  code,
+  pre,
+  kbd,
+  samp,
+  .font-mono,
+  [class*="font-mono"] {
+    font-family: var(--font-geist-mono), "Courier New", monospace !important;
   }
   h1,
   h2,
@@ -233,7 +279,41 @@
   h5,
   h6 {
     @apply font-light;
+    font-weight: 300 !important;
     letter-spacing: 0.05em;
+  }
+  
+  /* Override font-weight classes to use lighter weights */
+  .font-light,
+  [class*="font-light"] {
+    font-weight: 300 !important;
+  }
+  
+  .font-normal,
+  [class*="font-normal"] {
+    font-weight: 400 !important;
+  }
+  
+  .font-medium,
+  [class*="font-medium"] {
+    font-weight: 500 !important;
+  }
+  
+  .font-semibold,
+  [class*="font-semibold"] {
+    font-weight: 600 !important;
+  }
+  
+  .font-bold,
+  [class*="font-bold"] {
+    font-weight: 700 !important;
+  }
+  
+  /* Ensure error messages are light */
+  .text-red-600,
+  .text-red-400,
+  [class*="text-red"] {
+    font-weight: 300 !important;
   }
 
   /* Luxury micro-interactions */

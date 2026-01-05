@@ -27,8 +27,10 @@ import { Filter, ShoppingBag, Search, ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAllCategories } from "@/lib/api/category";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export default function ShopPage() {
+  const { t } = useTranslation();
   const {
     products,
     isLoading,
@@ -63,26 +65,27 @@ export default function ShopPage() {
     },
   });
 
-  // Find selected category name
-  const findCategoryName = (
+  // Find selected category name from slug
+  const findCategoryBySlug = (
     categories: any[],
-    categoryId: string | null
-  ): string | null => {
-    if (!categoryId || !categories) return null;
+    categorySlug: string | null
+  ): any | null => {
+    if (!categorySlug || !categories) return null;
     for (const cat of categories) {
-      if (cat.id === categoryId) return cat.name;
+      if (cat.slug === categorySlug) return cat;
       if (cat.children) {
-        const found = findCategoryName(cat.children, categoryId);
+        const found = findCategoryBySlug(cat.children, categorySlug);
         if (found) return found;
       }
     }
     return null;
   };
 
-  const selectedCategoryName = findCategoryName(
+  const selectedCategory = findCategoryBySlug(
     categoriesResult || [],
-    filters.categoryId
+    filters.categorySlug
   );
+  const selectedCategoryName = selectedCategory?.name || null;
 
   // Calculate showing range
   const startItem =
@@ -146,7 +149,7 @@ export default function ShopPage() {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors duration-200 no-underline group"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
-            Back to Home
+            {t("shop.backToHome")}
           </Link>
         </div>
 
@@ -155,12 +158,11 @@ export default function ShopPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold mb-2">
-                {selectedCategoryName || "All Products"}
+                {selectedCategoryName || t("shop.allProducts")}
               </h1>
               {pagination.totalElements > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Showing {startItem}-{endItem} of {pagination.totalElements}{" "}
-                  {pagination.totalElements === 1 ? "product" : "products"}
+                  {t("shop.showing", { start: startItem, end: endItem, total: pagination.totalElements })}
                 </p>
               )}
             </div>
@@ -174,12 +176,12 @@ export default function ShopPage() {
                 <SheetTrigger asChild>
                   <Button variant="outline" className="md:hidden">
                     <Filter className="h-4 w-4 mr-2" />
-                    Filters
+                    {t("shop.filters")}
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                   <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
+                    <SheetTitle>{t("shop.filters")}</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6">
                     <FilterSidebar
@@ -197,14 +199,14 @@ export default function ShopPage() {
                 onValueChange={(value: any) => setFilter("sort", value)}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder={t("shop.sortBy")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  <SelectItem value="name_asc">Name: A to Z</SelectItem>
-                  <SelectItem value="name_desc">Name: Z to A</SelectItem>
+                  <SelectItem value="newest">{t("shop.sort.newest")}</SelectItem>
+                  <SelectItem value="price_asc">{t("shop.sort.priceAsc")}</SelectItem>
+                  <SelectItem value="price_desc">{t("shop.sort.priceDesc")}</SelectItem>
+                  <SelectItem value="name_asc">{t("shop.sort.nameAsc")}</SelectItem>
+                  <SelectItem value="name_desc">{t("shop.sort.nameDesc")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -215,7 +217,7 @@ export default function ShopPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search products..."
+              placeholder={t("shop.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -244,7 +246,7 @@ export default function ShopPage() {
             {error ? (
               <div className="text-center py-12">
                 <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg max-w-md mx-auto">
-                  <p className="font-medium">Error loading products</p>
+                  <p className="font-medium">{t("shop.errorLoading")}</p>
                   <p className="text-sm mt-1">{error.message}</p>
                 </div>
               </div>
@@ -261,13 +263,13 @@ export default function ShopPage() {
                     <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground/40" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">
-                    No products found
+                    {t("shop.noProductsFound")}
                   </h3>
                   <p className="text-muted-foreground mb-6">
-                    Try adjusting your filters or search terms
+                    {t("shop.tryAdjustingFilters")}
                   </p>
                   <Button onClick={resetFilters} variant="outline">
-                    Reset Filters
+                    {t("shop.resetFilters")}
                   </Button>
                 </div>
               </div>
@@ -283,7 +285,7 @@ export default function ShopPage() {
                 {pagination.totalPages > 1 && (
                   <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="text-sm text-muted-foreground">
-                      Page {pagination.page} of {pagination.totalPages}
+                      {t("shop.pageInfo", { current: pagination.page, total: pagination.totalPages })}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -293,7 +295,7 @@ export default function ShopPage() {
                         onClick={() => setPage(pagination.page - 1)}
                         disabled={!hasPreviousPage}
                       >
-                        Previous
+                        {t("shop.previous")}
                       </Button>
 
                       <div className="flex items-center gap-1">
@@ -325,7 +327,7 @@ export default function ShopPage() {
                         onClick={() => setPage(pagination.page + 1)}
                         disabled={!hasNextPage}
                       >
-                        Next
+                        {t("shop.next")}
                       </Button>
                     </div>
                   </div>

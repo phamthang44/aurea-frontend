@@ -31,8 +31,10 @@ import {
   ProductSearchRequest,
   ApiResult,
 } from "@/lib/types/product";
+import { Trans, useTranslation } from "react-i18next";
 
 export default function AdminProductsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [products, setProducts] = useState<ProductResponseAdmin[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -186,15 +188,15 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-6 border-b border-gray-200 dark:border-amber-900/20">
         <div className="space-y-1">
           <h1 className="text-3xl font-serif font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-amber-200 dark:via-yellow-100 dark:to-amber-200 bg-clip-text text-transparent">
-            Product Collection
+            {t("admin.products.title")}
           </h1>
           <div className="flex items-center gap-3">
             <p className="text-sm text-gray-500 dark:text-amber-100/60 font-light tracking-wide">
-              Curated luxury catalog management
+              {t("admin.products.subtitle")}
             </p>
             {totalItems > 0 && (
               <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/40 border border-amber-200 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wide shadow-sm">
-                {totalItems} {totalItems === 1 ? "Item" : "Items"}
+                {totalItems} {totalItems === 1 ? t("admin.products.item") : t("admin.products.items")}
               </span>
             )}
           </div>
@@ -204,10 +206,28 @@ export default function AdminProductsPage() {
           className="gap-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-lg shadow-amber-500/20 dark:shadow-amber-900/30 border-0 font-semibold tracking-wide h-11 px-6"
         >
           <Plus className="h-5 w-5" />
-          New Product
+          {t("admin.products.newProduct")}
         </Button>
       </div>
-
+      {/* Warning Message for Products Table */}
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-lg shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="text-amber-600 dark:text-amber-400 text-lg sm:text-xl flex-shrink-0 mt-0.5">⚠️</span>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200 mb-1.5">
+              {t("admin.products.quantityUpdatesNotice")}
+            </h3>
+            <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 leading-relaxed">
+              <Trans
+                i18nKey="admin.products.quantityUpdatesNoticeDescription"
+                components={{
+                  strong: <strong />
+                }}
+              />
+            </p>
+          </div>
+        </div>
+      </div>
       {/* Search and Filters */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow border border-gray-200 dark:border-amber-900/30">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -216,7 +236,7 @@ export default function AdminProductsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search products by name..."
+                placeholder={t("admin.products.searchPlaceholder")}
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
@@ -227,7 +247,7 @@ export default function AdminProductsPage() {
               onClick={handleSearch}
               className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-md shadow-amber-500/20 dark:shadow-amber-900/30 border-0 font-semibold px-6"
             >
-              Search
+              {t("common.search")}
             </Button>
           </div>
 
@@ -239,35 +259,35 @@ export default function AdminProductsPage() {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="All Status" />
+              <SelectValue placeholder={t("admin.products.allStatus")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="INACTIVE">Hidden</SelectItem>
-              <SelectItem value="ARCHIVED">Archived</SelectItem>
+              <SelectItem value="all">{t("admin.products.allStatus")}</SelectItem>
+              <SelectItem value="ACTIVE">{t("admin.products.active")}</SelectItem>
+              <SelectItem value="DRAFT">{t("admin.products.draft")}</SelectItem>
+              <SelectItem value="INACTIVE">{t("admin.products.hidden")}</SelectItem>
+              <SelectItem value="ARCHIVED">{t("admin.products.archived")}</SelectItem>
             </SelectContent>
           </Select>
 
           {/* Sort Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700 dark:text-amber-200 whitespace-nowrap">
-              Sort:
+              {t("admin.products.sort")}
             </label>
             <Select
               value={searchParams.sort || "newest"}
               onValueChange={(value: string) => handleSortChange(value as any)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t("shop.sortBy")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                <SelectItem value="name_asc">Name: A to Z</SelectItem>
-                <SelectItem value="name_desc">Name: Z to A</SelectItem>
+                <SelectItem value="newest">{t("admin.products.newestFirst")}</SelectItem>
+                <SelectItem value="price_asc">{t("admin.products.priceLowToHigh")}</SelectItem>
+                <SelectItem value="price_desc">{t("admin.products.priceHighToLow")}</SelectItem>
+                <SelectItem value="name_asc">{t("admin.products.nameAToZ")}</SelectItem>
+                <SelectItem value="name_desc">{t("admin.products.nameZToA")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -282,7 +302,7 @@ export default function AdminProductsPage() {
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-amber-100/60">
-            No products found
+            {t("admin.products.noProductsFound")}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -290,31 +310,31 @@ export default function AdminProductsPage() {
               <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-amber-900/30">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    ID
+                    {t("admin.products.id")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Name
+                    {t("admin.products.name")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Category
+                    {t("admin.products.category")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Price
+                    {t("admin.products.price")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Status
+                    {t("admin.products.status")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Variants
+                    {t("admin.products.variants")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Created
+                    {t("admin.products.created")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Updated
+                    {t("admin.products.updated")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    Actions
+                    {t("admin.products.actions")}
                   </th>
                 </tr>
               </thead>
@@ -469,7 +489,7 @@ export default function AdminProductsPage() {
                           onClick={() => handleEdit(product)}
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                         >
-                          Edit
+                          {t("common.edit")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -477,7 +497,7 @@ export default function AdminProductsPage() {
                           onClick={() => handleDeleteClick(product)}
                           className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                         >
-                          Delete
+                          {t("common.delete")}
                         </Button>
                       </div>
                     </td>
@@ -495,7 +515,7 @@ export default function AdminProductsPage() {
           {/* Left: Results info and page size selector */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <p className="text-sm text-gray-600 dark:text-amber-100/70 font-light">
-              Displaying{" "}
+              {t("admin.products.displaying")}{" "}
               <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {(currentPage - 1) * pageSize + 1}
               </span>
@@ -503,7 +523,7 @@ export default function AdminProductsPage() {
               <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {Math.min(currentPage * pageSize, totalItems)}
               </span>
-              {" of "}
+              {" "}{t("admin.products.of")}{" "}
               <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {totalItems}
               </span>
@@ -512,7 +532,7 @@ export default function AdminProductsPage() {
             {/* Luxury Page size selector */}
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-500 dark:text-amber-100/60 whitespace-nowrap font-light">
-                View:
+                {t("admin.products.view")}
               </span>
               <select
                 id="pageSize"
@@ -577,7 +597,7 @@ export default function AdminProductsPage() {
               >
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
-              <span className="hidden sm:inline">Previous</span>
+              <span className="hidden sm:inline">{t("common.previous")}</span>
             </Button>
 
             {/* Page numbers with luxury styling */}
@@ -625,7 +645,7 @@ export default function AdminProductsPage() {
               disabled={currentPage >= totalPages}
               className="h-10 px-4 gap-2 font-medium border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
-              <span className="hidden sm:inline">Next</span>
+              <span className="hidden sm:inline">{t("common.next")}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -655,11 +675,10 @@ export default function AdminProductsPage() {
         <DialogContent className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-amber-900/30">
           <DialogHeader>
             <DialogTitle className="text-xl font-serif text-gray-900 dark:text-amber-100">
-              Confirm Deletion
+              {t("admin.products.confirmDeletion")}
             </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-amber-100/60">
-              Are you certain you wish to remove &quot;{selectedProduct?.name}
-              &quot; from your collection? This action is irreversible.
+              {t("admin.products.deleteConfirmMessage", { name: selectedProduct?.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -669,7 +688,7 @@ export default function AdminProductsPage() {
               disabled={isDeleting}
               className="border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-gray-50 dark:hover:bg-amber-900/10"
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -680,10 +699,10 @@ export default function AdminProductsPage() {
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Removing...
+                  {t("admin.products.removing")}
                 </>
               ) : (
-                "Delete Product"
+                t("admin.products.deleteProduct")
               )}
             </Button>
           </DialogFooter>

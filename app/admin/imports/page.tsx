@@ -25,8 +25,10 @@ import {
   formatStatus,
 } from "@/lib/types/import";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export default function ImportPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -198,7 +200,7 @@ export default function ImportPage() {
 
   // Handle cancel job
   const handleCancelJob = async (jobId: number) => {
-    if (!confirm("Are you sure you want to cancel this job?")) {
+    if (!confirm(t("admin.imports.confirmCancel"))) {
       return;
     }
 
@@ -240,17 +242,17 @@ export default function ImportPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-light tracking-wide text-foreground mb-2">
-          Product Import
+          {t("admin.imports.title")}
         </h1>
         <p className="text-muted-foreground">
-          Upload CSV files to bulk import products
+          {t("admin.imports.subtitle")}
         </p>
       </div>
 
       {/* Upload Section */}
       <div className="bg-white dark:bg-[#1A1A1A] border border-border rounded-lg p-6">
         <h2 className="text-xl font-light tracking-wide text-foreground mb-4">
-          Upload CSV File
+          {t("admin.imports.uploadCsv")}
         </h2>
 
         <div className="space-y-4">
@@ -260,7 +262,7 @@ export default function ImportPage() {
               className="flex items-center gap-2 px-4 py-2 border border-border rounded-md cursor-pointer hover:bg-secondary transition-colors"
             >
               <Upload className="h-4 w-4" />
-              <span>Choose File</span>
+              <span>{t("admin.imports.chooseFile")}</span>
             </label>
             <input
               id="file-input"
@@ -303,7 +305,7 @@ export default function ImportPage() {
             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 p-3 rounded-md">
               <CheckCircle2 className="h-4 w-4" />
               <span>
-                Upload started! Job ID: {uploadSuccess}. Processing in background...
+                {t("admin.imports.uploadStarted", { jobId: uploadSuccess })}
               </span>
             </div>
           )}
@@ -316,24 +318,23 @@ export default function ImportPage() {
             {uploading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Uploading...
+                {t("admin.imports.uploading")}
               </>
             ) : (
               <>
                 <Upload className="h-4 w-4" />
-                Upload & Import
+                {t("admin.imports.uploadImport")}
               </>
             )}
           </Button>
 
           <div className="text-xs text-muted-foreground mt-4">
-            <p className="font-medium mb-1">CSV Format:</p>
+            <p className="font-medium mb-1">{t("admin.imports.csvFormat")}</p>
             <p>
-              Required columns: group_code, product_name, category, description,
-              sku, price, quantity, color, size
+              {t("admin.imports.requiredColumns")}
             </p>
             <p className="mt-1">
-              Recommended file size: &lt; 10MB (around 10,000 products)
+              {t("admin.imports.recommendedSize")}
             </p>
           </div>
         </div>
@@ -344,7 +345,7 @@ export default function ImportPage() {
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-light tracking-wide text-foreground">
-              Import Jobs
+              {t("admin.imports.importJobs")}
             </h2>
             <Button
               variant="outline"
@@ -361,7 +362,7 @@ export default function ImportPage() {
         <div className="p-6 border-b border-border flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <label htmlFor="status-filter" className="text-sm text-muted-foreground">
-              Status:
+              {t("admin.imports.status")}
             </label>
             <select
               id="status-filter"
@@ -372,18 +373,18 @@ export default function ImportPage() {
               }}
               className="px-3 py-1.5 border border-border rounded-md bg-background dark:bg-[#1A1A1A] text-foreground text-sm"
             >
-              <option value="">All Statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="FAILED">Failed</option>
-              <option value="PARTIAL_SUCCESS">Partial Success</option>
+              <option value="">{t("admin.imports.allStatuses")}</option>
+              <option value="PENDING">{t("admin.imports.pending")}</option>
+              <option value="PROCESSING">{t("admin.imports.processing")}</option>
+              <option value="COMPLETED">{t("admin.imports.completed")}</option>
+              <option value="FAILED">{t("admin.imports.failed")}</option>
+              <option value="PARTIAL_SUCCESS">{t("admin.imports.partialSuccess")}</option>
             </select>
           </div>
 
           <div className="flex items-center gap-2">
             <label htmlFor="sort-select" className="text-sm text-muted-foreground">
-              Sort:
+              {t("admin.imports.sort")}
             </label>
             <select
               id="sort-select"
@@ -394,10 +395,10 @@ export default function ImportPage() {
               }}
               className="px-3 py-1.5 border border-border rounded-md bg-background dark:bg-[#1A1A1A] text-foreground text-sm"
             >
-              <option value="createdAt,desc">Newest First</option>
-              <option value="createdAt,asc">Oldest First</option>
-              <option value="completedAt,desc">Recently Completed</option>
-              <option value="status,asc">Status (A-Z)</option>
+              <option value="createdAt,desc">{t("admin.imports.newestFirst")}</option>
+              <option value="createdAt,asc">{t("admin.imports.oldestFirst")}</option>
+              <option value="completedAt,desc">{t("admin.imports.recentlyCompleted")}</option>
+              <option value="status,asc">{t("admin.imports.statusAZ")}</option>
             </select>
           </div>
         </div>
@@ -407,13 +408,13 @@ export default function ImportPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>File</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Completed At</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("admin.imports.id")}</TableHead>
+                <TableHead>{t("admin.imports.file")}</TableHead>
+                <TableHead>{t("admin.imports.status")}</TableHead>
+                <TableHead>{t("admin.imports.progress")}</TableHead>
+                <TableHead>{t("admin.imports.createdAt")}</TableHead>
+                <TableHead>{t("admin.imports.completedAt")}</TableHead>
+                <TableHead>{t("admin.imports.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -426,7 +427,7 @@ export default function ImportPage() {
               ) : jobs?.content.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No import jobs found
+                    {t("admin.imports.noJobsFound")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -492,13 +493,13 @@ export default function ImportPage() {
                               size="sm"
                               onClick={() => handleCancelJob(displayJob.id)}
                             >
-                              Cancel
+                              {t("admin.imports.cancel")}
                             </Button>
                           )}
                           {displayJob.message && (
                             <details className="text-xs">
                               <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                                View Errors
+                                {t("admin.imports.viewErrors")}
                               </summary>
                               <div className="mt-2 p-2 bg-destructive/10 rounded text-destructive max-w-md">
                                 {parseErrorMessage(displayJob.message).map(
@@ -510,7 +511,7 @@ export default function ImportPage() {
                                 )}
                                 {displayJob.message.split("\n").length > 5 && (
                                   <div className="mt-1 text-xs opacity-75">
-                                    ... and more errors
+                                    {t("admin.imports.andMoreErrors")}
                                   </div>
                                 )}
                               </div>
@@ -530,9 +531,9 @@ export default function ImportPage() {
         {jobs && jobs.totalPages > 1 && (
           <div className="p-6 border-t border-border flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Showing {jobs.number * jobs.size + 1} to{" "}
-              {Math.min((jobs.number + 1) * jobs.size, jobs.totalElements)} of{" "}
-              {jobs.totalElements} jobs
+              {t("admin.imports.showing")} {jobs.number * jobs.size + 1} {t("admin.imports.to")}{" "}
+              {Math.min((jobs.number + 1) * jobs.size, jobs.totalElements)} {t("admin.imports.of")}{" "}
+              {jobs.totalElements} {t("admin.imports.jobs")}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -541,10 +542,10 @@ export default function ImportPage() {
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={jobs.first || loading}
               >
-                Previous
+                {t("common.previous")}
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {jobs.number + 1} of {jobs.totalPages}
+                {t("admin.imports.page")} {jobs.number + 1} {t("admin.imports.of")} {jobs.totalPages}
               </span>
               <Button
                 variant="outline"
@@ -552,7 +553,7 @@ export default function ImportPage() {
                 onClick={() => setPage((p) => p + 1)}
                 disabled={jobs.last || loading}
               >
-                Next
+                {t("common.next")}
               </Button>
             </div>
           </div>

@@ -28,7 +28,6 @@ interface ProductQuickViewModalProps {
  */
 function formatVND(amount: number): string {
   if (isNaN(amount) || amount === null || amount === undefined) {
-    console.warn("formatVND received invalid amount:", amount);
     return "Price unavailable";
   }
   return (
@@ -59,24 +58,9 @@ export function ProductQuickViewModal({
   // ProductListingDto is only for listings - we need full ProductResponse with variants
   useEffect(() => {
     if (open && product) {
-      console.log("=== ProductQuickViewModal DEBUG ===");
-      console.log("1. Initial product data (from listing):", product);
-      console.log("2. Product type check:", {
-        isProductListingDto: "price" in product && !("basePrice" in product),
-        isProductResponse: "basePrice" in product && "variants" in product,
-        hasVariants: "variants" in product && (product as any).variants,
-        hasBasePrice: "basePrice" in product,
-        hasPrice: "price" in product,
-        productKeys: Object.keys(product),
-      });
-
       // If product is already ProductResponse with variants, use it directly
       if ("basePrice" in product && "variants" in product && (product as ProductResponse).variants) {
-        console.log("3. Product is already ProductResponse with variants - using directly");
         const productResponse = product as ProductResponse;
-        console.log("   Base price:", productResponse.basePrice);
-        console.log("   Variants count:", productResponse.variants?.length || 0);
-        console.log("   Variants:", productResponse.variants);
         setFullProduct(productResponse);
         
         // Auto-select first available variant
@@ -84,44 +68,19 @@ export function ProductQuickViewModal({
           (v) => v.isActive && v.quantity > 0
         );
         if (firstAvailable) {
-          console.log("   Auto-selected first available variant:", firstAvailable);
           setSelectedVariant(firstAvailable);
         }
         return;
       }
 
       // ProductListingDto - need to fetch full ProductResponse from API
-      console.log("4. ProductListingDto detected - fetching full ProductResponse from API...");
-      console.log("   Product ID:", product.id);
       setIsLoading(true);
       
       productApi
         .getProductById(product.id)
         .then((result) => {
-          console.log("5. API Response received:", result);
-          console.log("   Result.data:", result.data);
-          console.log("   Result.error:", result.error);
-          
           if (result.data) {
-            const fetchedProduct: ProductResponse = result.data;
-            console.log("6. Fetched ProductResponse details:", {
-              id: fetchedProduct.id,
-              name: fetchedProduct.name,
-              basePrice: fetchedProduct.basePrice,
-              basePriceType: typeof fetchedProduct.basePrice,
-              basePriceIsNaN: isNaN(Number(fetchedProduct.basePrice)),
-              variants: fetchedProduct.variants,
-              variantsCount: fetchedProduct.variants?.length || 0,
-              firstVariant: fetchedProduct.variants?.[0],
-              assets: fetchedProduct.assets,
-              assetsCount: fetchedProduct.assets?.length || 0,
-            });
-            
-            // Validate basePrice
-            if (!fetchedProduct.basePrice || isNaN(Number(fetchedProduct.basePrice))) {
-              console.error("⚠️ Invalid basePrice in ProductResponse:", fetchedProduct.basePrice);
-            }
-            
+            const fetchedProduct: ProductResponse = (result.data as unknown as { data: ProductResponse }).data;
             setFullProduct(fetchedProduct);
             
             // Auto-select first available variant
@@ -129,33 +88,21 @@ export function ProductQuickViewModal({
               (v) => v.isActive && v.quantity > 0
             );
             if (firstAvailable) {
-              console.log("7. Auto-selected first available variant:", firstAvailable);
               setSelectedVariant(firstAvailable);
-            } else {
-              console.log("7. No available variants found");
             }
           } else {
-            console.error("6. No data in result:", result);
             toast.error(t("cart.addToCartFailed"), {
               description: "Failed to load product details",
             });
           }
         })
         .catch((error) => {
-          console.error("5. Failed to fetch ProductResponse:", error);
-          console.error("   Error details:", {
-            message: error.message,
-            stack: error.stack,
-            response: error.response,
-            data: error.response?.data,
-          });
           toast.error(t("cart.addToCartFailed"), {
             description: t("cart.addToCartFailedDescription"),
           });
         })
         .finally(() => {
           setIsLoading(false);
-          console.log("=== End ProductQuickViewModal DEBUG ===");
         });
     } else if (!open) {
       // Reset state when modal closes
@@ -168,7 +115,6 @@ export function ProductQuickViewModal({
 
   const handleAddToCart = () => {
     if (!fullProduct) {
-      console.error("Cannot add to cart: fullProduct is null");
       return;
     }
 
@@ -266,7 +212,7 @@ export function ProductQuickViewModal({
   if (isLoading || !fullProduct) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-2xl font-light">
               {product.name}
@@ -290,19 +236,13 @@ export function ProductQuickViewModal({
   const hasVariants = variants.length > 0;
   const basePrice = displayProduct.basePrice || 0;
   
-  console.log("=== Price Calculation Debug ===");
-  console.log("fullProduct (ProductResponse):", fullProduct);
-  console.log("product (initial - ProductListingDto):", product);
-  console.log("basePrice from ProductResponse:", basePrice);
-  console.log("typeof basePrice:", typeof basePrice);
-  console.log("isNaN(basePrice):", isNaN(basePrice));
-  console.log("variants count:", variants.length);
-  
   // Get thumbnail from ProductResponse assets
+  // Try: 1) thumbnail asset, 2) deprecated thumbnail field, 3) first asset, 4) fallback to ProductListingDto thumbnail
   const thumbnail =
     displayProduct.assets?.find((a) => a.isThumbnail)?.url ||
     displayProduct.thumbnail ||
-    undefined;
+    displayProduct.assets?.[0]?.url ||
+    ("thumbnail" in product ? product.thumbnail : undefined);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -323,6 +263,12 @@ export function ProductQuickViewModal({
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
+                  unoptimized={thumbnail.startsWith("http")}
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">

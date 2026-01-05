@@ -148,6 +148,22 @@ export function LuxuryNavBar() {
             {/* Theme Toggle - Always visible */}
             <ModeToggle />
             
+            {/* Cart - Always visible for both guest and authenticated users */}
+            <Link href="/cart" className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors duration-300"
+              >
+                <ShoppingBag className="h-5 w-5" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#D4AF37] text-white text-xs font-medium flex items-center justify-center">
+                    {cartItemCount > 9 ? '9+' : cartItemCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
+            
             {isAuthenticated ? (
               <>
                 {/* Admin Dashboard Link - Only visible for ADMIN users */}
@@ -171,22 +187,6 @@ export function LuxuryNavBar() {
                     className="text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors duration-300"
                   >
                     <Heart className="h-5 w-5" />
-                  </Button>
-                </Link>
-
-                {/* Cart */}
-                <Link href="/cart" className="relative">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors duration-300"
-                  >
-                    <ShoppingBag className="h-5 w-5" />
-                    {cartItemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#D4AF37] text-white text-xs font-medium flex items-center justify-center">
-                        {cartItemCount > 9 ? '9+' : cartItemCount}
-                      </span>
-                    )}
                   </Button>
                 </Link>
 

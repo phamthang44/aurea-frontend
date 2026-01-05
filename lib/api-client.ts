@@ -128,10 +128,17 @@ function createAxiosInstance(): AxiosInstance {
       };
 
       // Only handle 401 Unauthorized errors
+      // IMPORTANT: Only attempt token refresh for authenticated endpoints
+      // Public endpoints (products, shop) should not trigger token refresh
+      const isPublicEndpoint = originalRequest?.url?.includes("/api/v1/products") && 
+                               originalRequest?.method?.toUpperCase() === "GET" &&
+                               !originalRequest?.url?.includes("/admin");
+      
       if (
         error.response?.status === 401 &&
         originalRequest &&
-        !originalRequest._retry
+        !originalRequest._retry &&
+        !isPublicEndpoint // Don't refresh for public endpoints
       ) {
         // Mark this request as retried to prevent infinite loops
         originalRequest._retry = true;
@@ -187,18 +194,53 @@ function createAxiosInstance(): AxiosInstance {
             throw new Error(errorMessage);
           }
         } catch (refreshError) {
-          // Refresh failed - clear queue and redirect to login
+          // Refresh failed - clear queue
           refreshTokenQueue.processQueue(refreshError as AxiosError);
           refreshTokenQueue.setIsRefreshing(false);
 
-          // Redirect to login page
-          // Use window.location for a hard redirect to ensure clean state
-          // This ensures cookies are cleared and auth state is reset
+          // Check if this is an expected error (no refresh token for new/guest users)
+          const isExpectedError = 
+            (refreshError as AxiosError)?.response?.status === 401 ||
+            (refreshError as AxiosError)?.response?.status === 403 ||
+            (refreshError as AxiosError)?.message?.includes("refresh") ||
+            (refreshError as AxiosError)?.response?.status === 400;
+
+          // Only redirect to login for authenticated routes
+          // Public routes (shop, home, products) should not redirect
           if (typeof window !== "undefined") {
-            // Only redirect if we're not already on the auth page
-            if (!window.location.pathname.startsWith("/auth")) {
+            const currentPath = window.location.pathname;
+            const isPublicRoute = 
+              currentPath === "/" ||
+              currentPath.startsWith("/shop") ||
+              currentPath.startsWith("/products/") ||
+              currentPath.startsWith("/cart") ||
+              currentPath.startsWith("/auth") ||
+              currentPath.startsWith("/forgot-password") ||
+              currentPath.startsWith("/reset-password");
+            
+            // Only redirect if:
+            // 1. Not already on auth page
+            // 2. Not on a public route (guest users can browse)
+            // 3. The original request was for an authenticated endpoint (admin, authenticated cart operations)
+            const isAuthenticatedEndpoint = 
+              originalRequest.url?.includes("/admin") ||
+              (originalRequest.url?.includes("/cart") && originalRequest.method?.toUpperCase() !== "GET");
+            
+            if (!isPublicRoute && isAuthenticatedEndpoint && !currentPath.startsWith("/auth")) {
+              // Only log for authenticated routes that need redirect
+              if (process.env.NODE_ENV === 'development') {
+                console.log("[API Client] Token refresh failed, redirecting to auth (authenticated route)");
+              }
               window.location.href = "/auth";
             }
+            // For public routes or expected errors (no refresh token), silently fail
+            // Don't log errors for new users without refresh tokens
+          }
+
+          // Silently reject for expected errors (no refresh token) or public routes
+          // Only log unexpected errors in development
+          if (!isExpectedError && process.env.NODE_ENV === 'development') {
+            console.error("[API Client] Unexpected token refresh error:", refreshError);
           }
 
           return Promise.reject(refreshError);
@@ -207,7 +249,19 @@ function createAxiosInstance(): AxiosInstance {
         }
       }
 
-      // For non-401 errors or already-retried requests, reject normally
+      // For non-401 errors, already-retried requests, or public endpoints with 401, reject normally
+      // Public endpoints getting 401 should just fail gracefully (guest users browsing)
+      // Don't log errors for expected cases (new users without tokens on public routes)
+      if (error.response?.status === 401) {
+        const isPublicEndpoint = originalRequest?.url?.includes("/api/v1/products") && 
+                                 originalRequest?.method?.toUpperCase() === "GET" &&
+                                 !originalRequest?.url?.includes("/admin");
+        // Silently handle 401 on public endpoints - this is expected for guest users
+        // Only log in development for debugging
+        if (isPublicEndpoint && process.env.NODE_ENV === 'development') {
+          console.log("[API Client] 401 on public endpoint - allowing guest access, not redirecting");
+        }
+      }
       return Promise.reject(error);
     }
   );

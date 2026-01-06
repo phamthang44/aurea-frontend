@@ -495,7 +495,70 @@
   "navbar": {
     "admin": "Quản trị",
     "signIn": "Đăng nhập",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "megaMenu": {
+      "newArrivals": {
+        "label": "Hàng mới về",
+        "women": {
+          "title": "Nữ",
+          "latestDresses": "Đầm mới nhất",
+          "newTops": "Áo mới",
+          "accessories": "Phụ kiện"
+        },
+        "men": {
+          "title": "Nam",
+          "latestShirts": "Áo sơ mi mới nhất",
+          "newJackets": "Áo khoác mới",
+          "accessories": "Phụ kiện"
+        },
+        "featured": {
+          "title": "Nổi bật",
+          "editorsPick": "Biên tập viên chọn",
+          "limitedEdition": "Phiên bản giới hạn"
+        }
+      },
+      "clothing": {
+        "label": "Trang phục",
+        "women": {
+          "title": "Nữ",
+          "dresses": "Đầm",
+          "topsAndBlouses": "Áo & Áo kiểu",
+          "bottoms": "Quần & Váy",
+          "outerwear": "Áo khoác"
+        },
+        "men": {
+          "title": "Nam",
+          "shirts": "Áo sơ mi",
+          "pants": "Quần",
+          "jackets": "Áo khoác",
+          "suits": "Vest"
+        }
+      },
+      "accessories": {
+        "label": "Phụ kiện",
+        "categories": {
+          "title": "Danh mục",
+          "bagsAndHandbags": "Túi xách",
+          "jewelry": "Trang sức",
+          "shoes": "Giày dép",
+          "watches": "Đồng hồ"
+        },
+        "byStyle": {
+          "title": "Theo phong cách",
+          "minimalist": "Tối giản",
+          "statement": "Ấn tượng"
+        }
+      },
+      "about": {
+        "label": "Giới thiệu"
+      }
+    }
+  },
+  "footer": {
+    "copyright": "© {{year}} {{brand}}. Mọi quyền được bảo lưu.",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản",
+    "contact": "Liên hệ"
   },
   "productCard": {
     "quickView": "Xem nhanh"

@@ -492,7 +492,70 @@
   "navbar": {
     "admin": "Admin",
     "signIn": "Sign In",
-    "logout": "Logout"
+    "logout": "Logout",
+    "megaMenu": {
+      "newArrivals": {
+        "label": "New Arrivals",
+        "women": {
+          "title": "Women",
+          "latestDresses": "Latest Dresses",
+          "newTops": "New Tops",
+          "accessories": "Accessories"
+        },
+        "men": {
+          "title": "Men",
+          "latestShirts": "Latest Shirts",
+          "newJackets": "New Jackets",
+          "accessories": "Accessories"
+        },
+        "featured": {
+          "title": "Featured",
+          "editorsPick": "Editor's Pick",
+          "limitedEdition": "Limited Edition"
+        }
+      },
+      "clothing": {
+        "label": "Clothing",
+        "women": {
+          "title": "Women",
+          "dresses": "Dresses",
+          "topsAndBlouses": "Tops & Blouses",
+          "bottoms": "Bottoms",
+          "outerwear": "Outerwear"
+        },
+        "men": {
+          "title": "Men",
+          "shirts": "Shirts",
+          "pants": "Pants",
+          "jackets": "Jackets",
+          "suits": "Suits"
+        }
+      },
+      "accessories": {
+        "label": "Accessories",
+        "categories": {
+          "title": "Categories",
+          "bagsAndHandbags": "Bags & Handbags",
+          "jewelry": "Jewelry",
+          "shoes": "Shoes",
+          "watches": "Watches"
+        },
+        "byStyle": {
+          "title": "By Style",
+          "minimalist": "Minimalist",
+          "statement": "Statement"
+        }
+      },
+      "about": {
+        "label": "About"
+      }
+    }
+  },
+  "footer": {
+    "copyright": "© {{year}} {{brand}}. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
   },
   "productCard": {
     "quickView": "Quick View"

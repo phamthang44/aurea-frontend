@@ -16,82 +16,148 @@ import { useTranslation } from 'react-i18next';
 
 const megaMenuItems = [
   {
-    label: 'New Arrivals',
+    label: 'navbar.megaMenu.newArrivals.label',
     href: '/collections/new',
     children: [
       {
-        title: 'Women',
+        title: 'navbar.megaMenu.newArrivals.women.title',
         links: [
-          { label: 'Latest Dresses', href: '/collections/new/women/dresses' },
-          { label: 'New Tops', href: '/collections/new/women/tops' },
-          { label: 'Accessories', href: '/collections/new/women/accessories' },
+          {
+            label: 'navbar.megaMenu.newArrivals.women.latestDresses',
+            href: '/collections/new/women/dresses',
+          },
+          {
+            label: 'navbar.megaMenu.newArrivals.women.newTops',
+            href: '/collections/new/women/tops',
+          },
+          {
+            label: 'navbar.megaMenu.newArrivals.women.accessories',
+            href: '/collections/new/women/accessories',
+          },
         ],
       },
       {
-        title: 'Men',
+        title: 'navbar.megaMenu.newArrivals.men.title',
         links: [
-          { label: 'Latest Shirts', href: '/collections/new/men/shirts' },
-          { label: 'New Jackets', href: '/collections/new/men/jackets' },
-          { label: 'Accessories', href: '/collections/new/men/accessories' },
+          {
+            label: 'navbar.megaMenu.newArrivals.men.latestShirts',
+            href: '/collections/new/men/shirts',
+          },
+          {
+            label: 'navbar.megaMenu.newArrivals.men.newJackets',
+            href: '/collections/new/men/jackets',
+          },
+          {
+            label: 'navbar.megaMenu.newArrivals.men.accessories',
+            href: '/collections/new/men/accessories',
+          },
         ],
       },
       {
-        title: 'Featured',
+        title: 'navbar.megaMenu.newArrivals.featured.title',
         links: [
-          { label: 'Editor\'s Pick', href: '/collections/editors-pick' },
-          { label: 'Limited Edition', href: '/collections/limited' },
+          {
+            label: 'navbar.megaMenu.newArrivals.featured.editorsPick',
+            href: '/collections/editors-pick',
+          },
+          {
+            label: 'navbar.megaMenu.newArrivals.featured.limitedEdition',
+            href: '/collections/limited',
+          },
         ],
       },
     ],
   },
   {
-    label: 'Clothing',
+    label: 'navbar.megaMenu.clothing.label',
     href: '/collections/clothing',
     children: [
       {
-        title: 'Women',
+        title: 'navbar.megaMenu.clothing.women.title',
         links: [
-          { label: 'Dresses', href: '/collections/women/dresses' },
-          { label: 'Tops & Blouses', href: '/collections/women/tops' },
-          { label: 'Bottoms', href: '/collections/women/bottoms' },
-          { label: 'Outerwear', href: '/collections/women/outerwear' },
+          {
+            label: 'navbar.megaMenu.clothing.women.dresses',
+            href: '/collections/women/dresses',
+          },
+          {
+            label: 'navbar.megaMenu.clothing.women.topsAndBlouses',
+            href: '/collections/women/tops',
+          },
+          {
+            label: 'navbar.megaMenu.clothing.women.bottoms',
+            href: '/collections/women/bottoms',
+          },
+          {
+            label: 'navbar.megaMenu.clothing.women.outerwear',
+            href: '/collections/women/outerwear',
+          },
         ],
       },
       {
-        title: 'Men',
+        title: 'navbar.megaMenu.clothing.men.title',
         links: [
-          { label: 'Shirts', href: '/collections/men/shirts' },
-          { label: 'Pants', href: '/collections/men/pants' },
-          { label: 'Jackets', href: '/collections/men/jackets' },
-          { label: 'Suits', href: '/collections/men/suits' },
+          {
+            label: 'navbar.megaMenu.clothing.men.shirts',
+            href: '/collections/men/shirts',
+          },
+          {
+            label: 'navbar.megaMenu.clothing.men.pants',
+            href: '/collections/men/pants',
+          },
+          {
+            label: 'navbar.megaMenu.clothing.men.jackets',
+            href: '/collections/men/jackets',
+          },
+          {
+            label: 'navbar.megaMenu.clothing.men.suits',
+            href: '/collections/men/suits',
+          },
         ],
       },
     ],
   },
   {
-    label: 'Accessories',
+    label: 'navbar.megaMenu.accessories.label',
     href: '/collections/accessories',
     children: [
       {
-        title: 'Categories',
+        title: 'navbar.megaMenu.accessories.categories.title',
         links: [
-          { label: 'Bags & Handbags', href: '/collections/accessories/bags' },
-          { label: 'Jewelry', href: '/collections/accessories/jewelry' },
-          { label: 'Shoes', href: '/collections/accessories/shoes' },
-          { label: 'Watches', href: '/collections/accessories/watches' },
+          {
+            label: 'navbar.megaMenu.accessories.categories.bagsAndHandbags',
+            href: '/collections/accessories/bags',
+          },
+          {
+            label: 'navbar.megaMenu.accessories.categories.jewelry',
+            href: '/collections/accessories/jewelry',
+          },
+          {
+            label: 'navbar.megaMenu.accessories.categories.shoes',
+            href: '/collections/accessories/shoes',
+          },
+          {
+            label: 'navbar.megaMenu.accessories.categories.watches',
+            href: '/collections/accessories/watches',
+          },
         ],
       },
       {
-        title: 'By Style',
+        title: 'navbar.megaMenu.accessories.byStyle.title',
         links: [
-          { label: 'Minimalist', href: '/collections/accessories?style=minimalist' },
-          { label: 'Statement', href: '/collections/accessories?style=statement' },
+          {
+            label: 'navbar.megaMenu.accessories.byStyle.minimalist',
+            href: '/collections/accessories?style=minimalist',
+          },
+          {
+            label: 'navbar.megaMenu.accessories.byStyle.statement',
+            href: '/collections/accessories?style=statement',
+          },
         ],
       },
     ],
   },
   {
-    label: 'About',
+    label: 'navbar.megaMenu.about.label',
     href: '/about',
   },
 ];

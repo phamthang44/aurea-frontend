@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface MenuItem {
   label: string;
@@ -21,6 +22,7 @@ interface MegaMenuProps {
 }
 
 export function MegaMenu({ items, activePath }: MegaMenuProps) {
+  const { t } = useTranslation();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
@@ -47,7 +49,7 @@ export function MegaMenu({ items, activePath }: MegaMenuProps) {
                     : 'text-[#B8A072] hover:text-[#D4AF37]'
                 )}
               >
-                {item.label}
+                {t(item.label)}
                 {hasChildren && (
                   <ChevronDown
                     className={cn(
@@ -89,7 +91,7 @@ export function MegaMenu({ items, activePath }: MegaMenuProps) {
                         {item.children?.map((column, colIndex) => (
                           <div key={colIndex} className="space-y-4">
                             <h3 className="text-xs font-medium tracking-wider uppercase text-[#D4AF37] mb-3">
-                              {column.title}
+                              {t(column.title)}
                             </h3>
                             <ul className="space-y-3">
                               {column.links.map((link) => (
@@ -98,7 +100,7 @@ export function MegaMenu({ items, activePath }: MegaMenuProps) {
                                     href={link.href}
                                     className="text-sm font-light text-[#B8A072] hover:text-[#D4AF37] dark:text-[#B8A072] dark:hover:text-[#D4AF37] transition-colors duration-300 no-underline"
                                   >
-                                    {link.label}
+                                    {t(link.label)}
                                   </Link>
                                 </li>
                               ))}

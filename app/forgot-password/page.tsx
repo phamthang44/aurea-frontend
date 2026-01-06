@@ -56,11 +56,14 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await clientApi.forgotPassword(email);
-      
-      if (response.error) {
-        toast.error(response.error.message || t("error.failedToSendOtp"));
-      } else if (response.data?.error) {
-        toast.error(response.data.error.message || t("error.failedToSendOtp"));
+      const anyResponse = response as any;
+
+      if (anyResponse?.error) {
+        toast.error(anyResponse.error.message || t("error.failedToSendOtp"));
+      } else if (anyResponse?.data?.error) {
+        toast.error(
+          anyResponse.data.error.message || t("error.failedToSendOtp")
+        );
       } else {
         toast.success(t("success.otpSent"));
         setStep(2);
@@ -141,11 +144,16 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await clientApi.resetPassword(email, otp, newPassword);
-      
-      if (response.error) {
-        toast.error(response.error.message || t("error.failedToResetPassword"));
-      } else if (response.data?.error) {
-        toast.error(response.data.error.message || t("error.failedToResetPassword"));
+      const anyResponse = response as any;
+
+      if (anyResponse?.error) {
+        toast.error(
+          anyResponse.error.message || t("error.failedToResetPassword")
+        );
+      } else if (anyResponse?.data?.error) {
+        toast.error(
+          anyResponse.data.error.message || t("error.failedToResetPassword")
+        );
       } else {
         toast.success(t("success.passwordReset"));
         setTimeout(() => {
@@ -166,11 +174,16 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     try {
       const response = await clientApi.forgotPassword(email);
-      
-      if (response.error) {
-        toast.error(response.error.message || t("error.failedToResendOtp"));
-      } else if (response.data?.error) {
-        toast.error(response.data.error.message || t("error.failedToResendOtp"));
+      const anyResponse = response as any;
+
+      if (anyResponse?.error) {
+        toast.error(
+          anyResponse.error.message || t("error.failedToResendOtp")
+        );
+      } else if (anyResponse?.data?.error) {
+        toast.error(
+          anyResponse.data.error.message || t("error.failedToResendOtp")
+        );
       } else {
         toast.success(t("success.otpResent"));
         setResendCooldown(60);

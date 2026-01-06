@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, ReactNode } from "react";
+import { useEffect, ReactNode, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/lib/store/hooks";
 import { useAuthInit } from "@/hooks/useAuthInit";
 import { useTranslation } from "react-i18next";
+import { ForbiddenPage } from "@/components/errors/Forbidden";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -30,6 +31,11 @@ export function AuthGuard({
   const isAdmin = userRoles?.includes("ADMIN") ?? false;
   const { t } = useTranslation();
 
+  const shouldShowForbidden = useMemo(
+    () => !isInitializing && requireAdmin && isAuthenticated && !isAdmin,
+    [isInitializing, requireAdmin, isAuthenticated, isAdmin]
+  );
+
   useEffect(() => {
     // Only check auth after initialization is complete
     if (!isInitializing) {
@@ -39,10 +45,7 @@ export function AuthGuard({
           redirectTo
         );
         router.push(redirectTo);
-      } else if (requireAdmin && !isAdmin) {
-        console.log("[Auth Guard] User not admin, redirecting to home");
-        router.push("/");
-      }
+      } 
     }
   }, [
     isInitializing,
@@ -75,8 +78,8 @@ export function AuthGuard({
     return null; // Will redirect in useEffect
   }
 
-  if (requireAdmin && !isAdmin) {
-    return null; // Will redirect in useEffect
+  if (shouldShowForbidden) {
+    return <ForbiddenPage />;
   }
 
   return <>{children}</>;

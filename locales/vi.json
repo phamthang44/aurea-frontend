@@ -577,5 +577,19 @@
   },
   "language": {
     "selectLanguage": "Chọn ngôn ngữ"
+  },
+  "errorPages": {
+    "notFound": {
+      "title": "Không tìm thấy trang",
+      "description": "Trang bạn đang tìm kiếm không tồn tại hoặc có thể đã được di chuyển.",
+      "backToHome": "Về trang chủ",
+      "browseCollection": "Xem bộ sưu tập"
+    },
+    "forbidden": {
+      "title": "Từ chối truy cập",
+      "description": "Bạn không có quyền truy cập trang này. Nếu bạn nghĩ đây là nhầm lẫn, vui lòng liên hệ quản trị viên.",
+      "backToHome": "Về trang chủ",
+      "switchAccount": "Đổi tài khoản"
+    }
   }
 }

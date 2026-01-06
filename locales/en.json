@@ -574,5 +574,19 @@
   },
   "language": {
     "selectLanguage": "Select Language"
+  },
+  "errorPages": {
+    "notFound": {
+      "title": "Page Not Found",
+      "description": "The page you're looking for doesn't exist or may have been moved.",
+      "backToHome": "Back to Home",
+      "browseCollection": "Browse Collection"
+    },
+    "forbidden": {
+      "title": "Access Denied",
+      "description": "You don't have permission to view this page. If you believe this is a mistake, please contact an administrator.",
+      "backToHome": "Back to Home",
+      "switchAccount": "Switch Account"
+    }
   }
 }

@@ -39,7 +39,8 @@ export function CartItem({
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   // Check if item is out of stock using backend data
-  const isOutOfStock = item.availableStock === 0 || item.availableStock === undefined;
+  const isOutOfStock =
+    item.availableStock === 0 || item.availableStock === undefined;
   const hasInsufficientStock =
     item.availableStock !== undefined &&
     item.availableStock > 0 &&
@@ -51,7 +52,7 @@ export function CartItem({
 
   return (
     <div
-      className={`flex gap-4 p-4 bg-card border-2 rounded-lg transition-all duration-300 ${
+      className={`flex gap-4 p-4 bg-card border-1 rounded-lg transition-all duration-300 ${
         isOutOfStock || hasInsufficientStock
           ? "border-destructive/30 hover:border-destructive/50 opacity-75"
           : "border-[#D4AF37]/20 hover:border-[#D4AF37]/40"
@@ -85,7 +86,7 @@ export function CartItem({
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F5F0] to-[#E8E8E0] dark:from-[#1A1A1A] dark:to-[#252525]">
             <ShoppingBag className="h-8 w-8 text-[#D4AF37]/30 mb-2" />
-            <p className="text-[10px] font-light text-[#D4AF37]/50 tracking-wider text-center px-1">
+            <p className="text-[10px] font-light dark:text-[#D4AF37]/50 tracking-wider text-center px-1">
               {t("cart.noImage", { defaultValue: "No Image" })}
             </p>
           </div>
@@ -184,9 +185,7 @@ export function CartItem({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() =>
-              onRemoveItem(item.id, item.productName || "Item")
-            }
+            onClick={() => onRemoveItem(item.id, item.productName || "Item")}
             disabled={loading}
             className="text-destructive hover:text-destructive/80"
           >
@@ -211,4 +210,3 @@ export function CartItem({
     </div>
   );
 }
-

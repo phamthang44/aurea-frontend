@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
+import { Poppins, Be_Vietnam_Pro, Geist_Mono, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ReduxProvider } from "@/components/providers/ReduxProvider";
@@ -34,6 +34,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Aurea - Luxury Fashion",
   description: "Modern luxury fashion ecommerce platform",
@@ -47,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="vi" className="luxury-dark" suppressHydrationWarning>
       <body
-        className={`${poppins.variable} ${beVietnamPro.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} ${beVietnamPro.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
         <Script
           id="suppress-coop-warnings"

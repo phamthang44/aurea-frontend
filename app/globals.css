@@ -47,6 +47,8 @@
   --font-mono: var(--font-geist-mono);
   --font-poppins: var(--font-poppins);
   --font-be-vietnam: var(--font-be-vietnam);
+  --font-be-vietnam-pro: var(--font-be-vietnam);
+  --font-serif: var(--font-playfair);
 
   /* Border radius */
   --radius-sm: calc(var(--radius) - 4px);
@@ -68,7 +70,7 @@
   --primary-foreground: 50 20% 98%; /* #FDFCF8 */
 
   /* Background - Warm Beige */
-  --background: 50 20% 98%; /* #FDFCF8 */
+  --background: 50 20% 98%; /* #FDFCF8 */ /*#A7A195*/
   --foreground: 30 20% 10%; /* #1C1C1A */
 
   /* Card & Popover */
@@ -118,7 +120,7 @@
 
 .dark {
   /* Dark mode with luxury aesthetic - softer background */
-  --background: #0e0e0e; /* Softer dark #262622 */
+  --background: #161616; /* Softer dark #262622 */ /*#32323D*/
   --foreground: 50 20% 98%; /* #FDFCF8 */
 
   --card: 30 15% 16%; /* #2A2A26 */
@@ -230,13 +232,13 @@
     font-weight: 300 !important;
     letter-spacing: 0.01em;
   }
-  
+
   /* Vietnamese: Be Vietnam Pro */
   html[lang="vi"] body {
     font-family: var(--font-be-vietnam), "Be Vietnam Pro", -apple-system,
       BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   }
-  
+
   /* Apply default font to all text elements */
   body *,
   body *::before,
@@ -244,7 +246,7 @@
     font-family: var(--font-poppins), "Poppins", -apple-system,
       BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   }
-  
+
   /* Apply Be Vietnam Pro for Vietnamese */
   html[lang="vi"] body *,
   html[lang="vi"] body *::before,
@@ -252,17 +254,30 @@
     font-family: var(--font-be-vietnam), "Be Vietnam Pro", -apple-system,
       BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   }
-  
+
   /* Default font-weight for all text (light) - but allow overrides */
-  p, span, div, a, button, input, textarea, select, label {
+  p,
+  span,
+  div,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label {
     font-weight: 300;
   }
-  
+
   /* Ensure headings and titles are light */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: 300 !important;
   }
-  
+
   /* Exception for monospace elements */
   code,
   pre,
@@ -282,33 +297,33 @@
     font-weight: 300 !important;
     letter-spacing: 0.05em;
   }
-  
+
   /* Override font-weight classes to use lighter weights */
   .font-light,
   [class*="font-light"] {
     font-weight: 300 !important;
   }
-  
+
   .font-normal,
   [class*="font-normal"] {
     font-weight: 400 !important;
   }
-  
+
   .font-medium,
   [class*="font-medium"] {
     font-weight: 500 !important;
   }
-  
+
   .font-semibold,
   [class*="font-semibold"] {
     font-weight: 600 !important;
   }
-  
+
   .font-bold,
   [class*="font-bold"] {
     font-weight: 700 !important;
   }
-  
+
   /* Ensure error messages are light */
   .text-red-600,
   .text-red-400,
@@ -393,5 +408,3 @@
 .animate-accordion-up {
   animation: accordion-up 0.2s ease-out;
 }
-
-

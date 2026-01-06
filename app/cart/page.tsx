@@ -10,12 +10,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CartItem } from "@/components/cart/CartItem";
 import { CartOrderSummary } from "@/components/cart/CartOrderSummary";
 import Link from "next/link";
-import {
-  ShoppingBag,
-  Trash2,
-  ArrowLeft,
-  ShieldCheck,
-} from "lucide-react";
+import { ShoppingBag, Trash2, ArrowLeft, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -48,20 +43,31 @@ export default function CartPage() {
     if (newQuantity < 1) return;
     try {
       await updateCartItem(itemId, newQuantity);
-      toast.success(t("cart.quantityUpdated", { defaultValue: "Quantity updated" }));
+      toast.success(
+        t("cart.quantityUpdated", { defaultValue: "Quantity updated" })
+      );
     } catch (error) {
-      toast.error(t("cart.updateFailed", { defaultValue: "Failed to update quantity" }));
+      toast.error(
+        t("cart.updateFailed", { defaultValue: "Failed to update quantity" })
+      );
     }
   };
 
   const handleRemoveItem = async (itemId: number, itemName: string) => {
     try {
       await removeCartItem(itemId);
-      toast.success(t("cart.removedFromCartSuccess", { defaultValue: "Removed from cart successfully" }), {
-        description: itemName,
-      });
+      toast.success(
+        t("cart.removedFromCartSuccess", {
+          defaultValue: "Removed from cart successfully",
+        }),
+        {
+          description: itemName,
+        }
+      );
     } catch (error) {
-      toast.error(t("cart.removeFailed", { defaultValue: "Failed to remove item" }));
+      toast.error(
+        t("cart.removeFailed", { defaultValue: "Failed to remove item" })
+      );
     }
   };
 
@@ -70,7 +76,11 @@ export default function CartPage() {
       await removeAllCartItems();
       toast.success(t("cart.clearCartSuccess"));
     } catch (error) {
-      toast.error(t("cart.clearCartFailedDescription", { defaultValue: "Failed to clear cart. Please try again" }));
+      toast.error(
+        t("cart.clearCartFailedDescription", {
+          defaultValue: "Failed to clear cart. Please try again",
+        })
+      );
     }
   };
 
@@ -85,7 +95,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background dark:bg-background">
       <LuxuryNavBar />
 
       {/* Confirm Clear Cart Dialog */}
@@ -106,7 +116,7 @@ export default function CartPage() {
           <div className="mb-8">
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors duration-200 no-underline group"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 no-underline group"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
               {t("cart.continueShopping")}
@@ -120,7 +130,7 @@ export default function CartPage() {
             </h1>
             {!isAuthenticated && items.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                <ShieldCheck className="inline h-4 w-4 mr-1 text-[#D4AF37]" />
+                <ShieldCheck className="inline h-4 w-4 mr-1 text-emerald-600 dark:text-emerald-400" />
                 {t("cart.cartSavedLocally")}
               </p>
             )}
@@ -131,14 +141,16 @@ export default function CartPage() {
             <div className="text-center py-16">
               <div className="max-w-md mx-auto">
                 <div className="mb-6">
-                  <ShoppingBag className="h-24 w-24 mx-auto text-[#D4AF37]/40" />
+                  <ShoppingBag className="h-24 w-24 mx-auto text-gray-300 dark:text-gray-700" />
                 </div>
-                <h2 className="text-2xl font-light mb-3">{t("cart.emptyCartTitle")}</h2>
+                <h2 className="text-2xl font-light mb-3">
+                  {t("cart.emptyCartTitle")}
+                </h2>
                 <p className="text-muted-foreground mb-8">
                   {t("cart.emptyCartDescription")}
                 </p>
                 <Link href="/shop">
-                  <Button className="bg-[#D4AF37] hover:bg-[#B8941F] text-white px-8">
+                  <Button className="bg-gray-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-all duration-300 px-8">
                     {t("cart.startShopping")}
                   </Button>
                 </Link>

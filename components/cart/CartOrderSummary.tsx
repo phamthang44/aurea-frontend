@@ -65,7 +65,8 @@ export function CartOrderSummary({
   };
 
   const hasOutOfStockItems = items.some((item) => {
-    const outOfStock = item.availableStock === 0 || item.availableStock === undefined;
+    const outOfStock =
+      item.availableStock === 0 || item.availableStock === undefined;
     const insufficient =
       item.availableStock !== undefined &&
       item.availableStock > 0 &&
@@ -76,12 +77,12 @@ export function CartOrderSummary({
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-24">
-        <div className="bg-card border-2 border-[#D4AF37]/30 rounded-lg p-6 space-y-6">
+        <div className="backdrop-blur-xl bg-white/80 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-6 space-y-6 shadow-lg">
           <h2 className="text-xl font-light tracking-wider">
             {t("cart.orderSummary")}
           </h2>
 
-          <Separator className="bg-[#D4AF37]/20" />
+          <Separator className="border-dashed border-gray-300 dark:border-white/20" />
 
           {/* Coupon Code */}
           <div className="space-y-2">
@@ -94,24 +95,26 @@ export function CartOrderSummary({
                 placeholder={t("cart.enterCode")}
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                className="border-[#D4AF37]/30"
+                className="border-gray-300 dark:border-gray-700"
               />
               <Button
                 variant="outline"
                 onClick={handleApplyCoupon}
-                className="border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                className="border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 {t("common.apply")}
               </Button>
             </div>
           </div>
 
-          <Separator className="bg-[#D4AF37]/20" />
+          <Separator className="border-dashed border-gray-300 dark:border-white/20" />
 
           {/* Price Breakdown */}
           <div className="space-y-3">
             <div className="flex justify-between text-base">
-              <span className="text-muted-foreground">{t("cart.subtotal")}</span>
+              <span className="text-muted-foreground">
+                {t("cart.subtotal")}
+              </span>
               <span className="font-medium">{formatVND(subTotal)}</span>
             </div>
             {discount > 0 && (
@@ -125,7 +128,9 @@ export function CartOrderSummary({
               </div>
             )}
             <div className="flex justify-between text-base">
-              <span className="text-muted-foreground">{t("cart.shipping")}</span>
+              <span className="text-muted-foreground">
+                {t("cart.shipping")}
+              </span>
               <span className="font-medium">
                 {shippingFee === 0 ? (
                   <span className="text-green-600">{t("cart.free")}</span>
@@ -145,25 +150,32 @@ export function CartOrderSummary({
             )}
           </div>
 
-          <Separator className="bg-[#D4AF37]/20" />
+          <Separator className="border-dashed border-gray-300 dark:border-white/20" />
 
           {/* Total */}
-          <div className="flex justify-between text-lg">
-            <span className="font-medium">{t("cart.total")}</span>
-            <span className="font-bold text-[#D4AF37]">
+          <div
+            className="flex justify-between text-lg"
+            style={{ fontFamily: "var(--font-poppins), sans-serif" }}
+          >
+            <span className="font-medium text-gray-900 dark:text-white">
+              {t("cart.total")}
+            </span>
+            <span className="font-bold text-2xl text-[#d4b483]">
               {formatVND(finalTotalPrice)}
             </span>
           </div>
 
           {/* Checkout Button */}
-          <Button
-            className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-white h-12 text-base font-medium tracking-wide disabled:opacity-50"
+          <button
+            className="w-full bg-gray-900 dark:bg-white text-white dark:text-black hover:scale-105 hover:shadow-xl transition-all duration-300 h-12 text-base font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+            style={{ fontFamily: "var(--font-poppins), sans-serif" }}
             disabled={loading || hasOutOfStockItems}
             onClick={onCheckout}
             title={
               hasOutOfStockItems
                 ? t("cart.removeOutOfStockItems", {
-                    defaultValue: "Please remove out of stock items before checkout",
+                    defaultValue:
+                      "Please remove out of stock items before checkout",
                   })
                 : undefined
             }
@@ -171,12 +183,12 @@ export function CartOrderSummary({
             {loading
               ? t("cart.loading", { defaultValue: "Loading..." })
               : t("cart.proceedToCheckout")}
-          </Button>
+          </button>
 
           {/* Trust Badges */}
           <div className="pt-4 space-y-3">
             <div className="flex items-start gap-3 text-sm">
-              <Truck className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+              <Truck className="h-5 w-5 text-gray-600 dark:text-gray-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">{t("cart.freeShipping")}</p>
                 <p className="text-xs text-muted-foreground">
@@ -185,7 +197,7 @@ export function CartOrderSummary({
               </div>
             </div>
             <div className="flex items-start gap-3 text-sm">
-              <RotateCcw className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+              <RotateCcw className="h-5 w-5 text-gray-600 dark:text-gray-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">{t("cart.easyReturns")}</p>
                 <p className="text-xs text-muted-foreground">
@@ -194,7 +206,7 @@ export function CartOrderSummary({
               </div>
             </div>
             <div className="flex items-start gap-3 text-sm">
-              <ShieldCheck className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+              <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">{t("cart.securePayment")}</p>
                 <p className="text-xs text-muted-foreground">
@@ -208,4 +220,3 @@ export function CartOrderSummary({
     </div>
   );
 }
-

@@ -191,13 +191,11 @@ export const assetRequestSchema = z.object({
   id: z.string().optional(),
   url: z.string().url("Invalid asset URL").min(1, "Asset URL is required"),
   publicId: z.string().nullable().optional(),
-  type: z.enum(["IMAGE", "VIDEO"], {
-    required_error: "Asset type is required",
-  }),
+  type: z.enum(["IMAGE", "VIDEO"]),
   isThumbnail: z.boolean().default(false),
   position: z.number().int().min(0).default(0),
   variantId: z.string().nullable().optional(),
-  metaData: z.record(z.any()).nullable().optional(),
+  metaData: z.record(z.string(), z.any()).nullable().optional(),
 });
 
 /**

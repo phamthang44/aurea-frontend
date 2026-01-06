@@ -5,7 +5,10 @@ import { NumericFormat } from "react-number-format";
 import { cn } from "@/lib/utils";
 
 export interface CurrencyInputProps
-  extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
+  extends Omit<
+    React.ComponentProps<"input">,
+    "onChange" | "value" | "type"
+  > {
   value?: number | string;
   onChange?: (value: number | undefined) => void;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
@@ -36,7 +39,15 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
 
     return (
       <NumericFormat
-        getInputRef={ref}
+        getInputRef={(input: HTMLInputElement) => {
+          if (ref) {
+            if (typeof ref === "function") {
+              ref(input);
+            } else {
+              ref.current = input;
+            }
+          }
+        }}
         value={numericValue}
         onValueChange={handleValueChange}
         onBlur={onBlur}
@@ -45,6 +56,7 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
         decimalScale={0} // No decimals for currency (VND)
         allowNegative={false}
         disabled={disabled}
+        type="text"
         aria-invalid={error}
         className={cn(
           // Base input styles using semantic variables
@@ -62,7 +74,10 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
           error && "ring-destructive/20 dark:ring-destructive/40 border-destructive",
           className
         )}
-        {...props}
+        {...(props as Omit<
+          React.ComponentProps<"input">,
+          "onChange" | "value" | "type" | "defaultValue"
+        >)}
       />
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useProductStorefront } from "@/hooks/useProductStorefront";
 import { ProductCardListing } from "@/components/store/ProductCardListing";
 import { ProductCardSkeleton } from "@/components/store/ProductCardSkeleton";
@@ -30,7 +30,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { ErrorMessage } from "@/components/errors/error";
 
-export default function ShopPage() {
+function ShopPageContent() {
   const { t } = useTranslation();
   const {
     products,
@@ -342,5 +342,27 @@ export default function ShopPage() {
       {/* Footer */}
       <Footer />
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col bg-background">
+          <LuxuryNavBar />
+          <div className="container mx-auto px-4 py-8 flex-1 mt-20">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+          <Footer />
+        </div>
+      }
+    >
+      <ShopPageContent />
+    </Suspense>
   );
 }

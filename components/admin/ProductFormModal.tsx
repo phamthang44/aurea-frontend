@@ -214,20 +214,38 @@ export function ProductFormModal({
       });
     }
 
-    const submitData = {
+    const generatedSlug =
+      product?.slug ||
+      formData.name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+
+    const baseData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
       basePrice: formData.basePrice!,
       categoryId: formData.categoryId.trim(),
+      slug: generatedSlug,
       assets: assets.length > 0 ? assets : undefined,
       // For now, we'll require at least one variant for create
-      variants: product ? undefined : [
-        {
-          quantity: 1,
-          attributes: { color: "Default", size: "Default" },
-        },
-      ],
+      variants: product
+        ? undefined
+        : [
+            {
+              quantity: 1,
+              attributes: { color: "Default", size: "Default" },
+            },
+          ],
     };
+
+    const submitData: CreateProductRequest | UpdateProductRequest = product
+      ? ({
+          ...baseData,
+          isActive: product.isActive,
+        } as UpdateProductRequest)
+      : (baseData as CreateProductRequest);
 
     await onSubmit(submitData);
   };

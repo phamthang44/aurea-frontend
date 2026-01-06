@@ -15,20 +15,15 @@ const resources = {
 
 // Chỉ khởi tạo nếu chưa được khởi tạo
 if (!i18n.isInitialized) {
-  // Lấy ngôn ngữ từ localStorage nếu có (chỉ chạy trên client)
-  let defaultLanguage = "vi";
-  if (typeof window !== "undefined") {
-    const savedLanguage = localStorage.getItem("i18nextLng");
-    if (savedLanguage && (savedLanguage === "vi" || savedLanguage === "en")) {
-      defaultLanguage = savedLanguage;
-    }
-  }
+  // Always use a consistent default language for SSR hydration
+  // We'll update it from localStorage after mount to avoid hydration mismatches
+  const defaultLanguage = "vi";
 
   i18n
     .use(initReactI18next)
     .init({
       resources,
-      lng: defaultLanguage, // Ngôn ngữ mặc định hoặc từ localStorage
+      lng: defaultLanguage, // Always start with consistent default for SSR
       fallbackLng: "en", // Ngôn ngữ dự phòng
       interpolation: {
         escapeValue: false, // React đã tự động escape
@@ -37,6 +32,9 @@ if (!i18n.isInitialized) {
         useSuspense: false, // Tắt Suspense để tránh lỗi trong Next.js
       },
     });
+  
+  // Note: Language restoration from localStorage is handled in LangUpdater component
+  // after mount to prevent hydration mismatches
 }
 
 export default i18n;

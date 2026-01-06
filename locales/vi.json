@@ -204,6 +204,7 @@
     "enterCode": "Nhập mã",
     "orderSummary": "Tóm tắt đơn hàng",
     "subtotal": "Tạm tính",
+    "discount": "Giảm giá",
     "shipping": "Phí vận chuyển",
     "free": "Miễn phí",
     "addMoreForFreeShipping": "Thêm {{amount}} để được miễn phí vận chuyển",

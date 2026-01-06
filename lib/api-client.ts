@@ -108,8 +108,15 @@ function createAxiosInstance(): AxiosInstance {
       }
 
       // Always attach Accept-Language header
-      const lang = I18nUtils.language || "vi"; // Default to 'vi' if not set
+      // Read the current language from i18n instance at request time to ensure it's up-to-date
+      // Use resolvedLanguage as fallback in case language hasn't fully updated yet
+      const lang = I18nUtils.resolvedLanguage || I18nUtils.language || "vi"; // Default to 'vi' if not set
       config.headers["Accept-Language"] = lang;
+      
+      // Debug logging (only in development)
+      if (process.env.NODE_ENV === 'development' && config.url?.includes('cart')) {
+        console.log('[API Client] Accept-Language header:', lang, 'for URL:', config.url);
+      }
 
       // Attach Authorization header if access token exists in localStorage
       if (typeof window !== "undefined") {

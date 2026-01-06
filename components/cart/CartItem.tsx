@@ -205,7 +205,7 @@ export function CartItem({
               : "text-[#D4AF37]"
           }`}
         >
-          {formatVND((item.price || 0) * item.quantity)}
+          {formatVND(item.subtotalPrice ?? (item.price || 0) * item.quantity)}
         </p>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Eye, ShoppingBag } from 'lucide-react';
 import { ProductResponse } from '@/lib/types/product';
 import { Button } from '@/components/ui/button';
@@ -29,11 +29,12 @@ function formatVND(amount: number): string {
 
 /**
  * Check if product is recently created (within last 30 days)
+ * Uses a fixed reference date to avoid hydration mismatches
  */
-function isNewProduct(createdAt?: string): boolean {
+function isNewProduct(createdAt?: string, referenceDate?: Date): boolean {
   if (!createdAt) return false;
   const createdDate = new Date(createdAt);
-  const thirtyDaysAgo = new Date();
+  const thirtyDaysAgo = referenceDate || new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   return createdDate >= thirtyDaysAgo;
 }
@@ -104,11 +105,23 @@ export function ProductCard({
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  // Set mounted flag after component mounts (client-side only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Use useMemo to calculate date-dependent values only on client
+  const isNew = useMemo(() => {
+    if (!mounted) return false; // Return false during SSR to avoid mismatch
+    return isNewProduct(product.createdAt);
+  }, [product.createdAt, mounted]);
+
   const images = getProductImages(product);
   const primaryImage = getPrimaryImage(images);
   const secondaryImage = getSecondaryImage(images);
   const soldOut = isSoldOut(product);
-  const isNew = isNewProduct(product.createdAt);
 
   // Calculate display price (use lowest variant price if available, otherwise basePrice)
   const activeVariants =

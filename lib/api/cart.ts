@@ -20,21 +20,30 @@ export interface CartItemResponse {
   sku?: string;
   availableStock?: number;
   stockStatus?: string;
+  subtotalPrice?: number; // Calculated subtotal for this item (price * quantity)
   createdAt?: string;
   updatedAt?: string;
 }
 
 /**
  * Cart Response from backend
+ * All pricing calculations are done by the backend including promotions
  */
 export interface CartResponse {
   id: number;
   userId?: number;
   sessionId?: string;
   items: CartItemResponse[];
-  totalAmount?: number;
+  // Promotion & Calculation fields (calculated by backend)
+  subTotal?: number; // Sum of all item subtotals
+  shippingFee?: number; // Shipping fee (calculated by promotion service)
+  discount?: number; // Discount amount (calculated by promotion service)
+  finalTotalPrice?: number; // Final total: subTotal + shippingFee - discount
+  promotionNote?: string; // Promotion description/note
   createdAt?: string;
   updatedAt?: string;
+  // Deprecated: Use finalTotalPrice instead
+  totalAmount?: number;
 }
 
 /**

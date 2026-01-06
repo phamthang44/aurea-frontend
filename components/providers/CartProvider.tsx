@@ -11,12 +11,21 @@ import {
   CartItemResponse,
 } from "@/lib/api/cart";
 import { useAppSelector } from "@/lib/store/hooks";
+import { useTranslation } from "react-i18next";
 
 /**
  * Cart state interface
+ * All pricing calculations are provided by the backend
  */
 interface CartState {
   items: CartItemResponse[];
+  // Pricing fields (calculated by backend)
+  subTotal?: number;
+  shippingFee?: number;
+  discount?: number;
+  finalTotalPrice?: number;
+  promotionNote?: string;
+  // Deprecated: Use finalTotalPrice instead, kept for backward compatibility
   totalAmount: number;
   loading: boolean;
   error: string | null;
@@ -66,8 +75,15 @@ function sortCartItems(items: CartItemResponse[]): CartItemResponse[] {
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
   const [state, setState] = useState<CartState>({
     items: [],
+    subTotal: 0,
+    shippingFee: 0,
+    discount: 0,
+    finalTotalPrice: 0,
+    promotionNote: undefined,
     totalAmount: 0,
     loading: false,
     error: null,
@@ -75,6 +91,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     userId: null,
     sessionId: null,
   });
+
+  // Set mounted flag after component mounts (client-side only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   /**
    * Fetch cart from backend
@@ -107,18 +128,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Calculate total amount if not provided by backend
-        const total =
-          cart.totalAmount ||
-          cart.items.reduce(
-            (sum: number, item: CartItemResponse) =>
-              sum + (item.price || 0) * item.quantity,
-            0
-          );
-
+        // Use backend-provided values (all calculations done by backend)
+        // Normalize empty string promotionNote to undefined for consistency
+        const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
+          ? cart.promotionNote.trim() 
+          : undefined;
+        
         setState({
           items: sortCartItems(cart.items || []),
-          totalAmount: total,
+          subTotal: cart.subTotal ?? 0,
+          shippingFee: cart.shippingFee ?? 0,
+          discount: cart.discount ?? 0,
+          finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+          promotionNote: normalizedPromotionNote,
+          totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
           cartId: cart.id,
@@ -180,17 +203,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const total =
-            cart.totalAmount ||
-            cart.items.reduce(
-              (sum: number, item: CartItemResponse) =>
-                sum + (item.price || 0) * item.quantity,
-              0
-            );
-
+          // Use backend-provided values (all calculations done by backend)
           setState({
             items: sortCartItems(cart.items || []),
-            totalAmount: total,
+            subTotal: cart.subTotal ?? 0,
+            shippingFee: cart.shippingFee ?? 0,
+            discount: cart.discount ?? 0,
+            finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+            promotionNote: cart.promotionNote,
+            totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
             cartId: cart.id,
@@ -239,17 +260,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const total =
-            cart.totalAmount ||
-            cart.items.reduce(
-              (sum: number, item: CartItemResponse) =>
-                sum + (item.price || 0) * item.quantity,
-              0
-            );
-
+          // Use backend-provided values (all calculations done by backend)
           setState({
             items: sortCartItems(cart.items || []),
-            totalAmount: total,
+            subTotal: cart.subTotal ?? 0,
+            shippingFee: cart.shippingFee ?? 0,
+            discount: cart.discount ?? 0,
+            finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+            promotionNote: cart.promotionNote,
+            totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
             cartId: cart.id,
@@ -297,17 +316,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const total =
-          cart.totalAmount ||
-          cart.items.reduce(
-            (sum: number, item: CartItemResponse) =>
-              sum + (item.price || 0) * item.quantity,
-            0
-          );
-
+        // Use backend-provided values (all calculations done by backend)
+        // Normalize empty string promotionNote to undefined for consistency
+        const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
+          ? cart.promotionNote.trim() 
+          : undefined;
+        
         setState({
           items: sortCartItems(cart.items || []),
-          totalAmount: total,
+          subTotal: cart.subTotal ?? 0,
+          shippingFee: cart.shippingFee ?? 0,
+          discount: cart.discount ?? 0,
+          finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+          promotionNote: normalizedPromotionNote,
+          totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
           cartId: cart.id,
@@ -354,17 +376,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const total =
-          cart.totalAmount ||
-          cart.items.reduce(
-            (sum: number, item: CartItemResponse) =>
-              sum + (item.price || 0) * item.quantity,
-            0
-          );
-
+        // Use backend-provided values (all calculations done by backend)
+        // Normalize empty string promotionNote to undefined for consistency
+        const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
+          ? cart.promotionNote.trim() 
+          : undefined;
+        
         setState({
           items: sortCartItems(cart.items || []),
-          totalAmount: total,
+          subTotal: cart.subTotal ?? 0,
+          shippingFee: cart.shippingFee ?? 0,
+          discount: cart.discount ?? 0,
+          finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+          promotionNote: normalizedPromotionNote,
+          totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
           cartId: cart.id,
@@ -388,10 +413,42 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, error: null }));
   }, []);
 
-  // Fetch cart on mount and when auth state changes
+  // Fetch cart on mount and when auth state changes (only after mounted to avoid hydration issues)
   useEffect(() => {
-    fetchCart();
-  }, [fetchCart, isAuthenticated]);
+    if (mounted) {
+      fetchCart();
+    }
+  }, [fetchCart, isAuthenticated, mounted]);
+
+  // Refetch cart when language changes to get updated promotion note (only after mounted)
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleLanguageChange = (lng: string) => {
+      // Use requestAnimationFrame to ensure i18n.language is fully updated and
+      // the API client interceptor will read the correct language
+      requestAnimationFrame(() => {
+        // Double-check the language is actually updated before refetching
+        // This ensures the Accept-Language header will have the correct value
+        if (i18n.language === lng || i18n.resolvedLanguage === lng) {
+          fetchCart();
+        } else {
+          // If language hasn't updated yet, wait a bit more
+          setTimeout(() => {
+            fetchCart();
+          }, 50);
+        }
+      });
+    };
+
+    // Listen for language changes
+    i18n.on("languageChanged", handleLanguageChange);
+
+    // Cleanup listener on unmount
+    return () => {
+      i18n.off("languageChanged", handleLanguageChange);
+    };
+  }, [i18n, fetchCart, mounted]);
 
   const value: CartContextType = {
     ...state,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthInit } from "@/hooks/useAuthInit";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,12 @@ export function AuthInitProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isInitializing } = useAuthInit();
   const hasMergedRef = useRef(false); // Track if we've already merged cart
   const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted flag after component mounts (client-side only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   // Sync cart state with auth state
   useEffect(() => {
     // Skip if still initializing to avoid race conditions
@@ -52,8 +58,9 @@ export function AuthInitProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isInitializing]);
 
-  // Show loading overlay while initializing auth state
-  if (isInitializing) {
+  // Show loading overlay while initializing auth state (only after mount to avoid hydration mismatch)
+  // On server and initial client render, always render children to ensure consistent hydration
+  if (mounted && isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

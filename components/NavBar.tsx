@@ -10,6 +10,8 @@ import { ModeToggle } from '@/components/ui/ModeToggle';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
 
 export function NavBar() {
   const router = useRouter();
@@ -18,6 +20,13 @@ export function NavBar() {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const userRole = useAppSelector((state) => state.auth.user?.roles);
   const isAdmin = userRole?.includes('ADMIN');
+  const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted flag after component mounts (client-side only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
   const handleLogout = async () => {
@@ -108,7 +117,7 @@ export function NavBar() {
                   variant="ghost"
                   className="font-light tracking-wide px-6 py-2 border border-border hover:bg-accent"
                 >
-                  Sign In
+                  {mounted ? t("navbar.signIn", { defaultValue: "Sign In" }) : "Sign In"}
                 </Button>
               </Link>
             )}

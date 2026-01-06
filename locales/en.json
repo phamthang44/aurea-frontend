@@ -200,6 +200,7 @@
     "enterCode": "Enter code",
     "orderSummary": "Order Summary",
     "subtotal": "Subtotal",
+    "discount": "Discount",
     "shipping": "Shipping",
     "free": "Free",
     "addMoreForFreeShipping": "Add {{amount}} more for free shipping",

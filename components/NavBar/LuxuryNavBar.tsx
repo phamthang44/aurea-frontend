@@ -11,7 +11,7 @@ import { clearAuth } from '@/lib/store/authSlice';
 import { useCart } from '@/hooks/useCart';
 import { MegaMenu } from './MegaMenu';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const megaMenuItems = [
@@ -105,11 +105,17 @@ export function LuxuryNavBar() {
   const user = useAppSelector((state) => state.auth.user);
   const userRoles = useAppSelector((state) => state.auth.user?.roles);
   const isAdmin = userRoles?.includes('ADMIN') ?? false;
+  const [mounted, setMounted] = useState(false);
   
   // Use shared cart state from CartProvider
   // Cart is automatically fetched on mount and when auth state changes
   const { items } = useCart();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Set mounted flag after component mounts (client-side only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     dispatch(clearAuth());
@@ -211,8 +217,9 @@ export function LuxuryNavBar() {
                 <Button
                   variant="outline"
                   className="font-light tracking-wide px-6 py-2 border-2 border-[#D4AF37] text-[#D4AF37] hover:text-white hover:bg-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-[#1A1A1A] dark:hover:bg-[#D4AF37] transition-all duration-300"
+                  suppressHydrationWarning
                 >
-                  {t("navbar.signIn")}
+                  {mounted ? t("navbar.signIn") : "Sign In"}
                 </Button>
               </Link>
             )}

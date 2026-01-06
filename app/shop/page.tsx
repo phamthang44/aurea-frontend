@@ -28,6 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllCategories } from "@/lib/api/category";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { ErrorMessage } from "@/components/errors/error";
 
 export default function ShopPage() {
   const { t } = useTranslation();
@@ -244,12 +245,12 @@ export default function ShopPage() {
           {/* Product Grid */}
           <main className="flex-1 min-w-0">
             {error ? (
-              <div className="text-center py-12">
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg max-w-md mx-auto">
-                  <p className="font-medium">{t("shop.errorLoading")}</p>
-                  <p className="text-sm mt-1">{error.message}</p>
-                </div>
-              </div>
+              <ErrorMessage
+                title={t("shop.errorLoading")}
+                message={
+                  error instanceof Error ? error.message : String(error)
+                }
+              />
             ) : isLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {Array.from({ length: 12 }).map((_, i) => (

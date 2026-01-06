@@ -150,7 +150,7 @@ export default function CartPage() {
                   {t("cart.emptyCartDescription")}
                 </p>
                 <Link href="/shop">
-                  <Button className="bg-gray-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-all duration-300 px-8">
+                  <Button className="bg-[#181818] dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 hover:scale-105 transition-all duration-300 px-8">
                     {t("cart.startShopping")}
                   </Button>
                 </Link>

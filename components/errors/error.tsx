@@ -16,7 +16,7 @@ const translations = {
 };
 
 // Error Message Component
-interface ErrorMessageProps {
+export interface ErrorMessageProps {
   error?: Error | string;
   message?: string;
   title?: string;
@@ -27,7 +27,7 @@ interface ErrorMessageProps {
   className?: string;
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   error,
   message,
   title,

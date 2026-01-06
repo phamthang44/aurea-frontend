@@ -12,11 +12,12 @@ import { searchPublicProducts } from "@/lib/api/products";
 import { getAllCategories } from "@/lib/api/category";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ErrorMessage } from "@/components/errors/error";
 
 export default function HomePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Fetch featured/newest products and categories in parallel using Promise.all
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["homepage-data"],
     queryFn: async () => {
       // Parallel API calls - both execute simultaneously
@@ -95,7 +96,15 @@ export default function HomePage() {
           </div>
 
           {/* Product Grid */}
-          {isLoading ? (
+          {error ? (
+            <ErrorMessage
+              title={t("home.newArrivals.title")}
+              message={
+                error instanceof Error ? error.message : String(error)
+              }
+              language={i18n.language.startsWith("vi") ? "vi" : "en"}
+            />
+          ) : isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12">
               {Array.from({ length: 8 }).map((_, i) => (
                 <ProductCardSkeleton key={i} />

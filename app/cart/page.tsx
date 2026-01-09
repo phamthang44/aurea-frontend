@@ -10,12 +10,14 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CartItem } from "@/components/cart/CartItem";
 import { CartOrderSummary } from "@/components/cart/CartOrderSummary";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShoppingBag, Trash2, ArrowLeft, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 export default function CartPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const {
     items,
     subTotal,
@@ -23,6 +25,7 @@ export default function CartPage() {
     discount,
     finalTotalPrice,
     promotionNote,
+    promotionCode,
     loading,
     error,
     fetchCart,
@@ -90,7 +93,11 @@ export default function CartPage() {
         description: t("cart.cartWillBeSaved"),
       });
     } else {
-      toast.info(t("cart.checkoutComingSoon"));
+      // Navigate to checkout page with promotion code if available
+      const checkoutUrl = promotionCode
+        ? `/checkout?promotionCode=${encodeURIComponent(promotionCode)}`
+        : "/checkout";
+      router.push(checkoutUrl);
     }
   };
 

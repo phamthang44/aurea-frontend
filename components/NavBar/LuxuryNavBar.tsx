@@ -9,6 +9,8 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { useCart } from '@/hooks/useCart';
+import { clearCartData } from '@/lib/utils';
+import { useCartStore } from '@/lib/store/cartStore';
 import { MegaMenu } from './MegaMenu';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -184,8 +186,21 @@ export function LuxuryNavBar() {
   }, []);
 
   const handleLogout = async () => {
+    // Clear cart state before logout to prevent data leakage to next user
+    const cartStore = useCartStore.getState();
+    cartStore.clearCart();
+    cartStore.setAuthenticated(false);
+    
+    // Clear all cart-related localStorage data
+    clearCartData();
+    
+    // Clear auth state
     dispatch(clearAuth());
+    
+    // Call logout action (clears server-side cookies)
     await logoutAction();
+    
+    // Navigate to home
     router.push('/');
     router.refresh();
   };

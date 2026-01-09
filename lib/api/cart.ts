@@ -182,3 +182,28 @@ export async function removeAllItems(): Promise<ApiResponse<CartResponse>> {
   }
 }
 
+/**
+ * Apply promotion code to the cart
+ * Works for both authenticated users and guests
+ * @param promotionCode - Promotion code to apply
+ * @returns Updated cart response with applied promotion
+ */
+export async function applyPromotionCode(
+  promotionCode: string
+): Promise<ApiResponse<CartResponse>> {
+  try {
+    return await apiClient.put<CartResponse>("carts/promotion", {
+      promotionCode,
+    });
+  } catch (error: any) {
+    return {
+      error: {
+        message:
+          error.response?.data?.error?.message ||
+          "Failed to apply promotion code",
+        code: error.response?.data?.error?.code,
+      },
+    };
+  }
+}
+

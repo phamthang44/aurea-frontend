@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/ui/ModeToggle';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
-import { cn } from '@/lib/utils';
+import { cn, clearCartData } from '@/lib/utils';
+import { useCartStore } from '@/lib/store/cartStore';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 
@@ -30,8 +31,21 @@ export function NavBar() {
 
 
   const handleLogout = async () => {
+    // Clear cart state before logout to prevent data leakage to next user
+    const cartStore = useCartStore.getState();
+    cartStore.clearCart();
+    cartStore.setAuthenticated(false);
+    
+    // Clear all cart-related localStorage data
+    clearCartData();
+    
+    // Clear auth state
     dispatch(clearAuth());
+    
+    // Call logout action (clears server-side cookies)
     await logoutAction();
+    
+    // Navigate to login
     router.push('/login');
     router.refresh();
   };

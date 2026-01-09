@@ -91,21 +91,24 @@ export async function loginWithPasswordAction(
 
 /**
  * Server Action: Login with Google
+ * @param code - Authorization code from Google
+ * @param redirectUri - The exact redirect_uri that was used in the authorize step (must match exactly)
  */
-export async function loginWithGoogleAction(code: string) {
+export async function loginWithGoogleAction(code: string, redirectUri: string) {
   try {
     console.log(
       "[Server Action] Google login - API URL:",
       `${API_BASE_URL}/api/v1/auth/google-login`
     );
     console.log("[Server Action] Code present:", !!code);
+    console.log("[Server Action] Redirect URI:", redirectUri);
 
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/google-login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, redirectUri }),
     });
 
     console.log(

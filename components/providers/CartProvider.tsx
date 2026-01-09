@@ -7,6 +7,7 @@ import {
   updateItem,
   removeItem,
   removeAllItems,
+  applyPromotionCode,
   CartResponse,
   CartItemResponse,
 } from "@/lib/api/cart";
@@ -25,6 +26,7 @@ interface CartState {
   discount?: number;
   finalTotalPrice?: number;
   promotionNote?: string;
+  promotionCode?: string; // Applied promotion code
   // Deprecated: Use finalTotalPrice instead, kept for backward compatibility
   totalAmount: number;
   loading: boolean;
@@ -48,7 +50,9 @@ interface CartContextType extends CartState {
   updateCartItem: (cartItemId: number, quantity: number) => Promise<void>;
   removeCartItem: (cartItemId: number) => Promise<void>;
   removeAllCartItems: () => Promise<void>;
+  applyPromotionCode: (code: string) => Promise<void>;
   clearError: () => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -77,6 +81,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const { i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
+  const prevAuthenticatedRef = React.useRef<boolean | null>(null);
   const [state, setState] = useState<CartState>({
     items: [],
     subTotal: 0,
@@ -84,6 +89,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     discount: 0,
     finalTotalPrice: 0,
     promotionNote: undefined,
+    promotionCode: undefined,
     totalAmount: 0,
     loading: false,
     error: null,
@@ -95,6 +101,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Set mounted flag after component mounts (client-side only)
   useEffect(() => {
     setMounted(true);
+    // Initialize the ref with current auth state after mount
+    prevAuthenticatedRef.current = isAuthenticated;
   }, []);
 
   /**
@@ -134,20 +142,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ? cart.promotionNote.trim() 
           : undefined;
         
-        setState({
+        setState((prev) => ({
           items: sortCartItems(cart.items || []),
           subTotal: cart.subTotal ?? 0,
           shippingFee: cart.shippingFee ?? 0,
           discount: cart.discount ?? 0,
           finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
           promotionNote: normalizedPromotionNote,
+          // Preserve promotionCode if promotion is still active, otherwise clear it
+          promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
           totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
           cartId: cart.id,
           userId: cart.userId || null,
           sessionId: cart.sessionId || null,
-        });
+        }));
       }
     } catch (error: any) {
       setState((prev) => ({
@@ -204,20 +214,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Use backend-provided values (all calculations done by backend)
-          setState({
+          const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
+            ? cart.promotionNote.trim() 
+            : undefined;
+          
+          setState((prev) => ({
             items: sortCartItems(cart.items || []),
             subTotal: cart.subTotal ?? 0,
             shippingFee: cart.shippingFee ?? 0,
             discount: cart.discount ?? 0,
             finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
-            promotionNote: cart.promotionNote,
+            promotionNote: normalizedPromotionNote,
+            // Preserve promotionCode if promotion is still active, otherwise clear it
+            promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
             totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
             cartId: cart.id,
             userId: cart.userId || null,
             sessionId: cart.sessionId || null,
-          });
+          }));
         }
       } catch (error: any) {
         setState((prev) => ({
@@ -261,20 +277,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Use backend-provided values (all calculations done by backend)
-          setState({
+          const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
+            ? cart.promotionNote.trim() 
+            : undefined;
+          
+          setState((prev) => ({
             items: sortCartItems(cart.items || []),
             subTotal: cart.subTotal ?? 0,
             shippingFee: cart.shippingFee ?? 0,
             discount: cart.discount ?? 0,
             finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
-            promotionNote: cart.promotionNote,
+            promotionNote: normalizedPromotionNote,
+            // Preserve promotionCode if promotion is still active, otherwise clear it
+            promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
             totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
             cartId: cart.id,
             userId: cart.userId || null,
             sessionId: cart.sessionId || null,
-          });
+          }));
         }
       } catch (error: any) {
         setState((prev) => ({
@@ -322,20 +344,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ? cart.promotionNote.trim() 
           : undefined;
         
-        setState({
+        setState((prev) => ({
           items: sortCartItems(cart.items || []),
           subTotal: cart.subTotal ?? 0,
           shippingFee: cart.shippingFee ?? 0,
           discount: cart.discount ?? 0,
           finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
           promotionNote: normalizedPromotionNote,
+          // Preserve promotionCode if promotion is still active, otherwise clear it
+          promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
           totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
-          error: null,
+          error: null,  
           cartId: cart.id,
           userId: cart.userId || null,
           sessionId: cart.sessionId || null,
-        });
+        }));
       }
     } catch (error: any) {
       setState((prev) => ({
@@ -382,20 +406,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ? cart.promotionNote.trim() 
           : undefined;
         
-        setState({
+        setState((prev) => ({
           items: sortCartItems(cart.items || []),
           subTotal: cart.subTotal ?? 0,
           shippingFee: cart.shippingFee ?? 0,
           discount: cart.discount ?? 0,
           finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
           promotionNote: normalizedPromotionNote,
+          // Preserve promotionCode if promotion is still active, otherwise clear it
+          promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
           totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
           cartId: cart.id,
           userId: cart.userId || null,
           sessionId: cart.sessionId || null,
-        });
+        }));
       }
     } catch (error: any) {
       setState((prev) => ({
@@ -407,15 +433,116 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   /**
+   * Apply promotion code to cart
+   */
+  const applyPromotionCodeToCart = useCallback(
+    async (code: string) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await applyPromotionCode(code);
+
+        if (response.error) {
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: response.error?.message || "Failed to apply promotion code",
+          }));
+          return;
+        }
+
+        if (response.data) {
+          const cart = (response.data as any).data as CartResponse;
+          if (!cart) {
+            setState((prev) => ({
+              ...prev,
+              loading: false,
+              error: "Invalid cart response format",
+            }));
+            return;
+          }
+
+          // Use backend-provided values (all calculations done by backend)
+          // Normalize empty string promotionNote to undefined for consistency
+          const normalizedPromotionNote =
+            cart.promotionNote && cart.promotionNote.trim().length > 0
+              ? cart.promotionNote.trim()
+              : undefined;
+
+          setState({
+            items: sortCartItems(cart.items || []),
+            subTotal: cart.subTotal ?? 0,
+            shippingFee: cart.shippingFee ?? 0,
+            discount: cart.discount ?? 0,
+            finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+            promotionNote: normalizedPromotionNote,
+            promotionCode: code.trim(), // Store the applied promotion code
+            totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
+            loading: false,
+            error: null,
+            cartId: cart.id,
+            userId: cart.userId || null,
+            sessionId: cart.sessionId || null,
+          });
+        }
+      } catch (error: any) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: error.message || "Failed to apply promotion code",
+        }));
+      }
+    },
+    []
+  );
+
+  /**
    * Clear error state
    */
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }));
   }, []);
 
+  /**
+   * Clear cart state completely
+   * Used when user logs out to prevent cart data from persisting to next user
+   */
+  const clearCart = useCallback(() => {
+    setState({
+      items: [],
+      subTotal: 0,
+      shippingFee: 0,
+      discount: 0,
+      finalTotalPrice: 0,
+      promotionNote: undefined,
+      promotionCode: undefined,
+      totalAmount: 0,
+      loading: false,
+      error: null,
+      cartId: null,
+      userId: null,
+      sessionId: null,
+    });
+  }, []);
+
+  // Clear cart when user logs out (transitioning from authenticated to unauthenticated)
+  useEffect(() => {
+    if (!mounted) return;
+    
+    // Only clear cart when transitioning from authenticated to unauthenticated
+    // This prevents clearing guest carts on initial page load
+    if (prevAuthenticatedRef.current === true && !isAuthenticated) {
+      // User just logged out - clear cart state to prevent data leakage to next user
+      clearCart();
+    }
+    
+    // Update the ref to track current auth state
+    prevAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated, mounted, clearCart]);
+
   // Fetch cart on mount and when auth state changes (only after mounted to avoid hydration issues)
   useEffect(() => {
-    if (mounted) {
+    if (mounted && isAuthenticated) {
       fetchCart();
     }
   }, [fetchCart, isAuthenticated, mounted]);
@@ -458,7 +585,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     updateCartItem,
     removeCartItem,
     removeAllCartItems,
+    applyPromotionCode: applyPromotionCodeToCart,
     clearError,
+    clearCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

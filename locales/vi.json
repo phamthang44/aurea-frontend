@@ -224,7 +224,13 @@
     "removeFailed": "Không thể xóa sản phẩm khỏi giỏ hàng",
     "removedFromCartSuccess": "Đã xóa sản phẩm khỏi giỏ hàng thành công",
     "clearCartSuccess": "Đã xóa giỏ hàng thành công",
-    "clearCartFailedDescription": "Không thể xóa giỏ hàng. Vui lòng thử lại"
+    "clearCartFailedDescription": "Không thể xóa giỏ hàng. Vui lòng thử lại",
+    "couponApplied": "Mã giảm giá đã được áp dụng thành công",
+    "couponAppliedFailed": "Không thể áp dụng mã giảm giá",
+    "couponAppliedFailedDescription": "Không thể áp dụng mã giảm giá. Vui lòng thử lại",
+    "couponCodeExpired": "Mã giảm giá này không tồn tại hoặc đã hết hạn.",
+    "enterCouponCode": "Vui lòng nhập mã giảm giá",
+    "invalidCouponCode": "Mã giảm giá không hợp lệ"
   },
   "checkout": {
     "title": "Thanh toán",

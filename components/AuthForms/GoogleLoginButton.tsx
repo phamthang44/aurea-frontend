@@ -47,6 +47,12 @@ export function GoogleLoginButton({
       console.warn("Google OAuth is not configured");
       return;
     }
+    // Store the redirect_uri in sessionStorage so we can retrieve it in the callback
+    // This ensures we use the EXACT same redirect_uri that was sent to Google
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("google_oauth_redirect_uri", redirectUri);
+      console.log("[Google Login] Stored redirect_uri for callback:", redirectUri);
+    }
     // This will redirect the entire page to Google OAuth
     handleGoogleLogin();
   };

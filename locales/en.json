@@ -222,7 +222,13 @@
     "clearCartFailed": "Failed to clear cart",
     "removedFromCartSuccess": "Removed from cart successfully",
     "clearCartSuccess": "Cart cleared successfully",
-    "clearCartFailedDescription": "Failed to clear cart. Please try again"
+    "clearCartFailedDescription": "Failed to clear cart. Please try again",
+    "couponApplied": "Coupon applied successfully",
+    "couponAppliedFailed": "Failed to apply coupon",
+    "couponAppliedFailedDescription": "Failed to apply coupon. Please try again",
+    "couponCodeExpired": "This coupon does not exist or has expired.",
+    "enterCouponCode": "Please enter a coupon code",
+    "invalidCouponCode": "Invalid coupon code"
   },
   "checkout": {
     "title": "Checkout",

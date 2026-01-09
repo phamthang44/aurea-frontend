@@ -49,10 +49,50 @@ function GoogleCallbackContent() {
 
       try {
         console.log("[Google Callback] Authorization code received:", code ? `${code.substring(0, 20)}...` : "null");
+        console.log("[Google Callback] Current URL:", typeof window !== "undefined" ? window.location.href : "N/A");
+        
+        // CRITICAL: Get the EXACT redirect_uri that was used in the authorize step
+        // The most reliable way is to use the current URL (where Google redirected us)
+        // This is guaranteed to match what was sent to Google in the authorize step
+        const currentUrl = typeof window !== "undefined" 
+          ? `${window.location.origin}${window.location.pathname}`
+          : null;
+        
+        // Also check sessionStorage as a backup/verification
+        let storedRedirectUri: string | null = null;
+        if (typeof window !== "undefined") {
+          storedRedirectUri = sessionStorage.getItem("google_oauth_redirect_uri");
+          // Clean up after retrieving
+          sessionStorage.removeItem("google_oauth_redirect_uri");
+        }
+        
+        // Use current URL as primary source (most reliable - it's where Google redirected)
+        // Fallback to stored value, then env var, then default
+        let redirectUri: string;
+        if (currentUrl) {
+          redirectUri = currentUrl;
+          if (storedRedirectUri && storedRedirectUri !== currentUrl) {
+            console.warn("[Google Callback] WARNING: Stored redirect_uri doesn't match current URL!");
+            console.warn("[Google Callback] Stored:", storedRedirectUri);
+            console.warn("[Google Callback] Current (using this):", currentUrl);
+          } else if (storedRedirectUri) {
+            console.log("[Google Callback] Stored redirect_uri matches current URL:", redirectUri);
+          }
+        } else if (storedRedirectUri) {
+          redirectUri = storedRedirectUri;
+          console.log("[Google Callback] Using stored redirect_uri:", redirectUri);
+        } else {
+          redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || 
+            "http://localhost:3000/auth/google-callback";
+          console.warn("[Google Callback] Using fallback redirect_uri:", redirectUri);
+        }
+        
+        console.log("[Google Callback] Final redirect_uri being sent to backend:", redirectUri);
         console.log("[Google Callback] Calling backend API...");
         
         // Call our BFF server action to exchange code for tokens
-        const result = await loginWithGoogleAction(code);
+        // Pass the redirect_uri so backend can use the exact same value
+        const result = await loginWithGoogleAction(code, redirectUri);
         
         console.log("[Google Callback] Backend response:", result.success ? "SUCCESS" : "FAILED", result.error || "");
 

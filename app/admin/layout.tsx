@@ -21,7 +21,7 @@ import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { logoutAction } from "@/app/actions/auth";
 import { clearAuth } from "@/lib/store/authSlice";
 import { useCartStore } from "@/lib/store/cartStore";
-import { cn } from "@/lib/utils";
+import { cn, clearCartData } from "@/lib/utils";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import { AuthGuard } from "@/components/providers/AuthGuard";
 import { useTranslation } from "react-i18next";
@@ -83,9 +83,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
+    // Clear cart state before logout to prevent data leakage to next user
+    const cartStore = useCartStore.getState();
+    cartStore.clearCart();
+    cartStore.setAuthenticated(false);
+    
+    // Clear all cart-related localStorage data
+    clearCartData();
+    
+    // Clear auth state
     dispatch(clearAuth());
-    useCartStore.getState().setAuthenticated(false);
+    
+    // Call logout action (clears server-side cookies)
     await logoutAction();
+    
+    // Navigate to home
     router.push("/");
     router.refresh();
   };

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { CartItemResponse } from "@/lib/api/cart";
+import { useCart } from "@/hooks/useCart";
 
 /**
  * Format currency to VND with luxury styling
@@ -48,19 +49,40 @@ export function CartOrderSummary({
   onCheckout,
 }: CartOrderSummaryProps) {
   const { t } = useTranslation();
+  const { applyPromotionCode: applyPromotionCodeToCart, promotionCode } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   // Set mounted flag after component mounts (client-side only)
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleApplyCoupon = () => {
-    if (couponCode.trim()) {
-      toast.error(t("cart.invalidCoupon"), {
-        description: t("cart.couponExpired"),
-      });
+  // Sync coupon code input with applied promotion code
+  useEffect(() => {
+    if (promotionCode) {
+      setCouponCode(promotionCode);
+    }
+  }, [promotionCode]);
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      toast.error(t("cart.enterCouponCode", { defaultValue: "Please enter a coupon code" }));
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    try {
+      await applyPromotionCodeToCart(code);
+      toast.success(t("cart.couponApplied", { defaultValue: "Coupon applied successfully" }));
+    } catch (error: any) {
+      // Error is already handled in the cart provider, but we can show additional feedback
+      const errorMessage = error?.message || t("cart.invalidCouponCode", { defaultValue: "Invalid coupon code" });
+      toast.error(errorMessage);
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -100,9 +122,12 @@ export function CartOrderSummary({
               <Button
                 variant="outline"
                 onClick={handleApplyCoupon}
+                disabled={isApplyingCoupon || loading}
                 className="border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                {t("common.apply")}
+                {isApplyingCoupon
+                  ? t("common.loading", { defaultValue: "Applying..." })
+                  : t("common.apply")}
               </Button>
             </div>
           </div>

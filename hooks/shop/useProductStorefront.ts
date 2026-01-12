@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { searchPublicProducts } from "@/lib/storefront/api/products";
+import { searchPublicProducts } from "@/lib/api/products";
 import {
   ProductListingDto,
   ProductSearchRequest,

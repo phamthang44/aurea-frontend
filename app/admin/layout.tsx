@@ -16,6 +16,7 @@ import {
   X,
   Upload,
   UserCircle2,
+  LayoutGrid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -46,6 +47,11 @@ const navItems: NavItem[] = [
     icon: Package,
   },
   {
+    label: "Categories",
+    href: "/admin/categories",
+    icon: LayoutGrid,
+  },
+  {
     label: "Import",
     href: "/admin/imports",
     icon: Upload,
@@ -66,6 +72,7 @@ function getNavLabel(key: string): string {
   const labels: Record<string, string> = {
     Dashboard: "admin.layout.dashboard",
     Products: "admin.layout.products",
+    Categories: "admin.layout.categories",
     Import: "admin.layout.import",
     Users: "admin.layout.users",
     Settings: "admin.layout.settings",
@@ -162,7 +169,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 "px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-300",
                 isSidebarCollapsed ? "opacity-0" : "opacity-100"
               )}>
-                Menu
+                {t("common.menu", { defaultValue: "Menu" })}
               </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -303,21 +310,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       href={item.href}
                       onClick={() => setIsMobileSidebarOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 no-underline",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 no-underline",
                         isActive
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                          ? "bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
                     >
                       <Icon
                         className={cn(
                           "h-5 w-5 flex-shrink-0",
-                          isActive && "text-white"
+                          isActive ? "text-white" : "text-slate-400 group-hover:text-slate-900"
                         )}
                       />
                       <span className="flex-1">{t(getNavLabel(item.label), { defaultValue: item.label })}</span>
                       {item.badge && (
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-blue-600 text-white">
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-[#D4AF37] text-white">
                           {item.badge}
                         </span>
                       )}
@@ -330,7 +337,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <div className="p-3">
                 <Link
                   href="/"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 no-underline text-muted-foreground hover:text-foreground hover:bg-secondary mb-2"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 no-underline text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 mb-2"
                   onClick={() => setIsMobileSidebarOpen(false)}
                 >
                   <Home className="h-5 w-5 flex-shrink-0" />
@@ -412,10 +419,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <div className="flex items-center gap-3 pl-1">
                   <div className="hidden md:flex flex-col items-end">
                     <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
-                      {user?.fullName || "Admin User"}
+                      {user?.fullName || t("admin.layout.admin")}
                     </span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
-                      {user?.roles?.[0] || "Administrator"}
+                      {user?.roles?.[0] || t("admin.users.roles.admin")}
                     </span>
                   </div>
                   <div className="h-10 w-10 rounded-full border-2 border-gray-100 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-800 transition-transform hover:scale-105">

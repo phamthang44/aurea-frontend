@@ -18,7 +18,8 @@
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "submit": "Gửi",
-    "clear": "Xóa"
+    "clear": "Xóa",
+    "menu": "Danh mục"
   },
   "validation": {
     "fieldRequired": "Trường này là bắt buộc",
@@ -446,6 +447,30 @@
     "dashboard": {
       "title": "Tổng quan Bảng điều khiển",
       "subtitle": "Theo dõi hiệu suất và hoạt động của cửa hàng",
+      "welcome": "Chào mừng trở lại, {{name}}. Đây là tổng quan hoạt động boutique của bạn.",
+      "systemsOperational": "Hệ thống đang hoạt động",
+      "operationalIntegrity": "Toàn vẹn hoạt động",
+      "acknowledgeAll": "Xác nhận tất cả",
+      "operationalAlerts": {
+        "curationThrottled": "Pipeline Curation bị nghẽn",
+        "curationThrottledDesc": "Công cụ quản lý sản phẩm tự động đang xử lý ở mức 40% công suất do khối lượng lớn.",
+        "latency": "Độ trễ",
+        "latencyMsg": "Độ trễ hiện tại là ~45 phút",
+        "affectedService": "Dịch vụ bị ảnh hưởng",
+        "affectedServiceMsg": "Tối ưu hóa đa phương tiện hàng loạt",
+        "inventoryConflict": "Xung đột đồng bộ kho hàng",
+        "inventoryConflictDesc": "Phát hiện sai lệch giữa boutique POS và hồ sơ tồn kho trực tuyến.",
+        "stockLevels": "Mức tồn kho xung đột (Cửa hàng: 14, Web: 12)",
+        "actionTaken": "Hành động đã thực hiện",
+        "actionTakenMsg": "Tồn kho boutique được ưu tiên bảo tồn"
+      },
+      "recentActivities": {
+        "newOrder": "Đơn hàng mới #{{id}} received",
+        "productUpdated": "Sản phẩm '{{name}}' đã cập nhật",
+        "newUser": "Đăng ký người dùng mới",
+        "lowStock": "Cảnh báo hết hàng: '{{name}}'",
+        "orderCancelled": "Đơn hàng #{{id}} bị hủy"
+      },
       "totalProducts": "Tổng sản phẩm",
       "totalUsers": "Tổng người dùng",
       "totalOrders": "Tổng đơn hàng",
@@ -792,6 +817,56 @@
         "showingSample": "Hiển thị 5 hàng mẫu đầu tiên. Chỉ dữ liệu hợp lệ mới được đưa vào nền tảng."
       }
     },
+    "categories": {
+      "title": "Kiến trúc Danh mục",
+      "description": "Điều phối hệ thống phân cấp của boutique với các bộ sưu tập được thiết kế chính xác và quy tắc chỉ định lá.",
+      "searchPlaceholder": "Truy tìm danh mục theo tên hoặc slug...",
+      "addRoot": "Danh mục Gốc mới",
+      "addChild": "Thêm danh mục con",
+      "edit": "Cấu hình",
+      "delete": "Gỡ bỏ",
+      "move": "Thay đổi vị trí",
+      "activate": "Kích hoạt",
+      "deactivate": "Tạm dừng",
+      "leaf": "Lá",
+      "branch": "Nhánh",
+      "products": "Sản phẩm",
+      "noCategoriesFound": "Không tìm thấy cấu trúc danh mục nào.",
+      "status": {
+        "active": "Đang hoạt động",
+        "inactive": "Đang tạm dừng"
+      },
+      "form": {
+        "createTitle": "Khởi tạo Danh mục",
+        "editTitle": "Cấu hình lại Danh mục",
+        "name": "Tên Danh mục",
+        "namePlaceholder": "v.d. Thời trang Cao cấp, Đồng hồ",
+        "slug": "Định danh SEO",
+        "slugHint": "Định danh tối ưu cho SEO",
+        "description": "Tổng quan Chiến lược",
+        "parent": "Danh mục Cha",
+        "root": "Gốc Kiến trúc",
+        "activeLabel": "Trạng thái Hoạt động",
+        "validation": {
+          "nameRequired": "Tên danh mục là bắt buộc",
+          "slugRequired": "Định danh SEO là bắt buộc",
+          "circularRef": "Vi phạm kiến trúc: Phát hiện hệ thống phân cấp đệ quy.",
+          "leafProductWarn": "Cảnh báo Toàn vẹn: Danh mục này chứa sản phẩm và không thể làm danh mục cha."
+        }
+      },
+      "moveModal": {
+        "title": "Thay đổi Vị trí",
+        "desc": "Chọn danh mục cha mới cho '{{name}}'. Các kiểm tra toàn vẹn sẽ xác thực thay đổi cấu trúc.",
+        "confirm": "Thực thi Thay đổi",
+        "cancel": "Hủy bỏ"
+      },
+      "deleteModal": {
+        "title": "Gỡ bỏ Danh mục",
+        "desc": "Bạn có chắc chắn muốn gỡ bỏ '{{name}}'?",
+        "errorHasChildren": "Ràng buộc cấu trúc: Không thể gỡ bỏ danh mục có danh mục con.",
+        "errorHasProducts": "Ràng buộc kho hàng: Không thể gỡ bỏ danh mục vẫn còn sản phẩm."
+      }
+    },
     "settings": {
       "title": "Bảng điều khiển cài đặt",
       "description": "Thiết kế hành vi, bản sắc và các giao thức bảo mật của cửa hàng bạn với quyền kiểm soát chính xác.",
@@ -875,6 +950,7 @@
     "layout": {
       "dashboard": "Bảng điều khiển",
       "products": "Sản phẩm",
+      "categories": "Danh mục",
       "import": "Nhập hàng",
       "users": "Người dùng",
       "settings": "Cài đặt",

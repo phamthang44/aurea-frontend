@@ -29,3 +29,28 @@ export function clearCartData(): void {
   }
   keysToRemove.forEach(key => localStorage.removeItem(key));
 }
+
+/**
+ * Enhanced slugify function with Vietnamese diacritics removal
+ * Converts Vietnamese characters to their base Latin equivalents
+ */
+export function slugify(text: string): string {
+  if (!text) return "";
+
+  let slug = text.toString().toLowerCase().trim();
+
+  // Map of Vietnamese characters to their non-diacritic versions
+  const from = "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ";
+  const to   = "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd";
+
+  for (let i = 0, l = from.length; i < l; i++) {
+    slug = slug.replace(new RegExp(from[i], "g"), to[i]);
+  }
+
+  return slug
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w-]+/g, '')       // Remove all non-word chars (now safe as diacritics are gone)
+    .replace(/--+/g, '-')          // Replace multiple - with single -
+    .replace(/^-+/, '')            // Trim - from start of text
+    .replace(/-+$/, '');           // Trim - from end of text
+}

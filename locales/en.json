@@ -18,7 +18,8 @@
     "reset": "Reset",
     "apply": "Apply",
     "submit": "Submit",
-    "clear": "Clear"
+    "clear": "Clear",
+    "menu": "Menu"
   },
   "validation": {
     "fieldRequired": "This field is required",
@@ -444,6 +445,30 @@
     "dashboard": {
       "title": "Dashboard Overview",
       "subtitle": "Monitor your store's performance and activities",
+      "welcome": "Welcome back, {{name}}. Here is your boutique's operational overview.",
+      "systemsOperational": "Systems Operational",
+      "operationalIntegrity": "Operational Integrity",
+      "acknowledgeAll": "Acknowledge All",
+      "operationalAlerts": {
+        "curationThrottled": "Curation Pipeline Throttled",
+        "curationThrottledDesc": "The automated product curation engine is processing at 40% capacity due to high volume.",
+        "latency": "Latency",
+        "latencyMsg": "Current curation delay is ~45 minutes",
+        "affectedService": "Affected Service",
+        "affectedServiceMsg": "Bulk Media Optimization",
+        "inventoryConflict": "Inventory Synchronization Conflict",
+        "inventoryConflictDesc": "Discrepancies detected between the boutique POS and online inventory records.",
+        "stockLevels": "Conflicting stock levels (Store: 14, Web: 12)",
+        "actionTaken": "Action Taken",
+        "actionTakenMsg": "Boutique stock prioritized for preservation"
+      },
+      "recentActivities": {
+        "newOrder": "New order #{{id}} received",
+        "productUpdated": "Product '{{name}}' updated",
+        "newUser": "New user registration",
+        "lowStock": "Low stock alert: '{{name}}'",
+        "orderCancelled": "Order #{{id}} cancelled"
+      },
       "totalProducts": "Total Products",
       "totalUsers": "Total Users",
       "totalOrders": "Total Orders",
@@ -789,6 +814,56 @@
         "showingSample": "Showing first 5 sample rows. Only valid data will be curated into the platform."
       }
     },
+    "categories": {
+      "title": "Category Architecture",
+      "description": "Orchestrate your boutique's hierarchy with precision-engineered collections and leaf-assignment rules.",
+      "searchPlaceholder": "Trace category by name or distinct slug...",
+      "addRoot": "New Root Category",
+      "addChild": "Append Child",
+      "edit": "Configure",
+      "delete": "Deconstruct",
+      "move": "Reposition",
+      "activate": "Enable",
+      "deactivate": "Suspend",
+      "leaf": "Leaf",
+      "branch": "Branch",
+      "products": "Products",
+      "noCategoriesFound": "No category nexuses identified.",
+      "status": {
+        "active": "Operational",
+        "inactive": "Suspended"
+      },
+      "form": {
+        "createTitle": "Initialize Category",
+        "editTitle": "Reconfigure Category",
+        "name": "Category Name",
+        "namePlaceholder": "e.g. Haute Couture, Wristwear",
+        "slug": "SEO Identifier",
+        "slugHint": "SEO-optimized locator",
+        "description": "Strategic Overview",
+        "parent": "Parent Category",
+        "root": "Architectural Root",
+        "activeLabel": "Operational Status",
+        "validation": {
+          "nameRequired": "Category name is mandatory",
+          "slugRequired": "SEO identifier is mandatory",
+          "circularRef": "Architectural violation: Recursive hierarchy detected.",
+          "leafProductWarn": "Integrity Alert: This category contains items and cannot serve as a parent."
+        }
+      },
+      "moveModal": {
+        "title": "Reposition Category",
+        "desc": "Select a new parent for '{{name}}'. Integrity checks will validate the structural shift.",
+        "confirm": "Execute Shift",
+        "cancel": "Abort"
+      },
+      "deleteModal": {
+        "title": "Deconstruct Category",
+        "desc": "Are you certain you wish to deconstruct '{{name}}'?",
+        "errorHasChildren": "Structural constraint: Cannot deconstruct a category with descendants.",
+        "errorHasProducts": "Inventory constraint: Cannot deconstruct a category with active products."
+      }
+    },
     "settings": {
       "title": "Settings Console",
       "description": "Architect your store's behavior, identity, and security protocols with precision control.",
@@ -913,6 +988,7 @@
     "layout": {
       "dashboard": "Dashboard",
       "products": "Products",
+      "categories": "Categories",
       "import": "Import",
       "users": "Users",
       "settings": "Settings",

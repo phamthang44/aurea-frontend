@@ -25,6 +25,7 @@ export interface CategoryResponse {
   parentId?: string | null;
   isActive: boolean;
   children: CategoryResponse[]; // Recursive tree structure
+  productCount?: number; // Added for UI display
   createdAt?: string;
   updatedAt?: string;
 }

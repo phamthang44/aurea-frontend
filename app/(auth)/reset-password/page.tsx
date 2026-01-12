@@ -6,7 +6,7 @@ import Link from "next/link";
 import { LuxuryInput } from "@/components/auth/LuxuryInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { LuxuryButton } from "@/components/auth/LuxuryButton";
-import { LuxuryNavBar } from "@/components/layout/navbar/LuxuryNavBar";
+import { LuxuryNavBar } from "@/components/layout/LuxuryNavBar";
 import { resetPasswordAction } from "@/app/actions/auth";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { LuxuryInput } from "@/components/auth/LuxuryInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { LuxuryButton } from "@/components/auth/LuxuryButton";
-import { LuxuryNavBar } from "@/components/layout/navbar/LuxuryNavBar";
+import { LuxuryNavBar } from "@/components/layout/LuxuryNavBar";
 import { OtpInput } from "@/components/auth/OtpInput";
 import { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";

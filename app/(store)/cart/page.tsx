@@ -1,0 +1,222 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useCart } from "@/components/providers/CartProvider";
+import { useAppSelector } from "@/lib/store/hooks";
+import { StorefrontNavBar } from "@/components/shop/layout/StorefrontNavBar";
+import { StorefrontFooter } from "@/components/shop/layout/StorefrontFooter";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { CartItem } from "@/components/shop/cart/CartItem";
+import { CartOrderSummary } from "@/components/shop/cart/CartOrderSummary";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, Trash2, ArrowLeft, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+
+export default function CartPage() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const {
+    items,
+    subTotal,
+    shippingFee,
+    discount,
+    finalTotalPrice,
+    promotionNote,
+    promotionCode,
+    loading,
+    error,
+    fetchCart,
+    updateCartItem,
+    removeCartItem,
+    removeAllCartItems,
+  } = useCart();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
+  const [showClearCartDialog, setShowClearCartDialog] = useState(false);
+
+  // Fetch cart from backend on mount
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    try {
+      await updateCartItem(itemId, newQuantity);
+      toast.success(
+        t("cart.quantityUpdated", { defaultValue: "Quantity updated" })
+      );
+    } catch (error) {
+      toast.error(
+        t("cart.updateFailed", { defaultValue: "Failed to update quantity" })
+      );
+    }
+  };
+
+  const handleRemoveItem = async (itemId: number, itemName: string) => {
+    try {
+      await removeCartItem(itemId);
+      toast.success(
+        t("cart.removedFromCartSuccess", {
+          defaultValue: "Removed from cart successfully",
+        }),
+        {
+          description: itemName,
+        }
+      );
+    } catch (error) {
+      toast.error(
+        t("cart.removeFailed", { defaultValue: "Failed to remove item" })
+      );
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      await removeAllCartItems();
+      toast.success(t("cart.clearCartSuccess"));
+    } catch (error) {
+      toast.error(
+        t("cart.clearCartFailedDescription", {
+          defaultValue: "Failed to clear cart. Please try again",
+        })
+      );
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      toast.info(t("cart.pleaseSignIn"), {
+        description: t("cart.cartWillBeSaved"),
+      });
+    } else {
+      // Navigate to checkout page with promotion code if available
+      const checkoutUrl = promotionCode
+        ? `/checkout?promotionCode=${encodeURIComponent(promotionCode)}`
+        : "/checkout";
+      router.push(checkoutUrl);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background dark:bg-background">
+      <StorefrontNavBar />
+
+      {/* Confirm Clear Cart Dialog */}
+      <ConfirmDialog
+        open={showClearCartDialog}
+        onOpenChange={setShowClearCartDialog}
+        title={t("cart.clearCartTitle")}
+        description={t("cart.clearCartDescription")}
+        confirmText={t("cart.clearCart")}
+        cancelText={t("cart.keepItems")}
+        onConfirm={handleClearCart}
+        variant="destructive"
+      />
+
+      <div className="flex-1 mt-28">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Breadcrumb */}
+          <div className="mb-8">
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 no-underline group"
+            >
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
+              {t("cart.continueShopping")}
+            </Link>
+          </div>
+
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-light tracking-wider text-foreground mb-2">
+              {t("cart.shoppingCart")}
+            </h1>
+            {!isAuthenticated && items.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                <ShieldCheck className="inline h-4 w-4 mr-1 text-emerald-600 dark:text-emerald-400" />
+                {t("cart.cartSavedLocally")}
+              </p>
+            )}
+          </div>
+
+          {items.length === 0 ? (
+            /* Empty Cart State */
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <div className="mb-6">
+                  <ShoppingBag className="h-24 w-24 mx-auto text-gray-300 dark:text-gray-700" />
+                </div>
+                <h2 className="text-2xl font-light mb-3">
+                  {t("cart.emptyCartTitle")}
+                </h2>
+                <p className="text-muted-foreground mb-8">
+                  {t("cart.emptyCartDescription")}
+                </p>
+                <Link href="/products">
+                  <Button className="bg-[#181818] dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 hover:scale-105 transition-all duration-300 px-8">
+                    {t("cart.startShopping")}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* Cart Content */
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Cart Items */}
+              <div className="lg:col-span-2 space-y-4">
+                {/* Clear Cart Button */}
+                <div className="flex justify-end mb-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowClearCartDialog(true)}
+                    className="text-destructive hover:text-destructive/80"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t("cart.clearCart")}
+                  </Button>
+                </div>
+
+                {items.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    loading={loading}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemoveItem={handleRemoveItem}
+                  />
+                ))}
+              </div>
+
+              {/* Order Summary */}
+              <CartOrderSummary
+                items={items}
+                subTotal={subTotal ?? 0}
+                shippingFee={shippingFee ?? 0}
+                discount={discount ?? 0}
+                finalTotalPrice={finalTotalPrice ?? 0}
+                promotionNote={promotionNote}
+                loading={loading}
+                isAuthenticated={isAuthenticated}
+                onCheckout={handleCheckout}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <StorefrontFooter />
+    </div>
+  );
+}
+
+
+
+
+
+
+

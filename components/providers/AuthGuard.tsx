@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, ReactNode, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -84,3 +84,5 @@ export function AuthGuard({
 
   return <>{children}</>;
 }
+
+

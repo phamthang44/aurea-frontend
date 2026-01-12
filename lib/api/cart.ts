@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Cart API - Unified cart operations for both User and Guest
  * All endpoints automatically handle X-Guest-ID and Authorization headers via axios interceptors
  */
 
-import apiClient from "../api-client";
+import apiClient from "@/lib/api-client";
 
 /**
  * Cart Item Response from backend
@@ -206,4 +206,7 @@ export async function applyPromotionCode(
     };
   }
 }
+
+
+
 

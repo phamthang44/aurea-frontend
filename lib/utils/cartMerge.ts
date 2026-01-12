@@ -1,4 +1,4 @@
-import { useCartStore, CartItem } from '@/lib/store/cartStore';
+﻿import { useCartStore, CartItem } from '@/lib/store/cartStore';
 
 /**
  * Merges guest cart (from localStorage) into authenticated user's cart
@@ -34,4 +34,6 @@ export async function mergeGuestCartOnLogin() {
     console.error('Failed to merge guest cart:', error);
   }
 }
+
+
 

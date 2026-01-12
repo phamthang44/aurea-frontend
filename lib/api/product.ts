@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Product API Service
  * Based on api-flows-for-frontend.md
  * Uses the existing Axios client from lib/api-client.ts
  */
 
-import apiClient from "../api-client";
+import apiClient from "@/lib/api-client";
 import type {
   ProductResponse,
   CreateProductRequest,
@@ -438,3 +438,6 @@ export const productApi = {
 };
 
 export default productApi;
+
+
+

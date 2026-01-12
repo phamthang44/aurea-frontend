@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Poppins, Be_Vietnam_Pro, Geist_Mono, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -10,7 +10,7 @@ import { AuthInitProvider } from "@/components/providers/AuthInitProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 import { LangUpdater } from "@/components/providers/LangUpdater";
-import { CartProvider } from "@/components/providers/CartProvider";
+// CartProvider moved to storefront layout
 import { Toaster } from "sonner";
 
 const poppins = Poppins({
@@ -101,10 +101,8 @@ export default function RootLayout({
               <GoogleOAuthProviderWrapper>
                 <ReduxProvider>
                   <AuthInitProvider>
-                    <CartProvider>
-                      {children}
-                      <Toaster position="top-center" richColors />
-                    </CartProvider>
+                    {children}
+                    <Toaster position="top-center" richColors />
                   </AuthInitProvider>
                 </ReduxProvider>
               </GoogleOAuthProviderWrapper>
@@ -115,3 +113,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

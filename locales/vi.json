@@ -62,6 +62,139 @@
       "browseShop": "Duyệt cửa hàng"
     }
   },
+  "navbar": {
+    "shop": "Cửa hàng",
+    "account": "Tài khoản",
+    "about": "Về chúng tôi",
+    "signIn": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "admin": "Quản trị"
+  },
+  "about": {
+    "badge": "Câu chuyện của chúng tôi",
+    "title": "Tái định nghĩa sự thanh lịch hiện đại",
+    "subtitle": "Được thành lập dựa trên niềm tin rằng sự sang trọng thực sự nằm ở từng chi tiết. Aurea mang đến cho bạn những thiết kế vượt thời gian.",
+    "mission": {
+      "title": "Đam mê",
+      "description": "Chúng tôi đam mê tạo ra thời trang trao quyền. Mỗi tác phẩm là sự tôn vinh cá tính và sự tự tin."
+    },
+    "vision": {
+      "title": "Lời hứa",
+      "description": "Mang đến chất lượng không khoan nhượng và dịch vụ xuất sắc."
+    },
+    "values": {
+      "title": "Giá trị cốt lõi",
+      "craftsmanship": {
+        "title": "Thủ công tinh xảo",
+        "description": "Mỗi đường kim mũi chỉ kể câu chuyện về sự hoàn hảo."
+      },
+      "sustainability": {
+        "title": "Sang trọng bền vững",
+        "description": "Cam kết nguồn cung ứng có đạo đức và sản xuất thân thiện với môi trường."
+      },
+      "global": {
+        "title": "Cảm hứng toàn cầu",
+        "description": "Thiết kế lấy cảm hứng từ nghệ thuật và văn hóa khắp thế giới."
+      }
+    },
+    "team": {
+      "badge": "Nghệ nhân",
+      "title": "Gặp gỡ đội ngũ",
+      "roles": {
+        "creativeDirector": "Giám đốc Sáng tạo",
+        "leadDesigner": "Nhà thiết kế chính",
+        "headOfOperations": "Trưởng phòng Vận hành",
+        "customerExperience": "Chăm sóc Khách hàng"
+      }
+    },
+    "cta": {
+      "title": "Trải nghiệm sự khác biệt",
+      "explore": "Khám phá bộ sưu tập"
+    }
+  },
+
+  "landing": {
+    "hero": {
+      "badge": "Bộ sưu tập mới 2026",
+      "titlePart1": "Sang trọng",
+      "titlePart2": "Vượt thời gian",
+      "subtitle": "Khám phá bộ sưu tập thời trang cao cấp được tuyển chọn kỹ lưỡng, thiết kế dành riêng cho người sành điệu hiện đại.",
+      "ctaPrimary": "Mua sắm ngay",
+      "ctaSecondary": "Xem Lookbook",
+      "stats": {
+        "products": "Sản phẩm độc quyền",
+        "materials": "Vật liệu cao cấp",
+        "shipping": "Vận chuyển nhanh",
+        "support": "Hỗ trợ tận tình"
+      }
+    },
+    "features": {
+      "badge": "Tại sao chọn Aurea",
+      "title": "Tiêu chuẩn Aurea",
+      "subtitle": "Chất lượng và dịch vụ không khoan nhượng trong từng chi tiết.",
+      "items": {
+        "quality": {
+          "title": "Chất lượng cao cấp",
+          "description": "Vật liệu tốt nhất được tuyển chọn từ khắp nơi trên thế giới."
+        },
+        "shipping": {
+          "title": "Vận chuyển nhanh",
+          "description": "Giao hàng nhanh miễn phí cho mọi đơn hàng."
+        },
+        "returns": {
+          "title": "Đổi trả dễ dàng",
+          "description": "Chính sách đổi trả trong 30 ngày không rắc rối."
+        },
+        "secure": {
+          "title": "Thanh toán an toàn",
+          "description": "Thanh toán an toàn 100% với các cổng thanh toán uy tín."
+        },
+        "sustainable": {
+          "title": "Bền vững",
+          "description": "Sản xuất thân thiện với môi trường và nguồn cung ứng có đạo đức."
+        },
+        "designs": {
+          "title": "Thiết kế độc quyền",
+          "description": "Những mẫu thiết kế độc đáo bạn sẽ không tìm thấy ở đâu khác."
+        },
+        "international": {
+          "title": "Quốc tế",
+          "description": "Chúng tôi giao hàng đến hơn 100 quốc gia trên toàn cầu."
+        },
+        "support": {
+          "title": "Hỗ trợ đặc biệt",
+          "description": "Đội ngũ hỗ trợ chuyên biệt sẵn sàng 24/7."
+        }
+      }
+    },
+    "testimonials": {
+      "badge": "Đánh giá",
+      "title": "Khách hàng nói gì",
+      "subtitle": "Câu chuyện từ cộng đồng khách hàng thân thiết.",
+      "items": {
+        "0": {
+          "quote": "Chiếc váy tuyệt đẹp. Lụa thật tinh xảo và vừa vặn hoàn hảo.",
+          "role": "Khách hàng xác thực"
+        },
+        "1": {
+          "quote": "Giao hàng nhanh và đóng gói đẹp mắt. Một trải nghiệm mua sắm sang trọng.",
+          "role": "Khách hàng xác thực"
+        },
+        "2": {
+          "quote": "Chất lượng vượt quá mong đợi. Tôi chắc chắn sẽ mua sắm lại.",
+          "role": "Khách hàng xác thực"
+        }
+      }
+    },
+    "cta": {
+      "badge": "Ưu đãi có hạn",
+      "title": "Nâng tầm tủ đồ của bạn ngay hôm nay",
+      "subtitle": "Tham gia Aurea Club để nhận quyền truy cập sớm vào các bộ sưu tập mới, giảm giá dành riêng cho thành viên và tư vấn phong cách cá nhân.",
+      "ctaPrimary": "Bắt đầu mua sắm",
+      "ctaSecondary": "Đăng ký miễn phí",
+      "trustText": "Miễn phí thành viên • Hủy bất cứ lúc nào"
+    }
+  },
   "shop": {
     "backToHome": "Về trang chủ",
     "allProducts": "Tất cả sản phẩm",
@@ -246,7 +379,7 @@
     "orEnterNewAddress": "Hoặc nhập địa chỉ mới",
     "recipientName": "Tên người nhận",
     "recipientNamePlaceholder": "Họ và tên đầy đủ",
-    "city": "Thành phố",
+    "city": "Thành phố / Tỉnh",
     "cityPlaceholder": "Hồ Chí Minh",
     "district": "Quận/Huyện",
     "districtPlaceholder": "Quận 1",
@@ -272,15 +405,42 @@
     "validation": {
       "emailRequired": "Email là bắt buộc",
       "emailInvalid": "Email không hợp lệ",
+      "emailMaxLength": "Email không được vượt quá 255 ký tự",
       "phoneRequired": "Số điện thoại là bắt buộc",
-      "phoneInvalid": "Số điện thoại không hợp lệ",
+      "phoneInvalid": "Số điện thoại không hợp lệ (10-15 chữ số)",
       "recipientNameRequired": "Tên người nhận là bắt buộc",
+      "recipientNameMaxLength": "Tên người nhận không được vượt quá 255 ký tự",
       "cityRequired": "Thành phố là bắt buộc",
       "districtRequired": "Quận/Huyện là bắt buộc",
+      "districtMaxLength": "Tên quận/huyện không được vượt quá 255 ký tự",
       "wardRequired": "Phường/Xã là bắt buộc",
       "streetRequired": "Địa chỉ đường là bắt buộc",
-      "paymentMethodRequired": "Vui lòng chọn phương thức thanh toán"
-    }
+      "streetMaxLength": "Địa chỉ đường không được vượt quá 255 ký tự",
+      "paymentMethodRequired": "Vui lòng chọn phương thức thanh toán",
+      "noteMaxLength": "Ghi chú không được vượt quá 500 ký tự"
+    },
+    "errors": {
+      "createOrderFailed": "Tạo đơn hàng thất bại",
+      "cartEmpty": "Giỏ hàng của bạn trống. Vui lòng thêm sản phẩm trước khi thanh toán",
+      "cartNotFound": "Không tìm thấy giỏ hàng. Vui lòng thêm sản phẩm vào giỏ hàng",
+      "variantNotFound": "Một số sản phẩm không còn khả dụng",
+      "insufficientStock": "Một số sản phẩm không đủ tồn kho",
+      "networkError": "Lỗi kết nối. Vui lòng kiểm tra kết nối và thử lại",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau",
+      "unauthorized": "Vui lòng đăng nhập để đặt hàng"
+    },
+    "success": {
+      "orderCreated": "Tạo đơn hàng thành công!",
+      "redirecting": "Đang chuyển hướng đến xác nhận đơn hàng..."
+    },
+    "orderConfirmationDescription": "Đơn hàng của bạn đã được đặt thành công. Chúng tôi sẽ xử lý đơn hàng trong thời gian sớm nhất.",
+    "orderNumber": "Mã đơn hàng",
+    "orderStatus": "Trạng thái",
+    "paymentInformation": "Thông tin thanh toán",
+    "paymentStatus": "Trạng thái thanh toán",
+    "scanQRCode": "Quét mã QR để thanh toán",
+    "proceedToPayment": "Tiến hành thanh toán",
+    "viewOrderDetails": "Xem chi tiết đơn hàng"
   },
   "admin": {
     "dashboard": {
@@ -498,73 +658,45 @@
       "admin": "Quản trị viên"
     }
   },
-  "navbar": {
-    "admin": "Quản trị",
-    "signIn": "Đăng nhập",
-    "logout": "Đăng xuất",
-    "megaMenu": {
-      "newArrivals": {
-        "label": "Hàng mới về",
-        "women": {
-          "title": "Nữ",
-          "latestDresses": "Đầm mới nhất",
-          "newTops": "Áo mới",
-          "accessories": "Phụ kiện"
-        },
-        "men": {
-          "title": "Nam",
-          "latestShirts": "Áo sơ mi mới nhất",
-          "newJackets": "Áo khoác mới",
-          "accessories": "Phụ kiện"
-        },
-        "featured": {
-          "title": "Nổi bật",
-          "editorsPick": "Biên tập viên chọn",
-          "limitedEdition": "Phiên bản giới hạn"
-        }
-      },
-      "clothing": {
-        "label": "Trang phục",
-        "women": {
-          "title": "Nữ",
-          "dresses": "Đầm",
-          "topsAndBlouses": "Áo & Áo kiểu",
-          "bottoms": "Quần & Váy",
-          "outerwear": "Áo khoác"
-        },
-        "men": {
-          "title": "Nam",
-          "shirts": "Áo sơ mi",
-          "pants": "Quần",
-          "jackets": "Áo khoác",
-          "suits": "Vest"
-        }
-      },
-      "accessories": {
-        "label": "Phụ kiện",
-        "categories": {
-          "title": "Danh mục",
-          "bagsAndHandbags": "Túi xách",
-          "jewelry": "Trang sức",
-          "shoes": "Giày dép",
-          "watches": "Đồng hồ"
-        },
-        "byStyle": {
-          "title": "Theo phong cách",
-          "minimalist": "Tối giản",
-          "statement": "Ấn tượng"
-        }
-      },
-      "about": {
-        "label": "Giới thiệu"
-      }
-    }
-  },
+
   "footer": {
-    "copyright": "© {{year}} {{brand}}. Mọi quyền được bảo lưu.",
+    "copyright": "© {{year}} AUREA. Mọi quyền được bảo lưu.",
     "privacy": "Chính sách bảo mật",
     "terms": "Điều khoản",
-    "contact": "Liên hệ"
+    "contact": "Liên hệ",
+    "description": "Sự thanh lịch vượt thời gian gặp gỡ sự sang trọng hiện đại. Được chế tác cho những người biết thưởng thức những điều tinh tế.",
+    "madeWith": "Được làm với ❤️ bởi AUREA",
+    "sections": {
+      "product": "Sản phẩm",
+      "company": "Công ty",
+      "resources": "Tài nguyên",
+      "legal": "Pháp lý"
+    },
+    "links": {
+      "product": {
+        "features": "Tính năng",
+        "pricing": "Bảng giá",
+        "demo": "Yêu cầu Demo",
+        "changelog": "Nhật ký thay đổi"
+      },
+      "company": {
+        "about": "Về chúng tôi",
+        "blog": "Blog",
+        "careers": "Tuyển dụng",
+        "contact": "Liên hệ"
+      },
+      "resources": {
+        "documentation": "Tài liệu",
+        "helpCenter": "Trung tâm hỗ trợ",
+        "community": "Cộng đồng",
+        "api": "Tham chiếu API"
+      },
+      "legal": {
+        "privacy": "Chính sách bảo mật",
+        "terms": "Điều khoản dịch vụ",
+        "cookies": "Chính sách Cookie"
+      }
+    }
   },
   "productCard": {
     "quickView": "Xem nhanh"
@@ -596,6 +728,82 @@
       "description": "Bạn không có quyền truy cập trang này. Nếu bạn nghĩ đây là nhầm lẫn, vui lòng liên hệ quản trị viên.",
       "backToHome": "Về trang chủ",
       "switchAccount": "Đổi tài khoản"
+    }
+  },
+  "demo": {
+    "nav": {
+      "banner": "Miễn phí vận chuyển đơn hàng trên 1.000.000₫ • Gói quà miễn phí",
+      "newArrivals": "Hàng Mới",
+      "women": "Nữ",
+      "men": "Nam",
+      "collections": "Bộ Sưu Tập",
+      "sale": "Giảm Giá",
+      "search": "Tìm kiếm",
+      "searchPlaceholder": "Tìm kiếm sản phẩm..."
+    },
+    "hero": {
+      "season": "Xuân/Hè 2026",
+      "title": "Vẻ Đẹp",
+      "titleHighlight": "Vượt Thời Gian",
+      "subtitle": "Khám phá bộ sưu tập cao cấp được tuyển chọn, thiết kế tinh tế dành cho những người sành điệu.",
+      "shopNow": "Mua Ngay",
+      "newArrivals": "Hàng Mới",
+      "scroll": "Cuộn"
+    },
+    "categories": {
+      "badge": "Khám Phá",
+      "title": "Mua Theo Danh Mục",
+      "women": "Thời Trang Nữ",
+      "men": "Thời Trang Nam",
+      "accessories": "Phụ Kiện",
+      "shopNow": "Mua Ngay"
+    },
+    "featured": {
+      "badge": "Lựa Chọn Tinh Tế",
+      "title": "Sản Phẩm Nổi Bật",
+      "viewAll": "Xem Tất Cả",
+      "error": "Không thể tải sản phẩm",
+      "noProducts": "Không có sản phẩm"
+    },
+    "lookbook": {
+      "badge": "Biên Tập",
+      "title": "Lookbook",
+      "titleHighlight": "Mùa Xuân",
+      "subtitle": "Khám phá bộ sưu tập biên tập với những món đồ được săn đón nhất mùa này.",
+      "explore": "Khám Phá Bộ Sưu Tập"
+    },
+    "footer": {
+      "description": "Vẻ đẹp vượt thời gian gặp gỡ sự sang trọng hiện đại. Dành cho những người trân trọng những điều tinh tế.",
+      "newsletter": {
+        "title": "Tham Gia Cộng Đồng",
+        "subtitle": "Đăng ký để nhận thông tin độc quyền về hàng mới và ưu đãi đặc biệt.",
+        "placeholder": "Nhập email của bạn",
+        "subscribe": "Đăng Ký"
+      },
+      "sections": {
+        "shop": "Cửa Hàng",
+        "help": "Hỗ Trợ",
+        "about": "Về Chúng Tôi",
+        "contact": "Liên Hệ"
+      },
+      "links": {
+        "newArrivals": "Hàng Mới",
+        "women": "Thời Trang Nữ",
+        "men": "Thời Trang Nam",
+        "accessories": "Phụ Kiện",
+        "sale": "Giảm Giá",
+        "contact": "Liên Hệ",
+        "faq": "Câu Hỏi Thường Gặp",
+        "shipping": "Thông Tin Vận Chuyển",
+        "returns": "Đổi Trả",
+        "sizeGuide": "Hướng Dẫn Kích Cỡ",
+        "ourStory": "Câu Chuyện Của Chúng Tôi",
+        "sustainability": "Phát Triển Bền Vững",
+        "careers": "Tuyển Dụng",
+        "press": "Báo Chí"
+      },
+      "rights": "Đã đăng ký bản quyền.",
+      "tagline": "Thời Trang & Phong Cách Cao Cấp"
     }
   }
 }

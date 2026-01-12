@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ReactNode, useState } from "react";
 import Link from "next/link";
@@ -395,7 +395,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     {user?.fullName || t("admin.layout.admin", { defaultValue: "Admin" })}
                   </span>
                 </p>
-                <span className="text-gray-400 dark:text-amber-500/50">•</span>
+                <span className="text-gray-400 dark:text-amber-500/50">â€¢</span>
                 <p className="text-xs text-gray-500 dark:text-amber-200/50">
                   {user?.email || "admin@aurea.com"}
                 </p>
@@ -410,3 +410,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     </AuthGuard>
   );
 }
+
+
+

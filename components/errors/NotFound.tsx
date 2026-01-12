@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from "next/link";
 import { SearchX } from "lucide-react";
@@ -36,7 +36,7 @@ export function NotFoundPage() {
             })}
           </Link>
           <Link
-            href="/shop"
+            href="/products"
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors no-underline"
           >
             {t("errorPages.notFound.browseCollection", {
@@ -48,5 +48,7 @@ export function NotFoundPage() {
     </div>
   );
 }
+
+
 
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -105,3 +105,5 @@ export function useAuthInit() {
 
   return { isAuthenticated, user, isInitializing };
 }
+
+

@@ -62,6 +62,139 @@
       "browseShop": "Browse Shop"
     }
   },
+  "navbar": {
+    "shop": "Shop",
+    "account": "My Account",
+    "about": "About Us",
+    "signIn": "Sign In",
+    "logout": "Logout",
+    "admin": "Admin"
+  },
+  "about": {
+    "badge": "Our Story",
+    "title": "Redefining Modern Elegance",
+    "subtitle": "Founded on the belief that true luxury lies in the details. Aurea brings you timeless pieces designed to be cherished forever.",
+    "mission": {
+      "title": "Our Passion",
+      "description": "We are passionate about creating fashion that empowers. Each piece is a celebration of individuality and confidence."
+    },
+    "vision": {
+      "title": "Our Promise",
+      "description": "To deliver uncompromising quality and exceptional service. From our atelier to your wardrobe, we ensure excellence."
+    },
+    "values": {
+      "title": "Our Core Values",
+      "craftsmanship": {
+        "title": "Exquisite Craftsmanship",
+        "description": "Every stitch tells a story of perfection."
+      },
+      "sustainability": {
+        "title": "Sustainable Luxury",
+        "description": "Committed to ethical sourcing and eco-friendly production."
+      },
+      "global": {
+        "title": "Global Inspiration",
+        "description": "Designs inspired by art and culture from around the world."
+      }
+    },
+    "team": {
+      "badge": "Our Artisans",
+      "title": "Meet the Team",
+      "roles": {
+        "creativeDirector": "Creative Director",
+        "leadDesigner": "Lead Designer",
+        "headOfOperations": "Head of Operations",
+        "customerExperience": "Customer Experience"
+      }
+    },
+    "cta": {
+      "title": "Experience the Aurea Difference",
+      "explore": "Explore Collection"
+    }
+  },
+
+  "landing": {
+    "hero": {
+      "badge": "New Collection 2026",
+      "titlePart1": "Timeless",
+      "titlePart2": "Elegance",
+      "subtitle": "Discover our curated collection of luxury pieces, thoughtfully designed for the modern connoisseur.",
+      "ctaPrimary": "Shop Collection",
+      "ctaSecondary": "View Lookbook",
+      "stats": {
+        "products": "Exclusive Products",
+        "materials": "Premium Materials",
+        "shipping": "Fast Shipping",
+        "support": "Concierge Support"
+      }
+    },
+    "features": {
+      "badge": "Why Choose Us",
+      "title": "The Aurea Standard",
+      "subtitle": "Uncompromising quality and service in every detail.",
+      "items": {
+        "quality": {
+          "title": "Premium Quality",
+          "description": "Finest materials sourced from around the world."
+        },
+        "shipping": {
+          "title": "Fast Shipping",
+          "description": "Complimentary express delivery on all orders."
+        },
+        "returns": {
+          "title": "Easy Returns",
+          "description": "Hassle-free 30-day return policy."
+        },
+        "secure": {
+          "title": "Secure Payment",
+          "description": "100% secure checkout with trusted payment gateways."
+        },
+        "sustainable": {
+          "title": "Sustainable",
+          "description": "Eco-friendly production and ethical extensive sourcing."
+        },
+        "designs": {
+          "title": "Exclusive Designs",
+          "description": "Unique pieces you won't find anywhere else."
+        },
+        "international": {
+          "title": "International",
+          "description": "We ship to over 100 countries globally."
+        },
+        "support": {
+          "title": "Concierge Support",
+          "description": "Dedicated support team available 24/7."
+        }
+      }
+    },
+    "testimonials": {
+      "badge": "Reviews",
+      "title": "What Our Customers Say",
+      "subtitle": "Stories from our valued community.",
+      "items": {
+        "0": {
+          "quote": "Absolutely stunning dress. The silk is exquisite and the fit is perfect.",
+          "role": "Verified Buyer"
+        },
+        "1": {
+          "quote": "Fast delivery and beautiful packaging. A true luxury experience.",
+          "role": "Verified Buyer"
+        },
+        "2": {
+          "quote": "The quality exceeds my expectations. I will definitely shop again.",
+          "role": "Verified Buyer"
+        }
+      }
+    },
+    "cta": {
+      "badge": "Limited Time Offer",
+      "title": "Elevate Your Wardrobe Today",
+      "subtitle": "Join the Aurea Club for exclusive access to new arrivals, member-only discounts, and personalized styling advice.",
+      "ctaPrimary": "Start Shopping",
+      "ctaSecondary": "Sign Up Free",
+      "trustText": "Free membership • Cancel anytime"
+    }
+  },
   "shop": {
     "backToHome": "Back to Home",
     "allProducts": "All Products",
@@ -244,7 +377,7 @@
     "orEnterNewAddress": "Or enter a new address",
     "recipientName": "Recipient Name",
     "recipientNamePlaceholder": "Full name",
-    "city": "City",
+    "city": "City / Province",
     "cityPlaceholder": "Ho Chi Minh City",
     "district": "District",
     "districtPlaceholder": "District 1",
@@ -270,15 +403,42 @@
     "validation": {
       "emailRequired": "Email is required",
       "emailInvalid": "Invalid email address",
+      "emailMaxLength": "Email must not exceed 255 characters",
       "phoneRequired": "Phone number is required",
-      "phoneInvalid": "Invalid phone number",
+      "phoneInvalid": "Invalid phone number (10-15 digits)",
       "recipientNameRequired": "Recipient name is required",
+      "recipientNameMaxLength": "Recipient name must not exceed 255 characters",
       "cityRequired": "City is required",
       "districtRequired": "District is required",
+      "districtMaxLength": "District name must not exceed 255 characters",
       "wardRequired": "Ward is required",
       "streetRequired": "Street address is required",
-      "paymentMethodRequired": "Please select a payment method"
-    }
+      "streetMaxLength": "Street address must not exceed 255 characters",
+      "paymentMethodRequired": "Please select a payment method",
+      "noteMaxLength": "Note must not exceed 500 characters"
+    },
+    "errors": {
+      "createOrderFailed": "Failed to create order",
+      "cartEmpty": "Your cart is empty. Please add items before checkout",
+      "cartNotFound": "Cart not found. Please add items to your cart",
+      "variantNotFound": "Some products are no longer available",
+      "insufficientStock": "Insufficient stock for some products",
+      "networkError": "Network error. Please check your connection and try again",
+      "serverError": "Server error. Please try again later",
+      "unauthorized": "Please sign in to place an order"
+    },
+    "success": {
+      "orderCreated": "Order created successfully!",
+      "redirecting": "Redirecting to order confirmation..."
+    },
+    "orderConfirmationDescription": "Your order has been placed successfully. We will process it shortly.",
+    "orderNumber": "Order Number",
+    "orderStatus": "Status",
+    "paymentInformation": "Payment Information",
+    "paymentStatus": "Payment Status",
+    "scanQRCode": "Scan QR code to pay",
+    "proceedToPayment": "Proceed to Payment",
+    "viewOrderDetails": "View Order Details"
   },
   "admin": {
     "dashboard": {
@@ -495,73 +655,45 @@
       "admin": "Admin"
     }
   },
-  "navbar": {
-    "admin": "Admin",
-    "signIn": "Sign In",
-    "logout": "Logout",
-    "megaMenu": {
-      "newArrivals": {
-        "label": "New Arrivals",
-        "women": {
-          "title": "Women",
-          "latestDresses": "Latest Dresses",
-          "newTops": "New Tops",
-          "accessories": "Accessories"
-        },
-        "men": {
-          "title": "Men",
-          "latestShirts": "Latest Shirts",
-          "newJackets": "New Jackets",
-          "accessories": "Accessories"
-        },
-        "featured": {
-          "title": "Featured",
-          "editorsPick": "Editor's Pick",
-          "limitedEdition": "Limited Edition"
-        }
-      },
-      "clothing": {
-        "label": "Clothing",
-        "women": {
-          "title": "Women",
-          "dresses": "Dresses",
-          "topsAndBlouses": "Tops & Blouses",
-          "bottoms": "Bottoms",
-          "outerwear": "Outerwear"
-        },
-        "men": {
-          "title": "Men",
-          "shirts": "Shirts",
-          "pants": "Pants",
-          "jackets": "Jackets",
-          "suits": "Suits"
-        }
-      },
-      "accessories": {
-        "label": "Accessories",
-        "categories": {
-          "title": "Categories",
-          "bagsAndHandbags": "Bags & Handbags",
-          "jewelry": "Jewelry",
-          "shoes": "Shoes",
-          "watches": "Watches"
-        },
-        "byStyle": {
-          "title": "By Style",
-          "minimalist": "Minimalist",
-          "statement": "Statement"
-        }
-      },
-      "about": {
-        "label": "About"
-      }
-    }
-  },
+
   "footer": {
-    "copyright": "© {{year}} {{brand}}. All rights reserved.",
+    "copyright": "© {{year}} AUREA. All rights reserved.",
     "privacy": "Privacy",
     "terms": "Terms",
-    "contact": "Contact"
+    "contact": "Contact",
+    "description": "Timeless elegance meets modern luxury. Crafted for those who appreciate the finer things.",
+    "madeWith": "Made with ❤️ by AUREA",
+    "sections": {
+      "product": "Product",
+      "company": "Company",
+      "resources": "Resources",
+      "legal": "Legal"
+    },
+    "links": {
+      "product": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "demo": "Request Demo",
+        "changelog": "Changelog"
+      },
+      "company": {
+        "about": "About Us",
+        "blog": "Blog",
+        "careers": "Careers",
+        "contact": "Contact"
+      },
+      "resources": {
+        "documentation": "Documentation",
+        "helpCenter": "Help Center",
+        "community": "Community",
+        "api": "API Reference"
+      },
+      "legal": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "cookies": "Cookie Policy"
+      }
+    }
   },
   "productCard": {
     "quickView": "Quick View"
@@ -593,6 +725,82 @@
       "description": "You don't have permission to view this page. If you believe this is a mistake, please contact an administrator.",
       "backToHome": "Back to Home",
       "switchAccount": "Switch Account"
+    }
+  },
+  "demo": {
+    "nav": {
+      "banner": "Free Shipping on Orders Over 1,000,000₫ • Complimentary Gift Wrapping",
+      "newArrivals": "New Arrivals",
+      "women": "Women",
+      "men": "Men",
+      "collections": "Collections",
+      "sale": "Sale",
+      "search": "Search",
+      "searchPlaceholder": "Search for products..."
+    },
+    "hero": {
+      "season": "Spring/Summer 2026",
+      "title": "Timeless",
+      "titleHighlight": "Elegance",
+      "subtitle": "Discover our curated collection of luxury pieces, thoughtfully designed for the modern connoisseur.",
+      "shopNow": "Shop Now",
+      "newArrivals": "New Arrivals",
+      "scroll": "Scroll"
+    },
+    "categories": {
+      "badge": "Explore",
+      "title": "Shop by Category",
+      "women": "Women",
+      "men": "Men",
+      "accessories": "Accessories",
+      "shopNow": "Shop Now"
+    },
+    "featured": {
+      "badge": "Curated Selection",
+      "title": "Featured Products",
+      "viewAll": "View All",
+      "error": "Unable to load products",
+      "noProducts": "No products available"
+    },
+    "lookbook": {
+      "badge": "Editorial",
+      "title": "The Spring",
+      "titleHighlight": "Lookbook",
+      "subtitle": "Explore our editorial collection featuring the season's most coveted pieces.",
+      "explore": "Explore Collection"
+    },
+    "footer": {
+      "description": "Timeless elegance meets modern luxury. Crafted for those who appreciate the finer things.",
+      "newsletter": {
+        "title": "Join Our Community",
+        "subtitle": "Subscribe for exclusive access to new arrivals and special offers.",
+        "placeholder": "Enter your email",
+        "subscribe": "Subscribe"
+      },
+      "sections": {
+        "shop": "Shop",
+        "help": "Help",
+        "about": "About",
+        "contact": "Contact"
+      },
+      "links": {
+        "newArrivals": "New Arrivals",
+        "women": "Women",
+        "men": "Men",
+        "accessories": "Accessories",
+        "sale": "Sale",
+        "contact": "Contact Us",
+        "faq": "FAQ",
+        "shipping": "Shipping Info",
+        "returns": "Returns & Exchanges",
+        "sizeGuide": "Size Guide",
+        "ourStory": "Our Story",
+        "sustainability": "Sustainability",
+        "careers": "Careers",
+        "press": "Press"
+      },
+      "rights": "All rights reserved.",
+      "tagline": "Luxury Fashion & Lifestyle"
     }
   }
 }

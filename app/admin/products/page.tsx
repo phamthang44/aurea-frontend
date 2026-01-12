@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { clientApi } from "@/lib/api-client";
-import { searchAdminProducts } from "@/lib/api/products";
+import { searchAdminProducts } from "@/lib/storefront/api/products";
 import { toast } from "sonner";
 import { Plus, Loader2, Search, UserCircle2 } from "lucide-react";
 import {
@@ -211,7 +211,7 @@ export default function AdminProductsPage() {
       {/* Warning Message for Products Table */}
       <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-lg shadow-sm">
         <div className="flex items-start gap-3">
-          <span className="text-amber-600 dark:text-amber-400 text-lg sm:text-xl flex-shrink-0 mt-0.5">⚠️</span>
+          <span className="text-amber-600 dark:text-amber-400 text-lg sm:text-xl flex-shrink-0 mt-0.5">âš ï¸</span>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200 mb-1.5">
               {t("admin.products.quantityUpdatesNotice")}
@@ -518,7 +518,7 @@ export default function AdminProductsPage() {
               <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {(currentPage - 1) * pageSize + 1}
               </span>
-              {" – "}
+              {" â€“ "}
               <span className="font-semibold text-gray-900 dark:text-amber-200">
                 {Math.min(currentPage * pageSize, totalItems)}
               </span>
@@ -616,7 +616,7 @@ export default function AdminProductsPage() {
                     <div key={page} className="flex items-center">
                       {showEllipsisBefore && (
                         <span className="px-2 text-sm text-gray-400 dark:text-amber-500/50">
-                          •••
+                          â€¢â€¢â€¢
                         </span>
                       )}
                       <Button
@@ -710,3 +710,4 @@ export default function AdminProductsPage() {
     </div>
   );
 }
+

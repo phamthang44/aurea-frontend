@@ -54,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="vi" className="luxury-dark" suppressHydrationWarning>
       <body
-        className={`${poppins.variable} ${beVietnamPro.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
+        className={`${poppins.variable} ${beVietnamPro.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased scrollbar-luxury`}
       >
         <Script
           id="suppress-coop-warnings"

@@ -106,6 +106,7 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   // Set mounted flag after component mounts (client-side only)
   useEffect(() => {
@@ -144,6 +145,38 @@ export function ProductCard({
     }
   };
 
+  // Luxury placeholder component
+  const LuxuryPlaceholder = () => (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+      {/* Decorative Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-[#D4AF37] rotate-45" />
+        <div className="absolute bottom-1/4 right-1/4 w-24 h-24 border border-[#D4AF37] rotate-12" />
+      </div>
+      
+      {/* Icon & Text */}
+      <div className="relative z-10 flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 flex items-center justify-center">
+          <ShoppingBag className="h-8 w-8 text-[#D4AF37]/40" />
+        </div>
+        <div className="text-center">
+          <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#D4AF37]/60">
+            Aurea
+          </p>
+          <p className="text-[8px] tracking-widest uppercase text-zinc-400 mt-1">
+            Image Coming Soon
+          </p>
+        </div>
+      </div>
+      
+      {/* Corner Accents */}
+      <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-[#D4AF37]/20" />
+      <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-[#D4AF37]/20" />
+      <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-[#D4AF37]/20" />
+      <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-[#D4AF37]/20" />
+    </div>
+  );
+
   return (
     <>
       <ProductQuickViewModal
@@ -164,7 +197,7 @@ export function ProductCard({
           {/* Image Container - 3:4 Aspect Ratio */}
           <div className="relative w-full aspect-[3/4] overflow-hidden bg-muted/30 rounded-lg border border-border/50 group-hover:border-primary/50 transition-all duration-300">
             {/* Primary Image */}
-            {primaryImage ? (
+            {primaryImage && !imageError ? (
               <div className="absolute inset-0">
                 <Image
                   src={primaryImage}
@@ -177,13 +210,11 @@ export function ProductCard({
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   priority={false}
+                  onError={() => setImageError(true)}
                 />
               </div>
             ) : (
-              /* Placeholder if no images */
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                <ShoppingBag className="h-12 w-12 text-muted-foreground/40" />
-              </div>
+              <LuxuryPlaceholder />
             )}
 
             {/* Secondary Image (on hover) */}

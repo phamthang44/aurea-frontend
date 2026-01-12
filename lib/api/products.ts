@@ -33,6 +33,10 @@ function buildQueryString(params: ProductSearchRequest): string {
     searchParams.append("page", params.page.toString());
   if (params.size) searchParams.append("size", params.size.toString());
   if (params.sort) searchParams.append("sort", params.sort);
+  if (params.color) searchParams.append("color", params.color);
+  if (params.brand) searchParams.append("brand", params.brand);
+  if (params.sizeFilter) searchParams.append("size", params.sizeFilter);
+  if (params.inStock !== undefined) searchParams.append("inStock", params.inStock.toString());
 
   return searchParams.toString();
 }

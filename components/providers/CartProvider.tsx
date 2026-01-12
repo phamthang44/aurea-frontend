@@ -50,7 +50,7 @@ interface CartContextType extends CartState {
   updateCartItem: (cartItemId: number, quantity: number) => Promise<void>;
   removeCartItem: (cartItemId: number) => Promise<void>;
   removeAllCartItems: () => Promise<void>;
-  applyPromotionCode: (code: string) => Promise<void>;
+  applyPromotionCode: (code: string) => Promise<CartResponse | null>;
   clearError: () => void;
   clearCart: () => void;
 }
@@ -436,7 +436,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
    * Apply promotion code to cart
    */
   const applyPromotionCodeToCart = useCallback(
-    async (code: string) => {
+    async (code: string): Promise<CartResponse | null> => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -448,7 +448,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             loading: false,
             error: response.error?.message || "Failed to apply promotion code",
           }));
-          return;
+          return null;
         }
 
         if (response.data) {
@@ -459,7 +459,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               loading: false,
               error: "Invalid cart response format",
             }));
-            return;
+            return null;
           }
 
           // Use backend-provided values (all calculations done by backend)
@@ -484,13 +484,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             userId: cart.userId || null,
             sessionId: cart.sessionId || null,
           });
+
+          return cart;
         }
+        return null;
       } catch (error: any) {
         setState((prev) => ({
           ...prev,
           loading: false,
           error: error.message || "Failed to apply promotion code",
         }));
+        return null;
       }
     },
     []
@@ -605,6 +609,11 @@ export function useCart() {
   return context;
 }
 
-
-
-
+/**
+ * useCartOptional Hook
+ * Same as useCart but returns null when used outside CartProvider
+ * Useful for components that may be rendered in contexts without CartProvider
+ */
+export function useCartOptional() {
+  return useContext(CartContext) ?? null;
+}

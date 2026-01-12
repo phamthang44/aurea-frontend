@@ -75,8 +75,17 @@ export function CartOrderSummary({
 
     setIsApplyingCoupon(true);
     try {
-      await applyPromotionCodeToCart(code);
-      toast.success(t("cart.couponApplied", { defaultValue: "Coupon applied successfully" }));
+      const result = await applyPromotionCodeToCart(code);
+      if (result) {
+        const note = result.promotionNote || "";
+        const isError = note.includes("Lỗi") || note.includes("Error") || note.includes("invalid") || note.includes("không hợp lệ");
+        
+        if (isError) {
+          toast.error(note || t("cart.invalidCouponCode", { defaultValue: "Invalid coupon code" }));
+        } else {
+          toast.success(t("cart.couponApplied", { defaultValue: "Coupon applied successfully" }));
+        }
+      }
     } catch (error: any) {
       // Error is already handled in the cart provider, but we can show additional feedback
       const errorMessage = error?.message || t("cart.invalidCouponCode", { defaultValue: "Invalid coupon code" });
@@ -167,7 +176,11 @@ export function CartOrderSummary({
             {/* Promotion Note - Show if available (after mount to avoid hydration issues) */}
             {mounted && promotionNote && promotionNote.trim().length > 0 && (
               <p
-                className="text-xs text-muted-foreground italic"
+                className={`text-xs italic ${
+                  promotionNote.includes("Lỗi") || promotionNote.includes("Error") 
+                    ? "text-red-500 font-medium" 
+                    : "text-muted-foreground"
+                }`}
                 suppressHydrationWarning
               >
                 {promotionNote.trim()}

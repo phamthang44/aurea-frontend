@@ -408,3 +408,37 @@
 .animate-accordion-up {
   animation: accordion-up 0.2s ease-out;
 }
+
+/* Scrollbar Utilities */
+/* Hide scrollbar completely but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Luxury thin scrollbar - subtle gold accent */
+.scrollbar-luxury {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(212, 175, 55, 0.3) transparent; /* Firefox */
+}
+
+.scrollbar-luxury::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-luxury::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-luxury::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+}
+
+.scrollbar-luxury::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}

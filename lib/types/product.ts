@@ -577,6 +577,14 @@ export interface ProductListingDto {
   categoryName: string;
   availableStock: number;
   inStock: boolean;
+  // Added for Shop Redesign based on backend facts
+  rating?: number;
+  reviewCount?: number;
+  availableColors?: string[]; // Array of color codes/names
+  brand?: string;
+  isNew?: boolean;
+  onSale?: boolean;
+  discountPrice?: number;
 }
 
 /**
@@ -624,6 +632,11 @@ export interface ProductSearchRequest {
   page?: number;
   size?: number;
   sort?: "newest" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
+  // Added for Shop Redesign based on backend facts
+  sizeFilter?: string;
+  color?: string;
+  brand?: string;
+  inStock?: boolean;
 }
 
 /**

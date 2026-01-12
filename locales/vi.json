@@ -71,6 +71,14 @@
     "logout": "Đăng xuất",
     "admin": "Quản trị"
   },
+  "megaMenu": {
+    "featured": {
+      "badge": "Bộ Sưu Tập Nổi Bật",
+      "title": "Aurea Mùa Hè",
+      "description": "Trải nghiệm đỉnh cao của sự thoải mái và phong cách với những thiết kế mùa hè được tuyển chọn kỹ lưỡng.",
+      "cta": "Khám Phá Ngay →"
+    }
+  },
   "about": {
     "badge": "Câu chuyện của chúng tôi",
     "title": "Tái định nghĩa sự thanh lịch hiện đại",
@@ -197,6 +205,15 @@
     }
   },
   "shop": {
+    "men": "Thời trang Nam",
+    "women": "Thời trang Nữ",
+    "categories": "Bộ sưu tập",
+    "allCollections": "Tất cả bộ sưu tập",
+    "newArrivals": "Hàng mới về",
+    "essentials": "Sản phẩm thiết yếu",
+    "jewelry": "Trang sức cao cấp",
+    "apparel": "Trang phục",
+    "lifestyle": "Phong cách sống",
     "backToHome": "Về trang chủ",
     "allProducts": "Tất cả sản phẩm",
     "showing": "Hiển thị {{start}}-{{end}} trong tổng số {{total}} sản phẩm",

@@ -15,9 +15,13 @@ import {
  */
 export interface ProductFilters {
   keyword: string;
-  categorySlug: string | null; // Changed from categoryId to categorySlug for SEO-friendly URLs
-  priceRange: [number | null, number | null]; // [min, max]
+  categorySlug: string | null;
+  priceRange: [number | null, number | null];
   sort: ProductSearchRequest["sort"];
+  size: string | null;
+  color: string | null;
+  brand: string | null;
+  inStock: boolean | null;
 }
 
 /**
@@ -58,6 +62,10 @@ const DEFAULT_FILTERS: ProductFilters = {
   categorySlug: null,
   priceRange: [null, null],
   sort: "newest",
+  size: null,
+  color: null,
+  brand: null,
+  inStock: null,
 };
 
 /**
@@ -89,38 +97,6 @@ function useDebounce<T>(value: T, delay: number): T {
 
 /**
  * Custom hook for managing product storefront state and data fetching
- *
- * Features:
- * - State management for filters (keyword, categorySlug, priceRange, sort)
- * - Pagination state (page, limit)
- * - TanStack Query integration for data fetching
- * - Debounced keyword search (400ms)
- * - URL sync with query parameters (SEO-friendly slugs)
- *
- * @example
- * ```tsx
- * const {
- *   products,
- *   isLoading,
- *   filters,
- *   setFilter,
- *   pagination,
- *   setPage,
- *   resetFilters
- * } = useProductStorefront();
- *
- * // Update keyword
- * setFilter('keyword', 'shirt');
- *
- * // Update category by slug
- * setFilter('categorySlug', 'mens-clothing');
- *
- * // Update price range
- * setFilter('priceRange', [100000, 500000]);
- *
- * // Change page
- * setPage(2);
- * ```
  */
 export function useProductStorefront(): UseProductStorefrontReturn {
   const router = useRouter();
@@ -131,18 +107,16 @@ export function useProductStorefront(): UseProductStorefrontReturn {
   const [filters, setFiltersState] = useState<ProductFilters>(() => {
     return {
       keyword: searchParams.get("keyword") || DEFAULT_FILTERS.keyword,
-      categorySlug: searchParams.get("category") || null, // URL param 'category' now contains slug
+      categorySlug: searchParams.get("category") || null,
       priceRange: [
-        searchParams.get("minPrice")
-          ? Number(searchParams.get("minPrice"))
-          : null,
-        searchParams.get("maxPrice")
-          ? Number(searchParams.get("maxPrice"))
-          : null,
+        searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : null,
+        searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : null,
       ] as [number | null, number | null],
-      sort:
-        (searchParams.get("sort") as ProductSearchRequest["sort"]) ||
-        DEFAULT_FILTERS.sort,
+      sort: (searchParams.get("sort") as ProductSearchRequest["sort"]) || DEFAULT_FILTERS.sort,
+      size: searchParams.get("size") || null,
+      color: searchParams.get("color") || null,
+      brand: searchParams.get("brand") || null,
+      inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
     };
   });
 
@@ -159,7 +133,6 @@ export function useProductStorefront(): UseProductStorefrontReturn {
   const debouncedKeyword = useDebounce(filters.keyword, 400);
 
   // Build API request params
-  // Note: Backend still expects categoryId as number, so we'll need to convert slug to ID
   const apiParams = useMemo<ProductSearchRequest>(() => {
     const params: ProductSearchRequest = {
       page: pagination.page,
@@ -167,33 +140,17 @@ export function useProductStorefront(): UseProductStorefrontReturn {
       sort: filters.sort,
     };
 
-    if (debouncedKeyword.trim()) {
-      params.keyword = debouncedKeyword.trim();
-    }
-
-    // Note: filters.categorySlug is now a slug, but we'll handle conversion in the query
-    // For now, we'll pass it as a string and let the API handle it
-    if (filters.categorySlug) {
-      params.categorySlug = filters.categorySlug; // Pass slug to backend
-    }
-
-    if (filters.priceRange[0] !== null) {
-      params.minPrice = filters.priceRange[0]!;
-    }
-
-    if (filters.priceRange[1] !== null) {
-      params.maxPrice = filters.priceRange[1]!;
-    }
+    if (debouncedKeyword.trim()) params.keyword = debouncedKeyword.trim();
+    if (filters.categorySlug) params.categorySlug = filters.categorySlug;
+    if (filters.priceRange[0] !== null) params.minPrice = filters.priceRange[0]!;
+    if (filters.priceRange[1] !== null) params.maxPrice = filters.priceRange[1]!;
+    if (filters.size) params.sizeFilter = filters.size;
+    if (filters.color) params.color = filters.color;
+    if (filters.brand) params.brand = filters.brand;
+    if (filters.inStock !== null) params.inStock = filters.inStock;
 
     return params;
-  }, [
-    debouncedKeyword,
-    filters.categorySlug,
-    filters.priceRange,
-    filters.sort,
-    pagination.page,
-    pagination.limit,
-  ]);
+  }, [debouncedKeyword, filters, pagination.page, pagination.limit]);
 
   // Fetch products using TanStack Query
   const {
@@ -204,16 +161,13 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     queryKey: ["products", "storefront", apiParams],
     queryFn: async () => {
       const result = await searchPublicProducts(apiParams);
-      // Check for API-level errors in response
-      if (result.error) {
-        throw new Error(result.error.message || "API request failed");
-      }
+      if (result.error) throw new Error(result.error.message || "API request failed");
       return result;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Extract products and pagination from API response
+  // Extract products from API response
   const products = useMemo(() => {
     if (!queryResult?.data) return [];
     return Array.isArray(queryResult.data) ? queryResult.data : [];
@@ -234,46 +188,22 @@ export function useProductStorefront(): UseProductStorefrontReturn {
   useEffect(() => {
     const params = new URLSearchParams();
 
-    // Add filters to URL
-    if (debouncedKeyword.trim()) {
-      params.set("keyword", debouncedKeyword.trim());
-    }
-    if (filters.categorySlug) {
-      params.set("category", filters.categorySlug); // Now using slug in URL
-    }
-    if (filters.priceRange[0] !== null) {
-      params.set("minPrice", filters.priceRange[0]!.toString());
-    }
-    if (filters.priceRange[1] !== null) {
-      params.set("maxPrice", filters.priceRange[1]!.toString());
-    }
-    if (filters.sort && filters.sort !== DEFAULT_FILTERS.sort) {
-      params.set("sort", filters.sort);
-    }
+    if (debouncedKeyword.trim()) params.set("keyword", debouncedKeyword.trim());
+    if (filters.categorySlug) params.set("category", filters.categorySlug);
+    if (filters.priceRange[0] !== null) params.set("minPrice", filters.priceRange[0]!.toString());
+    if (filters.priceRange[1] !== null) params.set("maxPrice", filters.priceRange[1]!.toString());
+    if (filters.sort && filters.sort !== DEFAULT_FILTERS.sort) params.set("sort", filters.sort);
+    if (filters.size) params.set("size", filters.size);
+    if (filters.color) params.set("color", filters.color);
+    if (filters.brand) params.set("brand", filters.brand);
+    if (filters.inStock !== null) params.set("inStock", filters.inStock.toString());
 
-    // Add pagination to URL
-    if (pagination.page > 1) {
-      params.set("page", pagination.page.toString());
-    }
-    if (pagination.limit !== DEFAULT_PAGINATION.limit) {
-      params.set("limit", pagination.limit.toString());
-    }
+    if (pagination.page > 1) params.set("page", pagination.page.toString());
+    if (pagination.limit !== DEFAULT_PAGINATION.limit) params.set("limit", pagination.limit.toString());
 
-    // Update URL without causing navigation
-    const newUrl = params.toString()
-      ? `${pathname}?${params.toString()}`
-      : pathname;
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.replace(newUrl, { scroll: false });
-  }, [
-    debouncedKeyword,
-    filters.categorySlug,
-    filters.priceRange,
-    filters.sort,
-    pagination.page,
-    pagination.limit,
-    pathname,
-    router,
-  ]);
+  }, [debouncedKeyword, filters, pagination, pathname, router]);
 
   // Set filter function
   const setFilter = useCallback<
@@ -281,25 +211,19 @@ export function useProductStorefront(): UseProductStorefrontReturn {
   >((key, value) => {
     setFiltersState((prev) => {
       const newFilters = { ...prev, [key]: value };
-      // Reset to page 1 when filters change (except pagination)
-      if (key !== "sort") {
-        setPaginationState((prev) => ({ ...prev, page: 1 }));
-      }
+      if (key !== "sort") setPaginationState((prev) => ({ ...prev, page: 1 }));
       return newFilters;
     });
   }, []);
 
-  // Set page function
   const setPage = useCallback((page: number) => {
     setPaginationState((prev) => ({ ...prev, page }));
   }, []);
 
-  // Set limit function
   const setLimit = useCallback((limit: number) => {
     setPaginationState((prev) => ({ ...prev, limit, page: 1 }));
   }, []);
 
-  // Reset filters function
   const resetFilters = useCallback(() => {
     setFiltersState(DEFAULT_FILTERS);
     setPaginationState((prev) => ({
@@ -309,7 +233,6 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     }));
   }, []);
 
-  // Computed pagination helpers
   const hasNextPage = pagination.page < pagination.totalPages;
   const hasPreviousPage = pagination.page > 1;
 

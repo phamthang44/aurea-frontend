@@ -1,64 +1,58 @@
-﻿"use client";
+﻿'use client';
 
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, ShoppingBag, Plus, Check } from "lucide-react";
+import { Eye, ShoppingBag, Plus, Heart, Star } from "lucide-react";
 import { ProductListingDto } from "@/lib/types/product";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { ProductQuickViewModal } from "./ProductQuickViewModal";
+import { cn } from "@/lib/utils";
 
 interface ProductCardListingProps {
   product: ProductListingDto;
   showQuickView?: boolean;
-  onQuickView?: (product: ProductListingDto) => void;
 }
 
-/**
- * Format currency to VND (Vietnamese Dong) with luxury styling
- * Example: 1500000 -> "1.500.000â‚«"
- */
 function formatVND(amount: number): string {
-  return (
-    new Intl.NumberFormat("vi-VN", {
-      style: "decimal",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })
-      .format(amount)
-      .replace(/,/g, ".") + "đ"
-  );
+  return new Intl.NumberFormat("vi-VN", {
+    style: "decimal",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount).replace(/,/g, ".") + "đ";
 }
 
 export function ProductCardListing({
   product,
   showQuickView = true,
-  onQuickView,
 }: ProductCardListingProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const { t } = useTranslation();
   
-  // Check if product is in stock (use backend field if available)
-  const isInStock = product.inStock !== undefined ? product.inStock : true; // Default to true if not provided
+  const isInStock = product.inStock !== undefined ? product.inStock : true;
+  const rating = product.rating || 4.5; // Default if not provided
+  const reviewCount = product.reviewCount || 12;
+  const colors = product.availableColors || ["#D4AF37", "#121212", "#E5E5E5"];
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onQuickView) {
-      onQuickView(product);
-    } else {
-      // Open modal for variant selection
-      setIsModalOpen(true);
-    }
+    setIsModalOpen(true);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Open modal for variant selection instead of directly adding to cart
     setIsModalOpen(true);
+  };
+
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
   };
 
   return (
@@ -69,111 +63,172 @@ export function ProductCardListing({
         onOpenChange={setIsModalOpen}
       />
       <div
-        className="group relative"
+        className="group relative flex flex-col bg-white dark:bg-[#0D0D0D] overflow-hidden"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-      <Link
-        href={`/product/${product.slug}`}
-        className="block no-underline focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 rounded-lg"
-      >
-        <div className="flex flex-col space-y-3">
-          {/* Image Container - 3:4 Aspect Ratio with Luxury Border */}
-          <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-br from-[#F5F5F0] to-[#E8E8E0] dark:from-[#1A1A1A] dark:to-[#252525] rounded-lg border-2 border-[#D4AF37]/20 group-hover:border-[#D4AF37]/60 transition-all duration-500 shadow-lg group-hover:shadow-2xl group-hover:shadow-[#D4AF37]/20">
-            {product.thumbnail ? (
-              <Image
-                src={product.thumbnail}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                unoptimized={product.thumbnail.startsWith("http")}
-                loading="lazy"
-              />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F5F0] to-[#E8E8E0] dark:from-[#1A1A1A] dark:to-[#252525]">
-                <ShoppingBag className="h-16 w-16 text-[#D4AF37]/30 mb-3" />
-                <p className="text-sm font-light text-[#D4AF37]/50 tracking-wider">
-                  {t("cart.noImage", { defaultValue: "No Image" })}
-                </p>
-              </div>
-            )}
-
-            {/* Luxury Overlay on Hover */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 transition-opacity duration-500 ${
-                isHovered ? "opacity-100" : "opacity-0"
-              }`}
+        <Link
+          href={`/product/${product.slug}`}
+          className="relative block aspect-[3/4] overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-sm"
+        >
+          {/* Main Image */}
+          {product.thumbnail ? (
+            <Image
+              src={product.thumbnail}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
             />
-
-            {/* Sold Out Overlay */}
-            {!isInStock && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
-                <span className="px-4 py-2 text-sm font-bold uppercase tracking-wider bg-destructive text-destructive-foreground rounded-md shadow-lg">
-                  {t("cart.soldOut", { defaultValue: "Sold Out" })}
-                </span>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+              {/* Decorative Pattern */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-[#D4AF37] rotate-45" />
+                <div className="absolute bottom-1/4 right-1/4 w-24 h-24 border border-[#D4AF37] rotate-12" />
               </div>
+              
+              {/* Icon & Text */}
+              <div className="relative z-10 flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 flex items-center justify-center">
+                  <ShoppingBag className="h-8 w-8 text-[#D4AF37]/40" />
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#D4AF37]/60">
+                    Aurea
+                  </p>
+                  <p className="text-[8px] tracking-widest uppercase text-zinc-400 mt-1">
+                    Image Coming Soon
+                  </p>
+                </div>
+              </div>
+              
+              {/* Corner Accents */}
+              <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-[#D4AF37]/20" />
+              <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-[#D4AF37]/20" />
+              <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-[#D4AF37]/20" />
+              <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-[#D4AF37]/20" />
+            </div>
+          )}
+
+          {/* Luxury Badge (Sale/New) */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+            {product.isNew && (
+              <span className="bg-[#D4AF37] text-white text-[8px] font-bold uppercase tracking-widest px-3 py-1 items-center justify-center flex shadow-xl">
+                New
+              </span>
             )}
-
-            {/* Action Buttons - Centered on hover with luxury styling */}
-            {showQuickView && isInStock && (
-              <div
-                className={`absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 p-6 z-30 transition-all duration-500 ${
-                  isHovered
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-4 pointer-events-none"
-                }`}
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddToCart}
-                  className="bg-white/95 dark:bg-zinc-900/95 border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white shadow-lg backdrop-blur-sm font-light tracking-wide transition-all duration-300"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t("cart.addToCart")}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-900 border-2 border-[#D4AF37]/50 hover:border-[#D4AF37] text-[#D4AF37] shadow-lg backdrop-blur-sm"
-                  onClick={handleQuickViewClick}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </div>
+            {product.onSale && (
+              <span className="bg-white text-black text-[8px] font-bold uppercase tracking-widest px-3 py-1 items-center justify-center flex shadow-xl">
+                Sale
+              </span>
             )}
           </div>
 
-          {/* Product Info - Luxury Typography */}
-          <div className="flex flex-col space-y-2 px-1">
-            {/* Category with luxury accent */}
-            {product.categoryName && (
-              <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-[#D4AF37] dark:text-[#E5C96B]">
-                {product.categoryName}
-              </p>
+          {/* Wishlist Button */}
+          <button
+            onClick={toggleWishlist}
+            className={cn(
+               "absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md",
+               isWishlisted 
+                ? "bg-[#D4AF37] text-white" 
+                : "bg-white/50 text-black hover:bg-white"
             )}
+          >
+            <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
+          </button>
 
-            {/* Product Name */}
-            <h3 className="text-sm font-normal text-foreground line-clamp-2 min-h-[2.5rem] group-hover:text-[#D4AF37] transition-colors duration-300 leading-relaxed">
-              {product.name}
-            </h3>
+          {/* Action Overlay */}
+          <div className={cn(
+            "absolute inset-0 bg-black/5 flex flex-col items-center justify-center gap-4 transition-all duration-500 backdrop-blur-[2px]",
+            isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}>
+            <Button
+              onClick={handleAddToCart}
+              className="bg-black text-white hover:bg-[#D4AF37] rounded-none px-8 py-6 text-xs uppercase tracking-widest transition-colors"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Quick Add
+            </Button>
+            {showQuickView && (
+              <button 
+                onClick={handleQuickViewClick}
+                className="text-white text-[10px] uppercase font-bold tracking-widest hover:text-[#D4AF37] underline transition-colors"
+              >
+                Quick View
+              </button>
+            )}
+          </div>
 
-            {/* Price with luxury formatting */}
-            <div className="flex items-baseline gap-2">
-              <p className="text-base font-semibold text-[#D4AF37] dark:text-[#E5C96B] tracking-wide">
-                <span className="text-xs font-normal text-gray-500 mr-1">
-                  {t("cart.from", { defaultValue: "From" })}
-                </span>
-                {formatVND(product.price)}
-              </p>
+          {/* Sold Out */}
+          {!isInStock && (
+            <div className="absolute inset-0 bg-white/80 dark:bg-[#0D0D0D]/80 flex items-center justify-center z-20">
+              <span className="text-zinc-400 text-xs font-bold uppercase tracking-[0.3em] border border-zinc-200 px-6 py-3">
+                Sold Out
+              </span>
+            </div>
+          )}
+        </Link>
+
+        {/* Info */}
+        <div className="pt-6 pb-2 space-y-3">
+          <div className="flex justify-between items-start gap-4">
+            <div className="space-y-1">
+              {product.categoryName && (
+                <p className="text-[9px] uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">
+                  {product.categoryName}
+                </p>
+              )}
+              <h3 className="text-sm font-light text-zinc-900 dark:text-zinc-100 hover:text-[#D4AF37] transition-colors leading-snug">
+                <Link href={`/product/${product.slug}`}>{product.name}</Link>
+              </h3>
+            </div>
+            <div className="text-right">
+              {product.onSale && product.discountPrice ? (
+                <>
+                  <p className="text-sm font-semibold text-zinc-900">{formatVND(product.discountPrice)}</p>
+                  <p className="text-[10px] text-zinc-400 line-through">{formatVND(product.price)}</p>
+                </>
+              ) : (
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-serif italic">{formatVND(product.price)}</p>
+              )}
             </div>
           </div>
+
+          {/* Rating */}
+          <div className="flex items-center gap-1">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star 
+                  key={s} 
+                  className={cn(
+                    "h-2.5 w-2.5", 
+                    s <= Math.floor(rating) ? "fill-[#D4AF37] text-[#D4AF37]" : "text-zinc-300"
+                  )} 
+                />
+              ))}
+            </div>
+            <span className="text-[9px] text-zinc-400 font-light">({reviewCount})</span>
+          </div>
+
+          {/* Color Swatches */}
+          <div className="flex items-center gap-1.5 pt-1">
+            {colors.map((color, i) => (
+              <div 
+                key={i}
+                className="w-3 h-3 rounded-full border border-zinc-200 p-0.5"
+                title={color}
+              >
+                <div className="w-full h-full rounded-full" style={{ backgroundColor: color }} />
+              </div>
+            ))}
+            {colors.length > 3 && (
+              <span className="text-[8px] text-zinc-400">+{colors.length - 3}</span>
+            )}
+          </div>
         </div>
-      </Link>
-    </div>
+      </div>
     </>
   );
 }
-

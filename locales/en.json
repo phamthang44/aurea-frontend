@@ -71,6 +71,14 @@
     "logout": "Logout",
     "admin": "Admin"
   },
+  "megaMenu": {
+    "featured": {
+      "badge": "Featured Collection",
+      "title": "Aurea Summer Essentials",
+      "description": "Experience the epitome of comfort and style with our hand-curated summer silhouettes.",
+      "cta": "Browse Collection →"
+    }
+  },
   "about": {
     "badge": "Our Story",
     "title": "Redefining Modern Elegance",
@@ -197,10 +205,29 @@
     }
   },
   "shop": {
+    "men": "Menswear",
+    "women": "Womenswear",
+    "categories": "Collections",
+    "allCollections": "All Collections",
+    "newArrivals": "New Arrivals",
+    "essentials": "Essentials",
+    "jewelry": "Fine Jewelry",
+    "apparel": "Apparel",
+    "lifestyle": "Lifestyle",
     "backToHome": "Back to Home",
     "allProducts": "All Products",
     "showing": "Showing {{start}}-{{end}} of {{total}} products",
-    "filters": "Filters",
+    "filters": {
+      "title": "Filters",
+      "categories": "Category",
+      "priceRange": "Price Range",
+      "min": "Min",
+      "max": "Max",
+      "noLimit": "No Limit",
+      "applyPriceRange": "Apply Range",
+      "clearAll": "Clear All",
+      "noCategoriesAvailable": "No categories available"
+    },
     "sortBy": "Sort by",
     "sort": {
       "newest": "Newest",

@@ -14,11 +14,11 @@ export function StorefrontFooter() {
 
   const footerLinks = {
     shop: [
-      { labelKey: 'demo.footer.links.newArrivals', href: `/products?category=new` },
-      { labelKey: 'demo.footer.links.women', href: `/products?category=women` },
-      { labelKey: 'demo.footer.links.men', href: `/products?category=men` },
-      { labelKey: 'demo.footer.links.accessories', href: `/products?category=accessories` },
-      { labelKey: 'demo.footer.links.sale', href: `/products?category=sale` },
+      { labelKey: 'demo.footer.links.newArrivals', href: `/shop?sort=newest` },
+      { labelKey: 'demo.footer.links.women', href: `/shop?categorySlug=women` },
+      { labelKey: 'demo.footer.links.men', href: `/shop?categorySlug=men` },
+      { labelKey: 'demo.footer.links.accessories', href: `/shop` },
+      { labelKey: 'demo.footer.links.sale', href: `/shop` },
     ],
     help: [
       { labelKey: 'demo.footer.links.contact', href: `/about` },

@@ -122,7 +122,7 @@ export default function CartPage() {
           {/* Breadcrumb */}
           <div className="mb-8">
             <Link
-              href="/products"
+              href="/shop"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 no-underline group"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
@@ -156,7 +156,7 @@ export default function CartPage() {
                 <p className="text-muted-foreground mb-8">
                   {t("cart.emptyCartDescription")}
                 </p>
-                <Link href="/products">
+                <Link href="/shop">
                   <Button className="bg-[#181818] dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 hover:scale-105 transition-all duration-300 px-8">
                     {t("cart.startShopping")}
                   </Button>

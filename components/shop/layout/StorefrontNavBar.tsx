@@ -29,16 +29,16 @@ export function StorefrontNavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
+  const lang = useTranslation().i18n.language;
   const { items } = useCart();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const storefrontNavItems = [
-    { label: 'demo.nav.newArrivals', href: `/shop` },
-    { label: 'demo.nav.women', href: `/products?category=women` },
-    { label: 'demo.nav.men', href: `/products?category=men` },
-    { label: 'demo.nav.collections', href: `/products?category=collections` },
-    { label: 'demo.nav.sale', href: `/products?category=sale` },
+    { label: 'demo.nav.newArrivals', href: `/shop?category=newest` },
+    { label: 'demo.nav.women', href: `/shop?category=${lang === 'vi' ? 'nu' : 'women'}` },
+    { label: 'demo.nav.men', href: `/shop?category=${lang === 'vi' ? 'nam' : 'men'}` },
+    { label: 'demo.nav.collections', href: `/shop?category=collections` },
+    { label: 'demo.nav.sale', href: `/shop?category=sale` },
   ];
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export function StorefrontNavBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/products?keyword=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/shop?keyword=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 

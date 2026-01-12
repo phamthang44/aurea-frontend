@@ -77,7 +77,7 @@ function OrderSuccessContent() {
               Unable to load order details
             </p>
             <Link
-              href="/demo/products"
+              href="/shop"
               className="inline-block px-6 py-3 bg-[#181818] dark:bg-white text-white dark:text-black hover:scale-105 transition-all duration-300 rounded-lg"
             >
               {t("shop.backToHome") || "Back to Shop"}
@@ -341,7 +341,7 @@ function OrderSuccessContent() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link
-              href="/demo/products"
+              href="/shop"
               className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white hover:scale-105 transition-all duration-300 rounded-lg font-medium"
               style={{ fontFamily: "var(--font-poppins), sans-serif" }}
             >
@@ -349,7 +349,7 @@ function OrderSuccessContent() {
               {t("shop.backToHome") || "Continue Shopping"}
             </Link>
             <Link
-              href={`/demo/orders/${id}`}
+              href={`/account/orders/${id}`}
               className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-[#181818] dark:bg-white text-white dark:text-black hover:scale-105 transition-all duration-300 rounded-lg font-medium"
               style={{ fontFamily: "var(--font-poppins), sans-serif" }}
             >

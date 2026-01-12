@@ -102,27 +102,32 @@ export function ProductCardListing({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <Link
-          href={`/product/${product.slug}`}
-          className="relative block aspect-[3/4] overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-sm"
-        >
-          {/* Main Image */}
-          {product.thumbnail && !imageError ? (
-            <Image
-              src={product.thumbnail}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-1000 group-hover:scale-110"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              loading="lazy"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <LuxuryPlaceholder />
-          )}
+        {/* Image Container */}
+        <div className="relative block aspect-[3/4] overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-sm">
+          {/* Link for navigation - covers the image */}
+          <Link
+            href={`/product/${product.slug}`}
+            className="absolute inset-0 z-10"
+            aria-label={`View ${product.name}`}
+          >
+            {/* Main Image */}
+            {product.thumbnail && !imageError ? (
+              <Image
+                src={product.thumbnail}
+                alt={product.name}
+                fill
+                className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading="lazy"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <LuxuryPlaceholder />
+            )}
+          </Link>
 
-          {/* Luxury Badge (Sale/New) */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+          {/* Luxury Badge (Sale/New) - pointer-events-none so clicks pass through */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2 z-20 pointer-events-none">
             {product.isNew && (
               <span className="bg-[#D4AF37] text-white text-[8px] font-bold uppercase tracking-widest px-3 py-1 items-center justify-center flex shadow-xl">
                 New
@@ -135,11 +140,11 @@ export function ProductCardListing({
             )}
           </div>
 
-          {/* Wishlist Button */}
+          {/* Wishlist Button - outside Link with higher z-index */}
           <button
             onClick={toggleWishlist}
             className={cn(
-               "absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md",
+               "absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md",
                isWishlisted 
                 ? "bg-[#D4AF37] text-white" 
                 : "bg-white/50 text-black hover:bg-white"
@@ -148,37 +153,39 @@ export function ProductCardListing({
             <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
           </button>
 
-          {/* Action Overlay */}
+          {/* Action Overlay - outside Link with higher z-index, pointer-events-none on wrapper */}
           <div className={cn(
-            "absolute inset-0 bg-black/5 flex flex-col items-center justify-center gap-4 transition-all duration-500 backdrop-blur-[2px]",
-            isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+            "absolute inset-0 z-30 bg-black/5 flex flex-col items-center justify-center gap-4 transition-all duration-500 backdrop-blur-[2px] pointer-events-none",
+            isHovered ? "opacity-100" : "opacity-0"
           )}>
-            <Button
-              onClick={handleAddToCart}
-              className="bg-black text-white hover:bg-[#D4AF37] rounded-none px-8 py-6 text-xs uppercase tracking-widest transition-colors"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Quick Add
-            </Button>
-            {showQuickView && (
-              <button 
-                onClick={handleQuickViewClick}
-                className="text-white text-[10px] uppercase font-bold tracking-widest hover:text-[#D4AF37] underline transition-colors"
+            <div className="flex flex-col items-center gap-4 pointer-events-auto">
+              <Button
+                onClick={handleAddToCart}
+                className="bg-black text-white hover:bg-[#D4AF37] rounded-none px-8 py-6 text-xs uppercase tracking-widest transition-colors"
               >
-                Quick View
-              </button>
-            )}
+                <Plus className="h-4 w-4 mr-2" />
+                Quick Add
+              </Button>
+              {showQuickView && (
+                <button 
+                  onClick={handleQuickViewClick}
+                  className="text-white text-[10px] uppercase font-bold tracking-widest hover:text-[#D4AF37] underline transition-colors"
+                >
+                  Quick View
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Sold Out */}
           {!isInStock && (
-            <div className="absolute inset-0 bg-white/80 dark:bg-[#0D0D0D]/80 flex items-center justify-center z-20">
+            <div className="absolute inset-0 bg-white/80 dark:bg-[#0D0D0D]/80 flex items-center justify-center z-20 pointer-events-none">
               <span className="text-zinc-400 text-xs font-bold uppercase tracking-[0.3em] border border-zinc-200 px-6 py-3">
                 Sold Out
               </span>
             </div>
           )}
-        </Link>
+        </div>
 
         {/* Info */}
         <div className="pt-6 pb-2 space-y-3">

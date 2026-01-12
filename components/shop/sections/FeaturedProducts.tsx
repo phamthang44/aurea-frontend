@@ -46,7 +46,7 @@ export function FeaturedProducts({ limit = 8 }: FeaturedProductsProps) {
               {t('demo.featured.title', { defaultValue: 'Featured Products' })}
             </h2>
           </div>
-          <Link href="/products">
+          <Link href="/shop">
             <Button
               variant="ghost"
               className="text-sm font-light tracking-wider text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] group"

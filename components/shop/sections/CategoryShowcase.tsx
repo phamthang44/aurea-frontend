@@ -16,19 +16,19 @@ export function CategoryShowcase() {
       id: 'women',
       titleKey: 'demo.categories.women',
       image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&q=80',
-      href: `/products?category=women`,
+      href: `/shop?categorySlug=women`,
     },
     {
       id: 'men',
       titleKey: 'demo.categories.men',
       image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=600&q=80',
-      href: `/products?category=men`,
+      href: `/shop?categorySlug=men`,
     },
     {
       id: 'accessories',
       titleKey: 'demo.categories.accessories',
       image: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=600&q=80',
-      href: `/products?category=accessories`,
+      href: `/shop`,
     },
   ];
 

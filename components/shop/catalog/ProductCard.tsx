@@ -189,13 +189,14 @@ export function ProductCard({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-      <Link
-        href={`/products/${product.slug}`}
-        className="block no-underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
-      >
-        <div className="flex flex-col space-y-3">
-          {/* Image Container - 3:4 Aspect Ratio */}
-          <div className="relative w-full aspect-[3/4] overflow-hidden bg-muted/30 rounded-lg border border-border/50 group-hover:border-primary/50 transition-all duration-300">
+        {/* Image Container with Quick View Button - positioned absolutely above Link */}
+        <div className="relative w-full aspect-[3/4] overflow-hidden bg-muted/30 rounded-lg border border-border/50 group-hover:border-primary/50 transition-all duration-300">
+          {/* Link wraps only the image area for navigation */}
+          <Link
+            href={`/product/${product.slug}`}
+            className="absolute inset-0 z-10"
+            aria-label={`View ${product.name}`}
+          >
             {/* Primary Image */}
             {primaryImage && !imageError ? (
               <div className="absolute inset-0">
@@ -231,49 +232,54 @@ export function ProductCard({
                 />
               </div>
             )}
+          </Link>
 
-            {/* Badges */}
-            <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-              {isNew && (
-                <span className="px-2 py-1 text-xs font-semibold uppercase tracking-wide bg-primary text-primary-foreground rounded-md shadow-sm">
-                  New
-                </span>
-              )}
-            </div>
-
-            {soldOut && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
-                <span className="px-4 py-2 text-sm font-bold uppercase tracking-wider bg-destructive text-destructive-foreground rounded-md shadow-lg">
-                  Sold Out
-                </span>
-              </div>
-            )}
-
-            {/* Quick View Button - Appears on hover */}
-            {showQuickView && !soldOut && (
-              <div
-                className={`absolute inset-0 flex items-center justify-center z-30 transition-all duration-300 ${
-                  isHovered
-                    ? 'opacity-100 pointer-events-auto'
-                    : 'opacity-0 pointer-events-none'
-                }`}
-              >
-                <div className="bg-black/40 dark:bg-white/40 backdrop-blur-sm rounded-lg p-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-900 border-2 border-primary/50 hover:border-primary shadow-lg"
-                    onClick={handleQuickViewClick}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Quick View
-                  </Button>
-                </div>
-              </div>
+          {/* Badges - above the link */}
+          <div className="absolute top-3 left-3 flex flex-col gap-2 z-20 pointer-events-none">
+            {isNew && (
+              <span className="px-2 py-1 text-xs font-semibold uppercase tracking-wide bg-primary text-primary-foreground rounded-md shadow-sm">
+                New
+              </span>
             )}
           </div>
 
-          {/* Product Info */}
+          {soldOut && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20 pointer-events-none">
+              <span className="px-4 py-2 text-sm font-bold uppercase tracking-wider bg-destructive text-destructive-foreground rounded-md shadow-lg">
+                Sold Out
+              </span>
+            </div>
+          )}
+
+          {/* Quick View Button - OUTSIDE Link, with higher z-index */}
+          {showQuickView && !soldOut && (
+            <div
+              className={`absolute inset-0 flex items-center justify-center z-30 pointer-events-none transition-all duration-300 ${
+                isHovered
+                  ? 'opacity-100'
+                  : 'opacity-0'
+              }`}
+            >
+              <div className="bg-black/50 backdrop-blur-sm rounded-lg p-1.5 pointer-events-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border-2 border-[#D4AF37] hover:border-[#B8962E] text-zinc-900 dark:text-white font-medium shadow-lg"
+                  onClick={handleQuickViewClick}
+                >
+                  <Eye className="h-4 w-4 mr-2 text-[#D4AF37]" />
+                  Quick View
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Product Info - Link wraps this for SEO */}
+        <Link
+          href={`/product/${product.slug}`}
+          className="block no-underline mt-3"
+        >
           <div className="flex flex-col space-y-1.5">
             {/* Category */}
             {product.categoryName && (
@@ -292,9 +298,8 @@ export function ProductCard({
               {formatVND(displayPrice)}
             </p>
           </div>
-        </div>
-      </Link>
-    </div>
+        </Link>
+      </div>
     </>
   );
 }

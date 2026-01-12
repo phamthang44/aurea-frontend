@@ -4,6 +4,7 @@ import {
   ProductSearchRequest,
   PaginatedApiResult,
   ApiResult,
+  ProductResponse,
 } from "@/lib/types/product";
 
 // For client-side calls (use proxy)
@@ -24,6 +25,8 @@ function buildQueryString(params: ProductSearchRequest): string {
   if (params.keyword) searchParams.append("keyword", params.keyword);
   if (params.categoryId)
     searchParams.append("categoryId", params.categoryId.toString());
+  if (params.categorySlug)
+    searchParams.append("categorySlug", params.categorySlug);
   if (params.minPrice)
     searchParams.append("minPrice", params.minPrice.toString());
   if (params.maxPrice)
@@ -191,7 +194,7 @@ export async function getProductByIdServer(
  */
 export async function getProductBySlug(
   slug: string
-): Promise<ApiResult<ProductListingDto>> {
+): Promise<ApiResult<ProductResponse>> {
   const response = await fetch(`${API_PROXY_URL}/products/slug/${slug}`, {
     method: "GET",
     headers: {
@@ -211,7 +214,7 @@ export async function getProductBySlug(
  */
 export async function getProductBySlugServer(
   slug: string
-): Promise<ApiResult<ProductListingDto>> {
+): Promise<ApiResult<ProductResponse>> {
   const response = await fetch(
     `${API_BACKEND_URL}/api/v1/products/slug/${slug}`,
     {
@@ -225,6 +228,67 @@ export async function getProductBySlugServer(
       },
     }
   );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch product: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Resolve product slug to productId
+ * This is the first step in the product detail page flow:
+ * 1. resolveProductSlug(slug) → { productId }
+ * 2. getProductByIdServer(productId) → ProductResponse
+ */
+export async function resolveProductSlug(
+  slug: string
+): Promise<{ productId: string } | null> {
+  const response = await fetch(
+    `${API_BACKEND_URL}/api/v1/products/slug/${slug}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      next: {
+        revalidate: 300, // 5 minute cache
+        tags: ["products", `product-slug-${slug}`],
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const result: ApiResult<ProductResponse> = await response.json();
+  
+  if (!result.data?.id) {
+    return null;
+  }
+
+  return { productId: result.data.id };
+}
+
+/**
+ * Get full product details by ID (Server-side with caching)
+ * Returns ProductResponse with all details including variants and assets
+ */
+export async function getProductDetailByIdServer(
+  id: string
+): Promise<ApiResult<ProductResponse>> {
+  const response = await fetch(`${API_BACKEND_URL}/api/v1/products/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    next: {
+      revalidate: 300, // 5 minute cache for product detail
+      tags: ["products", `product-${id}`],
+    },
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch product: ${response.statusText}`);

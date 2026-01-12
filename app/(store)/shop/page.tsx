@@ -1,12 +1,27 @@
+import { Suspense } from "react";
 import { getAllCategoriesServer } from "@/lib/api/categories-server";
 import { ShopClient } from "./ShopClient";
 import { LuxuryNavBar } from "@/components/layout/LuxuryNavBar";
 import { Footer } from "@/components/shop/catalog/Footer";
+import { ProductCardSkeleton } from "@/components/shop/catalog/ProductCardSkeleton";
 
 export const metadata = {
   title: 'Shop All | AUREA Luxury Fashion',
   description: 'Explore the curated collection of AUREA. Timeless elegance and modern luxury fashion.',
 };
+
+// Loading skeleton for the shop grid
+function ShopLoadingSkeleton() {
+  return (
+    <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-10">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <ProductCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default async function ShopPage() {
   const categoriesResult = await getAllCategoriesServer();
@@ -33,7 +48,10 @@ export default async function ShopPage() {
           </div>
         </div>
 
-        <ShopClient categories={categories} />
+        {/* ShopClient uses useSearchParams, must be wrapped in Suspense */}
+        <Suspense fallback={<ShopLoadingSkeleton />}>
+          <ShopClient categories={categories} />
+        </Suspense>
       </main>
 
       <Footer />

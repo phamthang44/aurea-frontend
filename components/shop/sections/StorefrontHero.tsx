@@ -60,7 +60,7 @@ export function StorefrontHero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-            <Link href="/products" className="w-full sm:w-auto">
+            <Link href="/shop" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 className="w-full sm:w-auto px-8 sm:px-10 py-6 text-sm font-light tracking-widest uppercase bg-[#1A1A1A] dark:bg-[#D4AF37] text-white dark:text-[#1A1A1A] hover:bg-[#333] dark:hover:bg-[#E5C96B] transition-all duration-300"
@@ -70,7 +70,7 @@ export function StorefrontHero() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/products?category=new" className="w-full sm:w-auto">
+            <Link href="/shop?sort=newest" className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="lg"

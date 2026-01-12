@@ -206,7 +206,6 @@ function createAxiosInstance(): AxiosInstance {
             // is automatically set by the server in the response cookie.
             // We don't need to manually update it in the client.
 
-            // Process all queued requests
             refreshTokenQueue.processQueue();
 
             // Retry the original request
@@ -237,7 +236,7 @@ function createAxiosInstance(): AxiosInstance {
             const isPublicRoute = 
               currentPath === "/" ||
               currentPath.startsWith("/shop") ||
-              currentPath.startsWith("/products/") ||
+              currentPath.startsWith("/product/") ||
               currentPath.startsWith("/cart") ||
               currentPath.startsWith("/auth") ||
               currentPath.startsWith("/forgot-password") ||

@@ -61,22 +61,22 @@ export default function AdminSettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     toast.promise(new Promise(resolve => setTimeout(resolve, 1500)), {
-      loading: 'Saving configuration...',
-      success: 'Settings updated successfully',
-      error: 'Failed to save settings'
+      loading: t("admin.settings.saving"),
+      success: t("admin.settings.saveSuccess"),
+      error: t("admin.settings.saveError")
     });
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
   };
 
   const navItems = [
-    { id: 'general', icon: Store, label: "Store Info", desc: "Global store configuration" },
-    { id: 'branding', icon: Palette, label: "Branding", desc: "Logo, colors and identity" },
-    { id: 'payments', icon: CreditCard, label: "Payments", desc: "Gateways and payouts" },
-    { id: 'shipping', icon: Truck, label: "Shipping", desc: "Logistics and zones" },
-    { id: 'notifications', icon: Bell, label: "Notifications", desc: "Customer alerts" },
-    { id: 'security', icon: Shield, label: "Security", desc: "Auth and firewall" },
-    { id: 'theme', icon: Smartphone, label: "Appearance", desc: "Panel UI theme" },
+    { id: 'general', icon: Store, label: t("admin.settings.tabs.general.label"), desc: t("admin.settings.tabs.general.desc") },
+    { id: 'branding', icon: Palette, label: t("admin.settings.tabs.branding.label"), desc: t("admin.settings.tabs.branding.desc") },
+    { id: 'payments', icon: CreditCard, label: t("admin.settings.tabs.payments.label"), desc: t("admin.settings.tabs.payments.desc") },
+    { id: 'shipping', icon: Truck, label: t("admin.settings.tabs.shipping.label"), desc: t("admin.settings.tabs.shipping.desc") },
+    { id: 'notifications', icon: Bell, label: t("admin.settings.tabs.notifications.label"), desc: t("admin.settings.tabs.notifications.desc") },
+    { id: 'security', icon: Shield, label: t("admin.settings.tabs.security.label"), desc: t("admin.settings.tabs.security.desc") },
+    { id: 'theme', icon: Smartphone, label: t("admin.settings.tabs.appearance.label"), desc: t("admin.settings.tabs.appearance.desc") },
   ];
 
   const renderTabContent = () => {
@@ -91,25 +91,25 @@ export default function AdminSettingsPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Store Name</Label>
+                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.general.storeName")}</Label>
                   <Input defaultValue="AUREA" className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 py-6" />
-                  <p className="text-[10px] text-slate-500 font-light">The public name of your boutique.</p>
+                  <p className="text-[10px] text-slate-500 font-light">{t("admin.settings.general.storeNameHint")}</p>
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Public URL</Label>
+                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.general.publicUrl")}</Label>
                   <div className="relative">
                     <Input defaultValue="https://aurea.luxury" className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 py-6 pl-10" />
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-light">Custom domain currently mapped.</p>
+                  <p className="text-[10px] text-slate-500 font-light">{t("admin.settings.general.publicUrlHint")}</p>
                 </div>
                 <div className="col-span-full space-y-3">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Mission Statement</Label>
+                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.general.mission")}</Label>
                   <Textarea 
                     defaultValue="Providing timeless elegance through curated luxury experiences." 
                     className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 min-h-[120px]" 
                   />
-                  <p className="text-[10px] text-slate-500 font-light">Used for SEO and about pages.</p>
+                  <p className="text-[10px] text-slate-500 font-light">{t("admin.settings.general.missionHint")}</p>
                 </div>
               </div>
             </div>
@@ -117,15 +117,15 @@ export default function AdminSettingsPage() {
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
               <h2 className="text-2xl font-light text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-3">
                 <Mail className="h-6 w-6 text-[#D4AF37]" />
-                Support Contacts
+                {t("admin.settings.general.contacts")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Inquiry Email</Label>
+                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.general.inquiryEmail")}</Label>
                   <Input defaultValue="concierge@aurea.luxury" className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 py-6" />
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Order Alerts</Label>
+                  <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.general.orderAlerts")}</Label>
                   <Input defaultValue="alerts@aurea.luxury" className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 py-6" />
                 </div>
               </div>
@@ -138,12 +138,12 @@ export default function AdminSettingsPage() {
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
               <h2 className="text-2xl font-light text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-3">
                 <Palette className="h-6 w-6 text-[#D4AF37]" />
-                Primary Identity
+                {t("admin.settings.branding.title")}
               </h2>
               <div className="space-y-10">
                 <div className="flex flex-col md:flex-row gap-10">
                   <div className="space-y-4">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Visual Logo</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.branding.logo")}</Label>
                     <div className="h-40 w-64 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50 dark:bg-white/5 group cursor-pointer hover:border-[#D4AF37]/50 transition-all">
                       <p className="text-[10px] font-bold tracking-widest text-[#D4AF37] mb-2">AUREA</p>
                       <Upload className="h-5 w-5 text-slate-300 group-hover:text-[#D4AF37] transition-colors" />
@@ -151,21 +151,21 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="flex-1 space-y-6">
                     <div className="space-y-4">
-                      <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Pallete: Accent Gold</Label>
+                      <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.branding.palette")}</Label>
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-xl bg-[#D4AF37] shadow-lg shadow-[#D4AF37]/20 border border-white/20" />
                         <Input defaultValue="#D4AF37" className="w-32 rounded-lg" />
                       </div>
-                      <p className="text-[10px] text-slate-500 font-light italic">Used for buttons, highlights, and primary interactions.</p>
+                      <p className="text-[10px] text-slate-500 font-light italic">{t("admin.settings.branding.paletteHint")}</p>
                     </div>
                     <div className="space-y-4">
-                      <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">Panel Theme</Label>
+                      <Label className="text-xs uppercase tracking-widest font-bold text-slate-400">{t("admin.settings.branding.theme")}</Label>
                       <div className="flex gap-3">
                          <div className="h-10 w-24 rounded-lg border-2 border-slate-900 dark:border-[#D4AF37] bg-slate-900 flex items-center justify-center cursor-pointer">
-                            <span className="text-[10px] text-white font-bold">DARK</span>
+                            <span className="text-[10px] text-white font-bold">{t("admin.settings.branding.themeDark")}</span>
                          </div>
                          <div className="h-10 w-24 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer">
-                            <span className="text-[10px] text-slate-600 font-bold">LIGHT</span>
+                            <span className="text-[10px] text-slate-600 font-bold">{t("admin.settings.branding.themeLight")}</span>
                          </div>
                       </div>
                     </div>
@@ -177,21 +177,21 @@ export default function AdminSettingsPage() {
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
               <h2 className="text-2xl font-light text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-3">
                 <Type className="h-6 w-6 text-[#D4AF37]" />
-                Typography
+                {t("admin.settings.branding.typography.title")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-6 border border-slate-100 dark:border-slate-800 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
-                  <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-4">Serif (Display)</p>
+                  <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-4">{t("admin.settings.branding.typography.serif")}</p>
                   <p className="text-3xl font-serif text-slate-900 dark:text-slate-100 mb-2">Cormorant Garamond</p>
-                  <p className="text-xs text-slate-500">Perfect for titles and high-luxury headers.</p>
+                  <p className="text-xs text-slate-500">{t("admin.settings.branding.typography.serifDesc")}</p>
                 </div>
                 <div className="p-6 border border-slate-100 dark:border-slate-800 rounded-2xl border-[#D4AF37]/40 bg-[#D4AF37]/5 cursor-pointer">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs uppercase tracking-widest text-[#D4AF37] font-bold">Sans (Rational)</p>
+                    <p className="text-xs uppercase tracking-widest text-[#D4AF37] font-bold">{t("admin.settings.branding.typography.sans")}</p>
                     <Check className="h-4 w-4 text-[#D4AF37]" />
                   </div>
                   <p className="text-3xl font-sans text-slate-900 dark:text-slate-100 mb-2">Inter / Outfit</p>
-                  <p className="text-xs text-slate-500">Clean, legible, and modern for interfaces.</p>
+                  <p className="text-xs text-slate-500">{t("admin.settings.branding.typography.sansDesc")}</p>
                 </div>
               </div>
             </div>
@@ -203,14 +203,14 @@ export default function AdminSettingsPage() {
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
               <h2 className="text-2xl font-light text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-3">
                 <Bell className="h-6 w-6 text-[#D4AF37]" />
-                Admin Alerts
+                {t("admin.settings.notifications.title")}
               </h2>
               <div className="space-y-4">
                 {[
-                  { title: "New Boutique Orders", desc: "Instant push and email notification when someone completes a purchase.", active: true },
-                  { title: "VIP Registration", desc: "Alert when a high-value customer creates an account.", active: true },
-                  { title: "Inventory Depleted", desc: "Notification when SKU stock levels drop below thresholds.", active: false },
-                  { title: "Review Verification", desc: "Alert when a new customer review requires curation.", active: true },
+                  { title: t("admin.settings.notifications.items.orders.title"), desc: t("admin.settings.notifications.items.orders.desc"), active: true },
+                  { title: t("admin.settings.notifications.items.vip.title"), desc: t("admin.settings.notifications.items.vip.desc"), active: true },
+                  { title: t("admin.settings.notifications.items.inventory.title"), desc: t("admin.settings.notifications.items.inventory.desc"), active: false },
+                  { title: t("admin.settings.notifications.items.reviews.title"), desc: t("admin.settings.notifications.items.reviews.desc"), active: true },
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center justify-between p-6 border border-slate-50 dark:border-slate-900 rounded-2xl hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                     <div className="space-y-0.5">
@@ -234,13 +234,12 @@ export default function AdminSettingsPage() {
             <div className="h-16 w-16 bg-slate-100 dark:bg-white/10 rounded-full flex items-center justify-center mb-6">
                <Globe className="h-8 w-8 text-slate-300" />
             </div>
-            <h3 className="text-xl font-light text-slate-900 dark:text-slate-100 mb-2">Expansion Module</h3>
+            <h3 className="text-xl font-light text-slate-900 dark:text-slate-100 mb-2">{t("admin.settings.expansion.title")}</h3>
             <p className="text-sm text-slate-500 font-light max-w-sm mb-6">
-              This settings module is part of the premium AUREA Core Expansion. 
-              Configure advanced {activeTab} parameters here.
+              {t("admin.settings.expansion.desc", { tab: activeTab })}
             </p>
             <Button variant="outline" className="rounded-xl border-slate-200 dark:border-slate-800 border-2">
-              Request Access
+              {t("admin.settings.expansion.request")}
             </Button>
           </motion.div>
         );
@@ -253,10 +252,10 @@ export default function AdminSettingsPage() {
        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-6">
         <div>
           <h1 className="text-4xl font-light tracking-tight text-slate-900 dark:text-slate-100 mb-2">
-            Settings Console
+            {t("admin.settings.title")}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 max-w-2xl font-light">
-            Architect your store's behavior, identity, and security protocols with precision control.
+            {t("admin.settings.description")}
           </p>
         </div>
         
@@ -266,7 +265,7 @@ export default function AdminSettingsPage() {
           className="bg-slate-900 dark:bg-[#D4AF37] text-white hover:opacity-90 px-10 py-7 rounded-2xl text-lg font-light transition-all shadow-xl shadow-slate-900/10 dark:shadow-[#D4AF37]/5"
         >
           {isSaving ? <Loader2 className="animate-spin h-5 w-5 mr-3" /> : <Save className="h-5 w-5 mr-3" />}
-          Update Changes
+          {t("admin.settings.updateChanges")}
         </Button>
       </div>
 
@@ -317,13 +316,13 @@ export default function AdminSettingsPage() {
           <div className="mt-10 p-6 bg-gradient-to-br from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/20 rounded-3xl">
              <div className="flex items-center gap-3 mb-3">
                 <Shield className="h-4 w-4 text-[#D4AF37]" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">Admin Advisory</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">{t("admin.settings.advisory.title")}</span>
              </div>
              <p className="text-xs text-slate-700 dark:text-slate-400 leading-relaxed font-light mb-4">
-                Changes here affect the production environment immediately. Always verify configurations before committing.
+                {t("admin.settings.advisory.desc")}
              </p>
              <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] hover:underline">
-               READ POLICIES <ExternalLink className="h-3 w-3" />
+               {t("admin.settings.advisory.readPolicies")} <ExternalLink className="h-3 w-3" />
              </button>
           </div>
         </div>

@@ -790,76 +790,100 @@
       }
     },
     "settings": {
-      "title": "Settings",
-      "subtitle": "Configure your store settings and preferences",
-      "saveChanges": "Save Changes",
-      "saving": "Saving...",
+      "title": "Settings Console",
+      "description": "Architect your store's behavior, identity, and security protocols with precision control.",
+      "updateChanges": "Update Changes",
+      "saving": "Saving configuration...",
+      "saveSuccess": "Settings updated successfully",
+      "saveError": "Failed to save settings",
+      "tabs": {
+        "general": {
+          "label": "Store Info",
+          "desc": "Global store configuration"
+        },
+        "branding": {
+          "label": "Branding",
+          "desc": "Logo, colors and identity"
+        },
+        "payments": {
+          "label": "Payments",
+          "desc": "Gateways and payouts"
+        },
+        "shipping": {
+          "label": "Shipping",
+          "desc": "Logistics and zones"
+        },
+        "notifications": {
+          "label": "Notifications",
+          "desc": "Customer alerts"
+        },
+        "security": {
+          "label": "Security",
+          "desc": "Auth and firewall"
+        },
+        "appearance": {
+          "label": "Appearance",
+          "desc": "Panel UI theme"
+        }
+      },
       "general": {
         "title": "General Settings",
-        "subtitle": "Basic store information and configuration",
         "storeName": "Store Name",
-        "storeUrl": "Store URL",
-        "storeDescription": "Store Description"
-      },
-      "email": {
-        "title": "Email Settings",
-        "subtitle": "Configure email notifications and templates",
-        "fromEmail": "From Email",
-        "supportEmail": "Support Email",
-        "orderConfirmation": "Order Confirmation Emails",
-        "orderConfirmationDesc": "Send automatic emails when orders are placed"
-      },
-      "notifications": {
-        "title": "Notifications",
-        "subtitle": "Manage notification preferences",
-        "newOrders": "New Orders",
-        "newOrdersDesc": "Get notified when new orders arrive",
-        "lowStockAlerts": "Low Stock Alerts",
-        "lowStockAlertsDesc": "Receive alerts when products are running low",
-        "newUserRegistrations": "New User Registrations",
-        "newUserRegistrationsDesc": "Get notified about new user sign-ups",
-        "productReviews": "Product Reviews",
-        "productReviewsDesc": "Receive notifications for new product reviews"
-      },
-      "security": {
-        "title": "Security",
-        "subtitle": "Manage security and authentication settings",
-        "twoFactorAuth": "Two-Factor Authentication",
-        "twoFactorAuthDesc": "Add an extra layer of security to your account",
-        "enable": "Enable",
-        "password": "Password",
-        "passwordDesc": "Last changed 30 days ago",
-        "change": "Change"
-      },
-      "theme": {
-        "title": "Theme & Appearance",
-        "subtitle": "Customize the look and feel of your admin panel",
-        "light": "Light",
-        "dark": "Dark",
-        "auto": "Auto",
-        "blue": "Blue"
+        "storeNameHint": "The public name of your boutique.",
+        "publicUrl": "Public URL",
+        "publicUrlHint": "Custom domain currently mapped.",
+        "mission": "Mission Statement",
+        "missionHint": "Used for SEO and about pages.",
+        "contacts": "Support Contacts",
+        "inquiryEmail": "Inquiry Email",
+        "orderAlerts": "Order Alerts"
       },
       "branding": {
-        "title": "Branding",
-        "subtitle": "Manage your store's visual identity and assets",
-        "logo": "Store Logo",
-        "favicon": "Favicon",
-        "accentColor": "Accent Color",
-        "fonts": "Typography"
+        "title": "Primary Identity",
+        "logo": "Visual Logo",
+        "palette": "Palette: Accent Gold",
+        "paletteHint": "Used for buttons, highlights, and primary interactions.",
+        "theme": "Panel Theme",
+        "themeDark": "DARK",
+        "themeLight": "LIGHT",
+        "typography": {
+          "title": "Typography",
+          "serif": "Serif (Display)",
+          "serifDesc": "Perfect for titles and high-luxury headers.",
+          "sans": "Sans (Rational)",
+          "sansDesc": "Clean, legible, and modern for interfaces."
+        }
       },
-      "payments": {
-        "title": "Payments",
-        "subtitle": "Configure payment gateways and transaction settings",
-        "methods": "Activated Methods",
-        "currency": "Store Currency",
-        "gateway": "Primary Gateway"
+      "notifications": {
+        "title": "Admin Alerts",
+        "items": {
+          "orders": {
+            "title": "New Boutique Orders",
+            "desc": "Instant push and email notification when someone completes a purchase."
+          },
+          "vip": {
+            "title": "VIP Registration",
+            "desc": "Alert when a high-value customer creates an account."
+          },
+          "inventory": {
+            "title": "Inventory Depleted",
+            "desc": "Notification when SKU stock levels drop below thresholds."
+          },
+          "reviews": {
+            "title": "Review Verification",
+            "desc": "Alert when a new customer review requires curation."
+          }
+        }
       },
-      "shipping": {
-        "title": "Shipping",
-        "subtitle": "Set up delivery zones and shipping rates",
-        "zones": "Shipping Zones",
-        "methods": "Delivery Methods",
-        "tax": "Tax Configuration"
+      "expansion": {
+        "title": "Expansion Module",
+        "desc": "This settings module is part of the premium AUREA Core Expansion. Configure advanced {{tab}} parameters here.",
+        "request": "Request Access"
+      },
+      "advisory": {
+        "title": "Admin Advisory",
+        "desc": "Changes here affect the production environment immediately. Always verify configurations before committing.",
+        "readPolicies": "READ POLICIES"
       }
     },
     "users": {

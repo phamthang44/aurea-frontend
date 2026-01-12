@@ -157,7 +157,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Navigation Section */}
-            <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none">
+            <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none overflow-x-hidden">
               <div className={cn(
                 "px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-300",
                 isSidebarCollapsed ? "opacity-0" : "opacity-100"
@@ -272,7 +272,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full overflow-hidden">
               {/* Logo */}
               <div className="h-16 flex items-center justify-between px-6 border-r border-border">
                 <Link

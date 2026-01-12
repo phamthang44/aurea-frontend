@@ -793,53 +793,45 @@
       }
     },
     "settings": {
-      "title": "Cài đặt",
-      "subtitle": "Cấu hình cài đặt và tùy chọn cửa hàng",
-      "saveChanges": "Lưu thay đổi",
-      "saving": "Đang lưu...",
+      "title": "Bảng điều khiển cài đặt",
+      "description": "Thiết kế hành vi, bản sắc và các giao thức bảo mật của cửa hàng bạn với quyền kiểm soát chính xác.",
+      "updateChanges": "Cập nhật thay đổi",
+      "saving": "Đang lưu cấu hình...",
+      "saveSuccess": "Đã cập nhật cài đặt thành công",
+      "saveError": "Không thể lưu cài đặt",
+      "tabs": {
+        "general": {
+          "label": "Thông tin cửa hàng",
+          "desc": "Cấu hình cửa hàng toàn cầu"
+        },
+        "branding": {
+          "label": "Thương hiệu",
+          "desc": "Logo, màu sắc và bản sắc"
+        },
+        "payments": {
+          "label": "Thanh toán",
+          "desc": "Cổng thanh toán và chi trả"
+        },
+        "shipping": {
+          "label": "Vận chuyển",
+          "desc": "Logistics và khu vực"
+        },
+        "notifications": {
+          "label": "Thông báo",
+          "desc": "Cảnh báo khách hàng"
+        },
+        "security": {
+          "label": "Bảo mật",
+          "desc": "Xác thực và tường lửa"
+        },
+        "appearance": {
+          "label": "Giao diện",
+          "desc": "Chủ đề giao diện bảng điều khiển"
+        }
+      },
       "general": {
         "title": "Cài đặt chung",
-        "subtitle": "Thông tin và cấu hình cửa hàng cơ bản",
         "storeName": "Tên cửa hàng",
-        "storeUrl": "URL cửa hàng",
-        "storeDescription": "Mô tả cửa hàng"
-      },
-      "email": {
-        "title": "Cài đặt email",
-        "subtitle": "Cấu hình thông báo và mẫu email",
-        "fromEmail": "Email gửi từ",
-        "supportEmail": "Email hỗ trợ",
-        "orderConfirmation": "Email xác nhận đơn hàng",
-        "orderConfirmationDesc": "Gửi email tự động khi có đơn hàng"
-      },
-      "notifications": {
-        "title": "Thông báo",
-        "subtitle": "Quản lý tùy chọn thông báo",
-        "newOrders": "Đơn hàng mới",
-        "newOrdersDesc": "Nhận thông báo khi có đơn hàng mới",
-        "lowStockAlerts": "Cảnh báo tồn kho thấp",
-        "lowStockAlertsDesc": "Nhận cảnh báo khi sản phẩm sắp hết",
-        "newUserRegistrations": "Đăng ký người dùng mới",
-        "newUserRegistrationsDesc": "Nhận thông báo về đăng ký người dùng mới",
-        "productReviews": "Đánh giá sản phẩm",
-        "productReviewsDesc": "Nhận thông báo cho đánh giá sản phẩm mới"
-      },
-      "security": {
-        "title": "Bảo mật",
-        "subtitle": "Quản lý cài đặt bảo mật và xác thực",
-        "twoFactorAuth": "Xác thực hai yếu tố",
-        "twoFactorAuthDesc": "Thêm một lớp bảo mật cho tài khoản của bạn",
-        "enable": "Bật",
-        "password": "Mật khẩu",
-        "passwordDesc": "Đã thay đổi 30 ngày trước",
-        "change": "Thay đổi"
-      },
-      "theme": {
-        "title": "Giao diện & Giao diện",
-        "subtitle": "Tùy chỉnh giao diện của bảng quản trị",
-        "light": "Sáng",
-        "dark": "Tối",
-        "auto": "Tự động",
         "blue": "Xanh dương"
       },
       "branding": {

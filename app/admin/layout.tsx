@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Upload,
+  UserCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -395,7 +396,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     {user?.fullName || t("admin.layout.admin", { defaultValue: "Admin" })}
                   </span>
                 </p>
-                <span className="text-gray-400 dark:text-amber-500/50">â€¢</span>
+                <span className="text-gray-400 dark:text-amber-500/50"><UserCircle2 className="h-5 w-5 text-gray-400 dark:text-amber-500/50" /></span>
                 <p className="text-xs text-gray-500 dark:text-amber-200/50">
                   {user?.email || "admin@aurea.com"}
                 </p>

@@ -6,6 +6,7 @@ interface AuthState {
     email?: string;
     fullName?: string;
     roles?: string[];
+    avatarUrl?: string;
   } | null;
 }
 
@@ -21,7 +22,7 @@ const authSlice = createSlice({
     setAuthenticated: (
       state,
       action: PayloadAction<{
-        user?: { email?: string; fullName?: string; roles?: string[] };
+        user?: { email?: string; fullName?: string; roles?: string[]; avatarUrl?: string };
       }>
     ) => {
       state.isAuthenticated = true;
@@ -33,7 +34,7 @@ const authSlice = createSlice({
     },
     setUser: (
       state,
-      action: PayloadAction<{ email?: string; fullName?: string; roles?: string[] }>
+      action: PayloadAction<{ email?: string; fullName?: string; roles?: string[]; avatarUrl?: string }>
     ) => {
       state.user = action.payload;
     },

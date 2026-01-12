@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { cn } from "@/lib/utils";
@@ -20,6 +19,9 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { clientApi } from "@/lib/api-client";
 import { CategoryResponse, ApiResult } from "@/lib/types/product";
+import { useTranslation } from "react-i18next";
+import { useForm, Controller } from "react-hook-form";
+import { FormField } from "./FormField";
 
 interface CreateProductDialogProps {
   open: boolean;
@@ -30,24 +32,36 @@ export function CreateProductDialog({
   open,
   onOpenChange,
 }: CreateProductDialogProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    categoryId: "",
-    basePrice: undefined as number | undefined,
-    description: "",
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+    setError,
+  } = useForm({
+    defaultValues: {
+      name: "",
+      categoryId: "",
+      basePrice: undefined as number | undefined,
+      description: "",
+    },
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch categories when dialog opens
   useEffect(() => {
     if (open) {
       fetchCategories();
+    } else {
+      reset(); // Reset form when closing
     }
-  }, [open]);
+  }, [open, reset]);
 
   const fetchCategories = async () => {
     setIsLoadingCategories(true);
@@ -55,111 +69,69 @@ export function CreateProductDialog({
       const response = await clientApi.getCategories();
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to fetch categories");
+        toast.error(response.error.message || t("admin.products.fetchCategoriesError"));
         setCategories([]);
       } else {
         const result = response.data as ApiResult<CategoryResponse[]>;
         setCategories(result?.data || []);
       }
     } catch {
-      toast.error("Failed to load categories");
+      toast.error(t("admin.products.fetchCategoriesError"));
       setCategories([]);
     } finally {
       setIsLoadingCategories(false);
     }
   };
 
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Product name is required";
-    }
-
-    if (!formData.categoryId.trim()) {
-      newErrors.categoryId = "Category is required";
-    }
-
-    if (formData.basePrice === undefined || formData.basePrice === null) {
-      newErrors.basePrice = "Base price is required";
-    } else if (formData.basePrice <= 0) {
-      newErrors.basePrice = "Price must be greater than 0";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validate()) {
-      return;
-    }
-
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
 
     try {
       // Create draft product with general info only
       const draftProduct = {
-        name: formData.name.trim(),
-        categoryId: formData.categoryId.trim(),
-        description: formData.description.trim(),
-        basePrice: formData.basePrice!,
+        name: data.name.trim(),
+        categoryId: data.categoryId,
+        description: data.description.trim(),
+        basePrice: data.basePrice,
       };
 
-      // Call API to create draft product using /draft endpoint
       const response = await clientApi.createDraftProduct(draftProduct);
 
       if (response.error) {
-        toast.error(response.error.message || "Failed to create product");
+        // Map backend errors if they exist in a structured way
+        if ((response.error as any).details) {
+          const details = (response.error as any).details;
+          Object.keys(details).forEach((key) => {
+            setError(key as any, { type: "manual", message: details[key] });
+          });
+        }
+        
+        toast.error(response.error.message || t("admin.products.saveProductError"));
         setIsSubmitting(false);
         return;
       }
 
-      // Extract product ID from response
       const responseData = response.data as any;
       const productId = responseData?.data?.id || responseData?.id;
 
       if (!productId) {
-        toast.error("Failed to get product ID from response");
+        toast.error(t("admin.productDetail.createDialog.errorProductId"));
         setIsSubmitting(false);
         return;
       }
 
-      toast.success("Product draft created! Complete the details...");
-
-      // Reset form
-      setFormData({
-        name: "",
-        categoryId: "",
-        basePrice: undefined,
-        description: "",
-      });
-      setErrors({});
+      toast.success(t("admin.productDetail.createDialog.success"));
       onOpenChange(false);
-
-      // Redirect to admin product detail page using ID
       router.push(`/admin/products/${productId}`);
-    } catch {
-      toast.error("An unexpected error occurred");
+    } catch (error) {
+      toast.error(t("admin.products.unexpectedError"));
       setIsSubmitting(false);
     }
   };
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen && !isSubmitting) {
-      setFormData({
-        name: "",
-        categoryId: "",
-        basePrice: undefined,
-        description: "",
-      });
-      setErrors({});
+      reset();
     }
     onOpenChange(isOpen);
   };
@@ -169,68 +141,64 @@ export function CreateProductDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-gray-200 dark:border-amber-900/30 shadow-2xl dark:shadow-amber-950/40">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif bg-gradient-to-r from-gray-900 to-gray-700 dark:from-amber-200 dark:to-yellow-100 bg-clip-text text-transparent">
-            Create New Product
+            {t("admin.productDetail.createDialog.title")}
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-amber-100/60">
-            Enter the core product information to create a draft. You&apos;ll be
-            able to add media, variants, and more details next.
+            {t("admin.productDetail.createDialog.description")}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Product Name */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="name"
-              className="text-gray-700 dark:text-amber-200 font-semibold"
-            >
-              Product Name <span className="text-red-500">*</span>
-            </Label>
+          <FormField
+            label={t("admin.productDetail.createDialog.productName")}
+            required
+            error={errors.name?.message as string}
+          >
             <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Enter product name"
+              {...register("name", {
+                required: t("admin.productDetail.createDialog.validation.nameRequired"),
+                minLength: {
+                  value: 3,
+                  message: t("admin.productDetail.createDialog.validation.nameTooShort"),
+                },
+                maxLength: {
+                  value: 255,
+                  message: t("admin.productDetail.createDialog.validation.nameTooLong"),
+                },
+              })}
+              placeholder={t("admin.productDetail.createDialog.productNamePlaceholder")}
               aria-invalid={!!errors.name}
               className={cn(
-                errors.name && "border-red-500",
+                errors.name && "border-rose-500 focus-visible:ring-rose-500/20",
                 "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 text-lg focus:border-amber-500 dark:focus:border-amber-500"
               )}
               autoFocus
             />
-            {errors.name && (
-              <p className="text-sm text-red-500 font-medium">{errors.name}</p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Category */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="categoryId"
-                className="text-gray-700 dark:text-amber-200 font-semibold"
-              >
-                Category <span className="text-red-500">*</span>
-              </Label>
+            <FormField
+              label={t("admin.productDetail.createDialog.category")}
+              required
+              error={errors.categoryId?.message as string}
+            >
               <select
-                id="categoryId"
-                value={formData.categoryId}
-                onChange={(e) =>
-                  setFormData({ ...formData, categoryId: e.target.value })
-                }
+                {...register("categoryId", {
+                  required: t("admin.productDetail.createDialog.validation.categoryRequired"),
+                })}
                 aria-invalid={!!errors.categoryId}
                 disabled={isLoadingCategories}
                 className={cn(
-                  errors.categoryId && "border-red-500",
+                  errors.categoryId && "border-rose-500 focus:ring-rose-500/20",
                   "flex h-10 w-full rounded-md border border-gray-300 dark:border-amber-700/40 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                 )}
               >
                 <option value="">
                   {isLoadingCategories
-                    ? "Loading categories..."
-                    : "Select a category"}
+                    ? t("admin.productDetail.createDialog.loadingCategories")
+                    : t("admin.productDetail.createDialog.selectCategory")}
                 </option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
@@ -238,71 +206,62 @@ export function CreateProductDialog({
                   </option>
                 ))}
               </select>
-              {errors.categoryId && (
-                <p className="text-sm text-red-500 font-medium">
-                  {errors.categoryId}
-                </p>
-              )}
-            </div>
+            </FormField>
 
             {/* Base Price */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="basePrice"
-                className="text-gray-700 dark:text-amber-200 font-semibold"
-              >
-                Base Price (VND) <span className="text-red-500">*</span>
-              </Label>
-              <CurrencyInput
-                id="basePrice"
-                value={formData.basePrice}
-                onChange={(value) =>
-                  setFormData({ ...formData, basePrice: value })
-                }
-                placeholder="1,500,000"
-                error={!!errors.basePrice}
-                aria-invalid={!!errors.basePrice}
+            <FormField
+              label={t("admin.productDetail.createDialog.basePrice")}
+              required
+              error={errors.basePrice?.message as string}
+            >
+              <Controller
+                name="basePrice"
+                control={control}
+                rules={{
+                  required: t("admin.productDetail.createDialog.validation.priceRequired"),
+                  min: {
+                    value: 1000,
+                    message: t("admin.productDetail.createDialog.validation.pricePositive"),
+                  },
+                }}
+                render={({ field: { onChange, value, onBlur, name } }) => (
+                  <CurrencyInput
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    placeholder={t("admin.productDetail.createDialog.basePricePlaceholder")}
+                    error={!!errors.basePrice}
+                  />
+                )}
               />
-              {errors.basePrice && (
-                <p className="text-sm text-red-500 font-medium">
-                  {errors.basePrice}
-                </p>
-              )}
-            </div>
+            </FormField>
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="description"
-              className="text-gray-700 dark:text-amber-200 font-semibold"
-            >
-              Description <span className="text-red-500">*</span>
-            </Label>
+          <FormField
+            label={t("admin.productDetail.createDialog.descriptionLabel")}
+            required
+            error={errors.description?.message as string}
+            hint={t("admin.productDetail.createDialog.descriptionHint")}
+          >
             <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Describe your product, its features, materials, and benefits..."
+              {...register("description", {
+                required: t("admin.productDetail.createDialog.validation.descriptionRequired"),
+                minLength: {
+                  value: 20,
+                  message: t("admin.productDetail.createDialog.validation.descriptionTooShort"),
+                },
+              })}
+              placeholder={t("admin.productDetail.createDialog.descriptionPlaceholder")}
               rows={6}
               aria-invalid={!!errors.description}
               className={cn(
-                errors.description && "border-red-500",
+                errors.description && "border-rose-500 focus-visible:ring-rose-500/20",
                 "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 resize-none focus:border-amber-500 dark:focus:border-amber-500"
               )}
             />
-            {errors.description && (
-              <p className="text-sm text-red-500 font-medium">
-                {errors.description}
-              </p>
-            )}
-            <p className="text-xs text-gray-500 dark:text-amber-200/50">
-              Provide a detailed description - you can enhance it later with
-              rich formatting
-            </p>
-          </div>
+          </FormField>
 
           <DialogFooter className="gap-2 pt-4">
             <Button
@@ -312,7 +271,7 @@ export function CreateProductDialog({
               disabled={isSubmitting}
               className="border border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-gray-50 dark:hover:bg-amber-900/10"
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -322,10 +281,10 @@ export function CreateProductDialog({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating Draft...
+                  {t("admin.productDetail.createDialog.submitting")}
                 </>
               ) : (
-                "Create Draft & Continue"
+                t("admin.productDetail.createDialog.submit")
               )}
             </Button>
           </DialogFooter>

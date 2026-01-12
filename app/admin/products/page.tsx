@@ -22,9 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { clientApi } from "@/lib/api-client";
-import { searchAdminProducts } from "@/lib/api/products";
+import { useAdminProducts } from "@/lib/hooks/useAdminData";
 import { toast } from "sonner";
-import { Plus, Loader2, Search, UserCircle2, AlertTriangle } from "lucide-react";
+import { Plus, Loader2, Search, UserCircle2, AlertTriangle, Pencil, Trash2, Package, ChevronLeft, ChevronRight, XCircle, RefreshCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AdminErrorDisplay } from "@/components/admin/AdminErrorDisplay";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ProductResponse,
   ProductResponseAdmin,
@@ -36,8 +39,7 @@ import { Trans, useTranslation } from "react-i18next";
 export default function AdminProductsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [products, setProducts] = useState<ProductResponseAdmin[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
@@ -52,40 +54,24 @@ export default function AdminProductsPage() {
     sort: "newest",
   });
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  // Use the React Query hook
+  const { 
+    data: result, 
+    isLoading, 
+    isError,
+    error,
+    refetch 
+  } = useAdminProducts(searchParams);
 
-  // Fetch products using new admin API
-  // Authentication is handled via HttpOnly cookies automatically
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    try {
-      const result = await searchAdminProducts(searchParams);
+  const [deleteError, setDeleteError] = useState<{ title: string; items: any[] } | null>(null);
 
-      setProducts(result.data);
-      // Backend calculates everything in meta object
-      setTotalItems(result.meta?.totalElements || 0);
-      setTotalPages(result.meta?.totalPages || 0);
-      setCurrentPage(result.meta?.page || 1);
-      setPageSize(result.meta?.size || 10);
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : t("admin.products.fetchProductsError");
-      toast.error(errorMsg);
-      setProducts([]);
-      setTotalItems(0);
-      setTotalPages(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const products = result?.data || [];
+  const totalItems = result?.meta?.totalElements || 0;
+  const totalPages = result?.meta?.totalPages || 0;
+  const currentPage = result?.meta?.page || 1;
+  const pageSize = result?.meta?.size || 10;
 
-  useEffect(() => {
-    fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+
 
   // Handle search
   const handleSearch = () => {
@@ -111,12 +97,16 @@ export default function AdminProductsPage() {
       const response = await clientApi.deleteProduct(selectedProduct.id);
 
       if (response.error) {
-        toast.error(response.error.message || t("admin.products.deleteProductError"));
+        setDeleteError({
+           title: "Deletion Failed",
+           items: [{ label: selectedProduct.name, message: response.error.message || "Archive operation rejected by server." }]
+        });
       } else {
+        setDeleteError(null);
         toast.success(t("admin.products.deleteProductSuccess"));
         setIsDeleteDialogOpen(false);
         setSelectedProduct(null);
-        fetchProducts();
+        refetch();
       }
     } catch {
       toast.error(t("admin.products.unexpectedError"));
@@ -142,7 +132,6 @@ export default function AdminProductsPage() {
 
   const handlePageSizeChange = (size: number) => {
     setSearchParams((prev) => ({ ...prev, size, page: 1 }));
-    setPageSize(size);
   };
 
   const handlePreviousPage = () => {
@@ -182,104 +171,106 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header with Luxury Design */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-6 border-b border-gray-200 dark:border-amber-900/20">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-serif font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-amber-200 dark:via-yellow-100 dark:to-amber-200 bg-clip-text text-transparent">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             {t("admin.products.title")}
           </h1>
-          <div className="flex items-center gap-3">
-            <p className="text-sm text-gray-500 dark:text-amber-100/60 font-light tracking-wide">
-              {t("admin.products.subtitle")}
-            </p>
-            {totalItems > 0 && (
-              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/40 border border-amber-200 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wide shadow-sm">
-                {totalItems} {totalItems === 1 ? t("admin.products.item") : t("admin.products.items")}
-              </span>
-            )}
-          </div>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+            {t("admin.products.subtitle")}
+          </p>
         </div>
         <Button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="gap-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-lg shadow-amber-500/20 dark:shadow-amber-900/30 border-0 font-semibold tracking-wide h-11 px-6"
+          className="bg-[#D4AF37] hover:bg-[#B8962D] text-white shadow-lg shadow-[#D4AF37]/20 border-0 h-11 px-6 font-semibold"
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-5 w-5 mr-2" />
           {t("admin.products.newProduct")}
         </Button>
       </div>
-      {/* Warning Message for Products Table */}
-      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-lg shadow-sm">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200 mb-1.5">
-              {t("admin.products.quantityUpdatesNotice")}
-            </h3>
-            <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 leading-relaxed">
-              <Trans
-                i18nKey="admin.products.quantityUpdatesNoticeDescription"
-                components={{
-                  strong: <strong />
-                }}
-              />
-            </p>
-          </div>
+
+      {/* Global Alerts Center */}
+      <AnimatePresence>
+        {isError && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-6 overflow-hidden">
+            <AdminErrorDisplay
+              title="Failed to Sync Collection"
+              description="A technical interruption occurred while retrieving the product database."
+              items={[{ message: (error as Error)?.message || "Internal server connection failure." }]}
+              onRetry={() => refetch()}
+              className="shadow-lg shadow-red-500/5"
+            />
+          </motion.div>
+        )}
+        
+        {deleteError && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-6 overflow-hidden">
+            <AdminErrorDisplay
+              title={deleteError.title}
+              description="The product could not be permanently removed or archived."
+              items={deleteError.items}
+              onClose={() => setDeleteError(null)}
+              className="shadow-lg shadow-red-500/5"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Stats/Quick Actions (Optional, but adds to Pro Max feel) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("admin.products.totalProducts")}</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-gray-100 mt-1">{totalItems}</p>
         </div>
+        {/* Add more stats here if needed */}
       </div>
-      {/* Search and Filters */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow border border-gray-200 dark:border-amber-900/30">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search Input */}
-          <div className="md:col-span-2 flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={t("admin.products.searchPlaceholder")}
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button
-              onClick={handleSearch}
-              className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-md shadow-amber-500/20 dark:shadow-amber-900/30 border-0 font-semibold px-6"
-            >
-              {t("common.search")}
-            </Button>
+
+      {/* Filter Bar */}
+      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder={t("admin.products.searchPlaceholder")}
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+              className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all"
+            />
           </div>
 
-          {/* Status Filter */}
-          <Select
-            value={searchParams.status || "all"}
-            onValueChange={(value: string) =>
-              handleStatusFilter(value === "all" ? undefined : (value as any))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("admin.products.allStatus")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("admin.products.allStatus")}</SelectItem>
-              <SelectItem value="ACTIVE">{t("admin.products.active")}</SelectItem>
-              <SelectItem value="DRAFT">{t("admin.products.draft")}</SelectItem>
-              <SelectItem value="INACTIVE">{t("admin.products.hidden")}</SelectItem>
-              <SelectItem value="ARCHIVED">{t("admin.products.archived")}</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Status Filter */}
+            <Select
+              value={searchParams.status || "all"}
+              onValueChange={(value: string) =>
+                handleStatusFilter(value === "all" ? undefined : (value as any))
+              }
+            >
+              <SelectTrigger className="w-[160px] h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent">
+                <SelectValue placeholder={t("admin.products.allStatus")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("admin.products.allStatus")}</SelectItem>
+                <SelectItem value="ACTIVE">{t("admin.products.active")}</SelectItem>
+                <SelectItem value="DRAFT">{t("admin.products.draft")}</SelectItem>
+                <SelectItem value="INACTIVE">{t("admin.products.hidden")}</SelectItem>
+                <SelectItem value="ARCHIVED">{t("admin.products.archived")}</SelectItem>
+              </SelectContent>
+            </Select>
 
-          {/* Sort Filter */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-amber-200 whitespace-nowrap">
-              {t("admin.products.sort")}
-            </label>
+            {/* Sort */}
             <Select
               value={searchParams.sort || "newest"}
               onValueChange={(value: string) => handleSortChange(value as any)}
             >
-              <SelectTrigger>
-                <SelectValue placeholder={t("shop.sortBy")} />
+              <SelectTrigger className="w-[180px] h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent">
+                <div className="flex items-center gap-2">
+                  <SelectValue placeholder={t("shop.sortBy")} />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="newest">{t("admin.products.newestFirst")}</SelectItem>
@@ -289,214 +280,143 @@ export default function AdminProductsPage() {
                 <SelectItem value="name_desc">{t("admin.products.nameZToA")}</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button
+              onClick={handleSearch}
+              className="h-10 px-6 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
+            >
+              {t("admin.products.filter")}
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Products Table - Custom implementation for ProductResponseAdmin */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow border border-gray-200 dark:border-amber-900/30 overflow-hidden">
+      {/* Notice Message */}
+      <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl">
+        <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+        <p className="text-sm text-amber-800 dark:text-amber-200/80 leading-relaxed">
+          <Trans
+            i18nKey="admin.products.quantityUpdatesNoticeDescription"
+            components={{ strong: <strong className="font-bold underline decoration-amber-500/30" /> }}
+          />
+        </p>
+      </div>
+
+      {/* Products Table */}
+      <div className="bg-white dark:bg-[#0B0F1A] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+            <p className="text-sm text-slate-500 font-medium">{t("admin.products.fetchingProducts")}</p>
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-amber-100/60">
-            {t("admin.products.noProductsFound")}
+          <div className="text-center py-20">
+            <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+               <Package className="h-8 w-8" />
+            </div>
+            <p className="text-slate-900 dark:text-slate-100 font-semibold">{t("admin.products.noResultsFound")}</p>
+            <p className="text-sm text-slate-500 mt-1">{t("admin.products.noResultsDescription")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-amber-900/30">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t("admin.products.id")}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t("admin.products.name")}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t("admin.products.category")}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t("admin.products.price")}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
                     {t("admin.products.status")}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    {t("admin.products.variants")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t("admin.products.created")}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
-                    {t("admin.products.updated")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-amber-200 uppercase">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
                     {t("admin.products.actions")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-amber-900/20">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {products.map((product) => (
                   <tr
                     key={product.id}
-                    className="hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                    className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
                   >
-                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-amber-100">
-                      {product.id}
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                        #{product.id.toString().slice(-4)}
+                      </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900 dark:text-amber-100">
-                        {product.name}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#D4AF37] transition-colors">
+                          {product.name}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">
+                          {product.variants?.length || 0} {t("admin.products.variants")} • {product.slug}
+                        </span>
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-amber-100/60">
-                        {product.slug}
-                      </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-amber-100">
-                      {product.categoryName}
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {product.categoryName}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-amber-100">
-                      {formatVND(product.basePrice)}
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {formatVND(product.basePrice)}
+                      </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4 text-center">
                       <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        className={cn(
+                          "px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border",
                           product.status === "ACTIVE"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
                             : product.status === "DRAFT"
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                            : product.status === "HIDDEN"
-                            ? "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                        }`}
+                            ? "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
+                            : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                        )}
                       >
                         {product.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-1">
-                        {product.variants && product.variants.length > 0 ? (
-                          product.variants.map((variant) => (
-                            <span
-                              key={variant.id}
-                              className="text-xs text-gray-600 dark:text-amber-100/70"
-                            >
-                              {variant.attributes.size &&
-                                `Size: ${variant.attributes.size}`}
-                              {variant.attributes.size &&
-                                variant.attributes.color &&
-                                " | "}
-                              {variant.attributes.color &&
-                                `Color: ${variant.attributes.color}`}
-                              {!variant.attributes.size &&
-                                !variant.attributes.color &&
-                                `SKU: ${variant.sku}`}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400 dark:text-amber-100/40">
-                            No variants
-                          </span>
-                        )}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-tight">
+                          {product.createdBy?.username || "Admin"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {formatDateTime(product.createdAt)}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      {product.createdBy ? (
-                        <div className="flex items-center gap-2">
-                          {product.createdBy.avatarUrl ? (
-                            <img
-                              src={product.createdBy.avatarUrl}
-                              alt={product.createdBy.username}
-                              className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-amber-700/40"
-                            />
-                          ) : (
-                            <UserCircle2 className="w-8 h-8 text-gray-400 dark:text-amber-600" />
-                          )}
-                          <div className="flex flex-col">
-                            <a
-                              href={`/admin/users/${product.createdBy.id}`}
-                              className="text-sm text-blue-600 dark:text-amber-400 font-medium hover:underline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                            >
-                              {product.createdBy.username ||
-                                product.createdBy.email}
-                            </a>
-                            <div className="text-xs text-gray-500 dark:text-amber-100/60">
-                              {formatDateTime(product.createdAt)}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-400 dark:text-amber-100/40 italic">
-                            Unknown
-                          </span>
-                          <div className="text-xs text-gray-500 dark:text-amber-100/60">
-                            {formatDateTime(product.createdAt)}
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {product.updatedBy ? (
-                        <div className="flex items-center gap-2">
-                          {product.updatedBy.avatarUrl ? (
-                            <img
-                              src={product.updatedBy.avatarUrl}
-                              alt={product.updatedBy.username}
-                              className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-amber-700/40"
-                            />
-                          ) : (
-                            <UserCircle2 className="w-8 h-8 text-gray-400 dark:text-amber-600" />
-                          )}
-                          <div className="flex flex-col">
-                            <a
-                              href={`/admin/users/${product.updatedBy.id}`}
-                              className="text-sm text-blue-600 dark:text-amber-400 font-medium hover:underline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                            >
-                              {product.updatedBy.username ||
-                                product.updatedBy.email}
-                            </a>
-                            <div className="text-xs text-gray-500 dark:text-amber-100/60">
-                              {formatDateTime(product.updatedAt)}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-400 dark:text-amber-100/40 italic">
-                            Unknown
-                          </span>
-                          <div className="text-xs text-gray-500 dark:text-amber-100/60">
-                            {formatDateTime(product.updatedAt)}
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      <div className="flex gap-2">
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={() => handleEdit(product)}
-                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                          className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10"
                         >
-                          {t("common.edit")}
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={() => handleDeleteClick(product)}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                         >
-                          {t("common.delete")}
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </td>
@@ -508,156 +428,81 @@ export default function AdminProductsPage() {
         )}
       </div>
 
-      {/* Luxury Pagination */}
-      {!isLoading && (totalItems > 0 || products.length > 0) && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 border border-gray-200 dark:border-amber-900/30 rounded-xl px-8 py-5 shadow-md dark:shadow-amber-950/20">
-          {/* Left: Results info and page size selector */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <p className="text-sm text-gray-600 dark:text-amber-100/70 font-light">
-              {t("admin.products.displaying")}{" "}
-              <span className="font-semibold text-gray-900 dark:text-amber-200">
-                {(currentPage - 1) * pageSize + 1}
-              </span>
-              {" â€“ "}
-              <span className="font-semibold text-gray-900 dark:text-amber-200">
-                {Math.min(currentPage * pageSize, totalItems)}
-              </span>
-              {" "}{t("admin.products.of")}{" "}
-              <span className="font-semibold text-gray-900 dark:text-amber-200">
-                {totalItems}
-              </span>
-            </p>
+      {/* Pagination Container */}
+      {!isLoading && totalItems > 0 && (
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 px-6 py-6 bg-white dark:bg-[#0B0F1A] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <span className="text-sm text-slate-500 font-medium">
+              {t("admin.products.showingXToYOfZ", {
+                start: (currentPage - 1) * pageSize + 1,
+                end: Math.min(currentPage * pageSize, totalItems),
+                total: totalItems
+              })}
+            </span>
 
-            {/* Luxury Page size selector */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500 dark:text-amber-100/60 whitespace-nowrap font-light">
-                {t("admin.products.view")}
-              </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("admin.products.perPage")}</span>
               <select
-                id="pageSize"
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="h-10 rounded-lg border border-gray-300 dark:border-amber-700/40 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-amber-100 transition-all hover:border-amber-400 dark:hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 focus:ring-offset-2 dark:focus:ring-offset-slate-900 cursor-pointer shadow-sm"
+                className="h-9 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]"
               >
-                <option
-                  value={5}
-                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
-                >
-                  5 items
-                </option>
-                <option
-                  value={10}
-                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
-                >
-                  10 items
-                </option>
-                <option
-                  value={20}
-                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
-                >
-                  20 items
-                </option>
-                <option
-                  value={50}
-                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
-                >
-                  50 items
-                </option>
-                <option
-                  value={100}
-                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100"
-                >
-                  100 items
-                </option>
+                {[10, 20, 50, 100].map(size => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          {/* Right: Luxury Page navigation */}
           <div className="flex items-center gap-2">
-            {/* Previous button */}
             <Button
               variant="outline"
               size="sm"
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="h-10 px-4 gap-2 font-medium border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className="h-10 px-4 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 bg-white dark:bg-slate-900 transition-all font-semibold rounded-lg disabled:opacity-50"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-              <span className="hidden sm:inline">{t("common.previous")}</span>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              {t("admin.products.previous")}
             </Button>
 
-            {/* Page numbers with luxury styling */}
-            <div className="flex items-center gap-1.5 mx-3">
+            <div className="flex items-center gap-1.5 px-2">
               {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((page) => {
-                  if (page === 1 || page === totalPages) return true;
-                  if (page >= currentPage - 1 && page <= currentPage + 1)
-                    return true;
+                .filter(p => {
+                  if (p === 1 || p === totalPages) return true;
+                  if (p >= currentPage - 1 && p <= currentPage + 1) return true;
                   return false;
                 })
-                .map((page, index, array) => {
-                  const showEllipsisBefore =
-                    index > 0 && page - array[index - 1] > 1;
-
+                .map((p, i, arr) => {
+                  const showEllipsis = i > 0 && p - arr[i - 1] > 1;
                   return (
-                    <div key={page} className="flex items-center">
-                      {showEllipsisBefore && (
-                        <span className="px-2 text-sm text-gray-400 dark:text-amber-500/50">
-                          â€¢â€¢â€¢
-                        </span>
-                      )}
-                      <Button
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(page)}
-                        className={`h-10 min-w-[40px] px-3 font-semibold transition-all ${
-                          currentPage === page
-                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 dark:from-amber-600 dark:to-yellow-600 hover:from-amber-600 hover:to-yellow-600 dark:hover:from-amber-700 dark:hover:to-yellow-700 text-white border-0 shadow-lg shadow-amber-500/30 dark:shadow-amber-900/40"
-                            : "border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600"
-                        }`}
+                    <div key={p} className="flex items-center gap-1.5">
+                      {showEllipsis && <span className="text-slate-300 text-xs font-bold px-1">...</span>}
+                      <button
+                        onClick={() => handlePageChange(p)}
+                        className={cn(
+                          "h-10 min-w-[40px] px-3 rounded-lg text-sm font-bold transition-all duration-200",
+                          currentPage === p
+                            ? "bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20"
+                            : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        )}
                       >
-                        {page}
-                      </Button>
+                        {p}
+                      </button>
                     </div>
                   );
                 })}
             </div>
 
-            {/* Next button */}
             <Button
               variant="outline"
               size="sm"
-              onClick={handleNextPage}
+              onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className="h-10 px-4 gap-2 font-medium border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 dark:hover:border-amber-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="h-10 px-4 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 bg-white dark:bg-slate-900 transition-all font-semibold rounded-lg disabled:opacity-50"
             >
-              <span className="hidden sm:inline">{t("common.next")}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
+              {t("admin.products.next")}
+              <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </div>

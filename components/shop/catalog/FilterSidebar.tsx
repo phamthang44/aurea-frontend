@@ -201,7 +201,7 @@ export function FilterSidebar({
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="min-price" className="text-xs">
-                      {t("filters.min")} (â‚«)
+                      {t("filters.min")} (đ)
                     </Label>
                     <Input
                       id="min-price"
@@ -221,7 +221,7 @@ export function FilterSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="max-price" className="text-xs">
-                      {t("filters.max")} (â‚«)
+                      {t("filters.max")} (đ)
                     </Label>
                     <Input
                       id="max-price"

@@ -9,6 +9,7 @@ import { Plus, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import apiClient, { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface VariantsTabProps {
   data: {
@@ -17,9 +18,13 @@ interface VariantsTabProps {
     variants?: any[];
   };
   onChange: (updates: any, skipChangeTracking?: boolean) => void;
+  errors?: Record<string, string>;
 }
 
-export function VariantsTab({ data, onChange }: VariantsTabProps) {
+import { FormField } from "../FormField";
+
+export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
+  const { t } = useTranslation();
   const [hasVariants, setHasVariants] = useState(
     (data.variants?.length || 0) > 0
   );
@@ -29,7 +34,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
   const handleToggleVariants = () => {
     if (hasVariants) {
       // Switching to simple product
-      if (confirm("This will remove all variants. Continue?")) {
+      if (confirm(t("admin.productDetail.messages.confirmRemoveAllVariants"))) {
         setHasVariants(false);
         setVariants([]);
         onChange({ variants: [] });
@@ -86,27 +91,10 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
     const variant = variants[index];
     setIsSaving(true);
 
-    // Debug logging
-    console.log("=== SAVE VARIANT DEBUG ===");
-    console.log("Variant object:", variant);
-    console.log("Variant ID:", variant.id);
-    console.log("Variant ID type:", typeof variant.id);
-    console.log("Boolean(variant.id):", Boolean(variant.id));
-    console.log("All variant keys:", Object.keys(variant));
-    console.log("=========================");
-
     try {
       // Check if variant has an ID (existing variant) or is new
       // Use truthy check - if ID exists and is not empty string, it's existing
       const isExisting = Boolean(variant.id);
-
-      console.log("Saving variant:", {
-        index,
-        variantId: variant.id,
-        variantIdType: typeof variant.id,
-        isExisting,
-        variant,
-      });
 
       if (isExisting) {
         // Update existing variant via event-driven architecture
@@ -122,13 +110,13 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
 
         if (variantResponse.error) {
           toast.error(
-            variantResponse.error.message || "Failed to update variant"
+            variantResponse.error.message || t("admin.productDetail.messages.variantUpdateFail")
           );
           setIsSaving(false);
           return;
         }
 
-        toast.success("Variant updated successfully");
+        toast.success(t("admin.productDetail.messages.variantUpdateSuccess"));
 
         // Update local state with backend response
         const result = variantResponse.data as any;
@@ -152,9 +140,9 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
         });
 
         if (response.error) {
-          toast.error(response.error.message || "Failed to create variant");
+          toast.error(response.error.message || t("admin.productDetail.messages.variantCreateFail"));
         } else {
-          toast.success("Variant created successfully with initial stock!");
+          toast.success(t("admin.productDetail.messages.variantCreateSuccess"));
           const result = response.data as any;
           const newVariant = result?.data;
           console.log("Created variant data:", newVariant);
@@ -168,7 +156,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
       }
     } catch (error) {
       console.error("Error saving variant:", error);
-      toast.error("An error occurred while saving variant");
+      toast.error(t("admin.productDetail.messages.variantSaveError"));
     } finally {
       setIsSaving(false);
     }
@@ -177,7 +165,7 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
   const removeVariant = async (index: number) => {
     const variant = variants[index];
 
-    if (!confirm("Remove this variant?")) {
+    if (!confirm(t("admin.productDetail.messages.confirmRemoveVariant"))) {
       return;
     }
 
@@ -188,14 +176,14 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
         const response = await clientApi.deleteVariant(variant.id);
 
         if (response.error) {
-          toast.error(response.error.message || "Failed to delete variant");
+          toast.error(response.error.message || t("admin.productDetail.messages.variantDeleteFail"));
           setIsSaving(false);
           return;
         }
 
-        toast.success("Variant deleted successfully");
+        toast.success(t("admin.productDetail.messages.variantDeleteSuccess"));
       } catch (error) {
-        toast.error("An error occurred while deleting variant");
+        toast.error(t("admin.productDetail.messages.variantDeleteError"));
         setIsSaving(false);
         return;
       } finally {
@@ -227,276 +215,272 @@ export function VariantsTab({ data, onChange }: VariantsTabProps) {
 
       if (response.error) {
         toast.error(
-          response.error.message || "Failed to update variant status"
+          response.error.message || t("admin.productDetail.messages.variantUpdateStatusFail")
         );
       } else {
         updateVariant(index, "isActive", newStatus, true); // Skip change tracking - already saved
-        toast.success(`Variant ${newStatus ? "activated" : "deactivated"}`);
+        toast.success(t(`admin.productDetail.messages.variant${newStatus ? "Activated" : "Deactivated"}`));
       }
     } catch (error) {
-      toast.error("An error occurred while updating variant status");
+      toast.error(t("admin.productDetail.messages.variantUpdateStatusError"));
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-full">
-      <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-1">
-          Variants & Pricing
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Configure product pricing and inventory
-        </p>
-      </div>
-
-      {/* Toggle: Simple vs Variants */}
-      <div className="flex items-center gap-4 p-4 bg-secondary/20 rounded-lg border border-border">
-        <div className="flex-1">
-          <h3 className="font-medium text-foreground">Product Type</h3>
-          <p className="text-sm text-muted-foreground">
-            {hasVariants
-              ? "This product has multiple variants (size, color, etc.)"
-              : "This is a simple product with a single price"}
-          </p>
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex flex-col gap-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t("admin.productDetail.pricingAndInventory")}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t("admin.productDetail.manageVariations")}</p>
+          </div>
+          
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => hasVariants && handleToggleVariants()}
+              className={cn(
+                "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
+                !hasVariants 
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              )}
+            >
+              {t("admin.productDetail.simpleProduct")}
+            </button>
+            <button
+              onClick={() => !hasVariants && handleToggleVariants()}
+              className={cn(
+                "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
+                hasVariants 
+                  ? "bg-[#D4AF37] text-white shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              )}
+            >
+              {t("admin.productDetail.productWithVariants")}
+            </button>
+          </div>
         </div>
-        <Button
-          onClick={handleToggleVariants}
-          variant="outline"
-          className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600/10"
-        >
-          {hasVariants ? "Convert to Simple" : "Add Variants"}
-        </Button>
-      </div>
 
-      {/* Simple Product Pricing */}
-      {!hasVariants && (
-        <div className="space-y-6 max-w-2xl">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label
-                htmlFor="basePrice"
-                className="text-foreground font-medium"
-              >
-                Price (VND) <span className="text-red-500">*</span>
-              </Label>
-              <CurrencyInput
-                id="basePrice"
-                value={data.basePrice}
-                onChange={(value) => onChange({ basePrice: value })}
-                placeholder="0"
-              />
+        {/* Simple Product Pricing */}
+        {!hasVariants && (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-6 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="md:col-span-12">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest mb-4">{t("admin.productDetail.basePricing")}</h4>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="stock" className="text-foreground font-medium">
-                Stock Quantity
-              </Label>
+            <FormField
+              label={t("admin.productDetail.retailPrice")}
+              required
+              error={errors.basePrice}
+              className="md:col-span-6"
+            >
+              <div className="relative">
+                <CurrencyInput
+                  id="basePrice"
+                  value={data.basePrice}
+                  onChange={(value) => onChange({ basePrice: value })}
+                  error={!!errors.basePrice}
+                  className={cn(
+                    "h-11 pl-4 pr-12 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base font-mono",
+                    errors.basePrice && "border-rose-500 focus:ring-rose-500/20"
+                  )}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">{t("common.vnd", "VND")}</span>
+              </div>
+            </FormField>
+
+            <FormField
+              label={t("admin.productDetail.skuReference")}
+              className="md:col-span-6"
+            >
+              <Input
+                id="sku"
+                value={(data as any).sku || ""}
+                onChange={(e) => onChange({ sku: e.target.value })}
+                placeholder="PROD-LXX-001"
+                className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base font-mono"
+              />
+            </FormField>
+
+            <FormField
+              label={t("admin.productDetail.initialStock")}
+              error={errors.stock}
+              hint={t("admin.productDetail.initialStockDesc")}
+              className="md:col-span-6"
+            >
               <Input
                 id="stock"
                 type="number"
+                value={(data as any).stock || 0}
+                onChange={(e) => onChange({ stock: parseInt(e.target.value) || 0 })}
                 placeholder="0"
-                className="bg-background text-foreground"
+                aria-invalid={!!errors.stock}
+                className={cn(
+                  "h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base",
+                  errors.stock && "border-rose-500 focus:ring-rose-500/20"
+                )}
               />
-            </div>
+            </FormField>
           </div>
+        )}
 
-          <div className="space-y-2">
-            <Label htmlFor="sku" className="text-foreground font-medium">
-              SKU (Stock Keeping Unit)
-            </Label>
-            <Input
-              id="sku"
-              placeholder="e.g., SHIRT-001"
-              className="bg-background text-foreground"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Variants Table */}
-      {hasVariants && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-foreground">
-              Variants Matrix
-            </h3>
-            <Button
-              onClick={addVariant}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Variant
-            </Button>
-          </div>
-
-          <div className="overflow-x-auto border border-border rounded-lg">
-            <table className="w-full text-sm">
-              <thead className="bg-secondary/50 border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                    Image
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                    Size
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                    Color
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                    Price (VND)
-                  </th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                    Stock Quantity
-                  </th>
-                  <th className="px-4 py-3 text-center font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-center font-medium text-muted-foreground">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {variants.map((variant, index) => (
-                  <tr
-                    key={variant.id || `new-${index}`}
-                    className="hover:bg-secondary/20"
-                  >
-                    <td className="px-4 py-3">
-                      {variant.imageUrl ? (
-                        <div className="w-16 h-16 rounded border overflow-hidden">
-                          <img
-                            src={variant.imageUrl}
-                            alt="Variant"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 border border-dashed border-border rounded flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">
-                            No image
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Input
-                        value={variant.attributes?.size || ""}
-                        onChange={(e) =>
-                          updateVariant(
-                            index,
-                            "attributes.size",
-                            e.target.value
-                          )
-                        }
-                        placeholder="M"
-                        className="h-9 bg-background"
-                        disabled={Boolean(variant.id)}
-                        title={
-                          variant.id
-                            ? "Cannot change attributes of existing variant (SKU is derived from attributes)"
-                            : "Set variant size"
-                        }
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <Input
-                        value={variant.attributes?.color || ""}
-                        onChange={(e) =>
-                          updateVariant(
-                            index,
-                            "attributes.color",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Black"
-                        className="h-9 bg-background"
-                        disabled={Boolean(variant.id)}
-                        title={
-                          variant.id
-                            ? "Cannot change attributes of existing variant (SKU is derived from attributes)"
-                            : "Set variant color"
-                        }
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <CurrencyInput
-                        value={variant.priceOverride || 0}
-                        onChange={(value) =>
-                          updateVariant(index, "priceOverride", value || 0)
-                        }
-                        placeholder="0"
-                        className="h-9 bg-background text-right"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <CurrencyInput
-                        value={variant.quantity || 0}
-                        onChange={(value) =>
-                          updateVariant(index, "quantity", value || 0)
-                        }
-                        placeholder="0"
-                        className="h-9 bg-background text-right"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => toggleVariantStatus(index)}
-                        disabled={isSaving}
-                        className={cn(
-                          "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                          variant.isActive
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400",
-                          isSaving && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        {variant.isActive ? "Active" : "Inactive"}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => saveVariant(index)}
-                          disabled={isSaving}
-                          className="h-8 w-8 text-blue-600 hover:bg-blue-600/10"
-                          title="Save variant"
-                        >
-                          <Save className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeVariant(index)}
-                          disabled={isSaving}
-                          className="h-8 w-8 text-red-600 hover:bg-red-600/10"
-                          title="Delete variant"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {variants.length === 0 && (
-            <div className="text-center py-12 border border-dashed border-border rounded-lg">
-              <p className="text-muted-foreground mb-4">No variants yet</p>
-              <Button onClick={addVariant} variant="outline">
+        {/* Variants Matrix */}
+        {hasVariants && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">{t("admin.productDetail.variantsMatrix")}</h4>
+              <Button
+                onClick={addVariant}
+                size="sm"
+                className="bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 h-9 px-4 font-bold rounded-lg"
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Add First Variant
+                {t("admin.productDetail.addVariant")}
               </Button>
             </div>
-          )}
-        </div>
-      )}
+
+            <div className="bg-white dark:bg-[#0B0F1A] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.image")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.attributeSize")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.attributeColor")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.priceOverride")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.currentStock")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t("admin.productDetail.tableStatus")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.tableActions")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {variants.map((variant, index) => (
+                      <tr key={variant.id || `new-${index}`} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="w-12 h-12 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden group-hover:border-[#D4AF37]/50 transition-colors">
+                            {variant.imageUrl ? (
+                              <img src={variant.imageUrl} alt="Variant" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                                <span className="text-[10px] text-slate-300 font-bold">{t("admin.productDetail.notAvailable")}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Input
+                            value={variant.attributes?.size || ""}
+                            onChange={(e) => updateVariant(index, "attributes.size", e.target.value)}
+                            placeholder="M"
+                            className="h-9 w-24 bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all font-bold text-slate-900 dark:text-slate-100"
+                            disabled={Boolean(variant.id)}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <Input
+                            value={variant.attributes?.color || ""}
+                            onChange={(e) => updateVariant(index, "attributes.color", e.target.value)}
+                            placeholder="Black"
+                            className="h-9 w-32 bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all font-bold text-slate-900 dark:text-slate-100"
+                            disabled={Boolean(variant.id)}
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            <CurrencyInput
+                              value={variant.priceOverride || 0}
+                              onChange={(value) => updateVariant(index, "priceOverride", value || 0)}
+                              error={!!errors[`variant_${index}_price`]}
+                              className={cn(
+                                "h-9 w-32 ml-auto bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-mono font-bold text-slate-900 dark:text-slate-100",
+                                errors[`variant_${index}_price`] && "border-rose-500 bg-rose-50 dark:bg-rose-500/10"
+                              )}
+                            />
+                            {errors[`variant_${index}_price`] && (
+                              <span className="text-[9px] text-rose-500 font-bold">{errors[`variant_${index}_price`]}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center justify-end gap-2 w-full">
+                               <Input
+                                type="number"
+                                value={variant.quantity || 0}
+                                onChange={(e) => updateVariant(index, "quantity", Number(e.target.value) || 0)}
+                                aria-invalid={!!errors[`variant_${index}_stock`]}
+                                className={cn(
+                                  "h-9 w-20 bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-bold text-slate-900 dark:text-slate-100",
+                                  errors[`variant_${index}_stock`] && "border-rose-500 bg-rose-50 dark:bg-rose-500/10"
+                                )}
+                              />
+                              {variant.quantity < 5 && variant.quantity > 0 && (
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              )}
+                            </div>
+                            {errors[`variant_${index}_stock`] && (
+                              <span className="text-[9px] text-rose-500 font-bold">{errors[`variant_${index}_stock`]}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => toggleVariantStatus(index)}
+                            disabled={isSaving}
+                            className={cn(
+                              "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all",
+                              variant.isActive
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
+                                : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-500 dark:border-slate-700"
+                            )}
+                          >
+                            {variant.isActive ? t("admin.productDetail.active") : t("admin.productDetail.disabled")}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => saveVariant(index)}
+                              disabled={isSaving}
+                              className="h-8 w-8 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeVariant(index)}
+                              disabled={isSaving}
+                              className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {variants.length === 0 && hasVariants && (
+          <div className="flex flex-col items-center justify-center py-16 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+            <p className="text-slate-400 font-medium mb-4">{t("admin.productDetail.noVariantsDefined")}</p>
+            <Button onClick={addVariant} className="bg-[#D4AF37] text-white h-10 px-6 font-bold rounded-xl shadow-lg shadow-[#D4AF37]/20">
+              <Plus className="h-4 w-4 mr-2" />
+              {t("admin.productDetail.initializeVariants")}
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

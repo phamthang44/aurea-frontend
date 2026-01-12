@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductResponse } from "@/lib/types/product";
 import { Pencil, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ProductTableProps {
   products: ProductResponse[];
@@ -25,6 +26,7 @@ export function ProductTable({
   onDelete,
   isLoading,
 }: ProductTableProps) {
+  const { t } = useTranslation();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -37,7 +39,7 @@ export function ProductTable({
       <div className="text-center py-16 bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 rounded-xl border border-gray-200 dark:border-amber-900/30">
         <div className="inline-block h-10 w-10 border-4 border-amber-200 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin" />
         <p className="mt-6 text-sm text-gray-500 dark:text-amber-100/60 font-light tracking-wide">
-          Loading your collection...
+          {t("admin.products.loadingCollection")}
         </p>
       </div>
     );
@@ -47,7 +49,7 @@ export function ProductTable({
     return (
       <div className="text-center py-16 bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 rounded-xl border border-gray-200 dark:border-amber-900/30">
         <p className="text-sm text-gray-500 dark:text-amber-100/60 font-light">
-          No products in collection
+          {t("admin.products.noResultsFound")}
         </p>
       </div>
     );
@@ -59,22 +61,22 @@ export function ProductTable({
         <TableHeader>
           <TableRow className="border-b border-gray-200 dark:border-amber-900/30 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700">
             <TableHead className="font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              ID
+              {t("admin.products.id")}
             </TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              Product Name
+              {t("admin.products.productName")}
             </TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              Category
+              {t("admin.products.category")}
             </TableHead>
             <TableHead className="text-right font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              Price
+              {t("admin.products.price")}
             </TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              Variants
+              {t("admin.products.variants")}
             </TableHead>
             <TableHead className="text-right w-[120px] font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              Actions
+              {t("admin.products.actions")}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -93,7 +95,7 @@ export function ProductTable({
                 {product.name}
               </TableCell>
               <TableCell className="text-gray-600 dark:text-amber-200/70 font-light">
-                {product.categoryName || "Uncategorized"}
+                {product.categoryName || t("admin.products.uncategorized")}
               </TableCell>
               <TableCell className="text-right font-bold text-gray-900 dark:text-amber-300">
                 {formatPrice(product.basePrice)}

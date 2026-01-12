@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks';
 import { User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ModeToggle } from '@/components/ui/ModeToggle';
+import { SettingsButton } from '@/components/ui/SettingsButton';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { cn, clearCartData } from '@/lib/utils';
@@ -18,9 +18,8 @@ export function NavBar() {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const userRole = useAppSelector((state) => state.auth.user?.roles);
-  const isAdmin = userRole?.includes('ADMIN');
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const isAdmin = user?.roles?.includes('ADMIN');
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
@@ -91,56 +90,40 @@ export function NavBar() {
 
           {/* Auth Section */}
           <div className="flex items-center gap-4">
-            {/* Theme Toggle */}
-            <ModeToggle />
-            
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                {/* Admin Dashboard Link - Only visible for ADMIN users */}
-                {isAdmin && (
-                  <Link href="/admin/products">
-                    <Button
-                      variant="ghost"
-                      className="font-light tracking-wide px-4 py-2 text-xs text-muted-foreground hover:text-foreground border border-border/50"
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Admin
-                    </Button>
-                  </Link>
-                )}
-                <Link href="/account">
+              <div className="flex items-center gap-4">
+                <Link href="/account" className="no-underline">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full border border-border hover:bg-accent"
+                    className="h-10 w-10 rounded-full border-2 border-accent p-0 overflow-hidden hover:scale-105 transition-all bg-background"
                   >
-                    <User className="h-5 w-5" />
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.fullName || 'User'} className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-5 w-5 text-accent" />
+                    )}
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="font-light tracking-wide px-4 py-2 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Logout
-                </Button>
               </div>
             ) : (
               <Link href="/auth">
                 <Button
-                  variant="ghost"
-                  className="font-light tracking-wide px-6 py-2 border border-border hover:bg-accent"
+                  variant="outline"
+                  className="px-6 py-2 border-accent text-accent hover:bg-accent hover:text-white rounded-full transition-all"
                 >
-                  {mounted ? t("navbar.signIn", { defaultValue: "Sign In" }) : "Sign In"}
+                  Sign In
                 </Button>
               </Link>
             )}
+
+            {/* Settings (Language & Theme) - Far Right */}
+            <SettingsButton />
           </div>
         </div>
       </div>
     </nav>
   );
 }
-
 
 

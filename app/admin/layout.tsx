@@ -23,10 +23,9 @@ import { logoutAction } from "@/app/actions/auth";
 import { clearAuth } from "@/lib/store/authSlice";
 import { useCartStore } from "@/lib/store/cartStore";
 import { cn, clearCartData } from "@/lib/utils";
-import { ModeToggle } from "@/components/ui/ModeToggle";
 import { AuthGuard } from "@/components/providers/AuthGuard";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { SettingsButton } from "@/components/ui/SettingsButton";
 
 interface NavItem {
   label: string;
@@ -119,73 +118,90 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         {/* Sidebar - Desktop */}
         <aside
           className={cn(
-            "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 border-r border-gray-200 dark:border-amber-900/20 transition-all duration-300 hidden lg:block shadow-xl dark:shadow-amber-950/30",
-            isSidebarCollapsed ? "w-20" : "w-64"
+            "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-[#0B0F1A] border-r border-gray-200 dark:border-slate-800 transition-all duration-300 hidden lg:block shadow-[1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-none",
+            isSidebarCollapsed ? "w-[72px]" : "w-64"
           )}
         >
           <div className="flex flex-col h-full">
-            {/* Logo */}
-            <div className="h-16 flex items-center justify-between px-6 ">
-              {!isSidebarCollapsed && (
-                <Link
-                  href="/"
-                  className="text-xl font-light tracking-wider text-[#D4AF37] no-underline"
-                >
-                  AUREA
-                </Link>
-              )}
+            {/* Logo Section */}
+            <div className="h-16 flex items-center px-6 border-b border-gray-100 dark:border-slate-800/50">
+              <Link
+                href="/"
+                className={cn(
+                  "flex items-center gap-2 no-underline transition-all duration-300",
+                  isSidebarCollapsed ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
+                )}
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#D4AF37] flex items-center justify-center shadow-lg shadow-[#D4AF37]/20">
+                  <span className="text-white font-bold text-xl">A</span>
+                </div>
+                <span className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100 uppercase">
+                  Aurea
+                </span>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="text-muted-foreground hover:text-foreground ml-auto"
+                className={cn(
+                  "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+                  isSidebarCollapsed ? "mx-auto" : "ml-auto"
+                )}
               >
                 {isSidebarCollapsed ? (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-5 w-5" />
                 ) : (
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-5 w-5" />
                 )}
               </Button>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-3 py-6 space-y-1">
+            {/* Navigation Section */}
+            <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none">
+              <div className={cn(
+                "px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-300",
+                isSidebarCollapsed ? "opacity-0" : "opacity-100"
+              )}>
+                Menu
+              </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    title={isSidebarCollapsed ? t(getNavLabel(item.label)) : ""}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 no-underline group relative",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 no-underline group relative",
                       isActive
-                        ? "bg-[#D4AF37] text-white shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                        ? "bg-[#D4AF37]/10 text-[#D4AF37] dark:bg-[#D4AF37]/5"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                     )}
                   >
-                    <Icon
-                      className={cn(
-                        "h-5 w-5 flex-shrink-0",
-                        isActive && "text-white"
-                      )}
-                    />
+                    <div className={cn(
+                      "flex items-center justify-center transition-colors",
+                      isActive ? "text-[#D4AF37]" : "group-hover:text-slate-900 dark:group-hover:text-slate-200"
+                    )}>
+                      <Icon className="h-5 w-5 flex-shrink-0" />
+                    </div>
+                    
                     {!isSidebarCollapsed && (
-                      <>
-                        <span className="flex-1">{t(getNavLabel(item.label), { defaultValue: item.label })}</span>
-                        {item.badge && (
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-[#D4AF37] text-white">
-                            {item.badge}
-                          </span>
-                        )}
-                      </>
+                      <span className="flex-1 truncate">
+                        {t(getNavLabel(item.label), { defaultValue: item.label })}
+                      </span>
+                    )}
+
+                    {isActive && !isSidebarCollapsed && (
+                      <div className="h-5 w-1 rounded-full bg-[#D4AF37]" />
                     )}
 
                     {/* Tooltip for collapsed state */}
                     {isSidebarCollapsed && (
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-foreground text-background text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-xl border border-slate-800 translate-x-1 group-hover:translate-x-0 z-[60]">
                         {t(getNavLabel(item.label), { defaultValue: item.label })}
+                        <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-800 rotate-45" />
                       </div>
                     )}
                   </Link>
@@ -193,26 +209,42 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               })}
             </nav>
 
-            {/* User Section */}
-            <div className="p-3">
+            {/* Bottom Section */}
+            <div className="p-3 border-t border-gray-100 dark:border-slate-800/50 space-y-1">
               <Link
                 href="/"
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 no-underline text-muted-foreground hover:text-foreground hover:bg-secondary mb-2"
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 no-underline text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 group"
                 )}
               >
-                <Home className="h-5 w-5 flex-shrink-0" />
-                {!isSidebarCollapsed && <span>{t("admin.layout.backToSite", { defaultValue: "Back to Site" })}</span>}
+                <div className="flex items-center justify-center">
+                  <Home className="h-5 w-5 flex-shrink-0" />
+                </div>
+                {!isSidebarCollapsed && <span className="flex-1">{t("admin.layout.backToSite", { defaultValue: "Back to Site" })}</span>}
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-xl border border-slate-800 translate-x-1 group-hover:translate-x-0 z-[60]">
+                    {t("admin.layout.backToSite")}
+                    <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-800 rotate-45" />
+                  </div>
+                )}
               </Link>
 
               <button
                 onClick={handleLogout}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 text-destructive hover:bg-destructive/10"
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 group relative"
                 )}
               >
-                <LogOut className="h-5 w-5 flex-shrink-0" />
-                {!isSidebarCollapsed && <span>{t("admin.layout.logout", { defaultValue: "Logout" })}</span>}
+                <div className="flex items-center justify-center">
+                  <LogOut className="h-5 w-5 flex-shrink-0" />
+                </div>
+                {!isSidebarCollapsed && <span className="flex-1 text-left">{t("admin.layout.logout", { defaultValue: "Logout" })}</span>}
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-rose-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-xl translate-x-1 group-hover:translate-x-0 z-[60]">
+                    {t("admin.layout.logout")}
+                    <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-rose-600 rotate-45" />
+                  </div>
+                )}
               </button>
             </div>
           </div>
@@ -329,77 +361,73 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           )}
         >
           {/* Top Header */}
-          <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-amber-900/30 shadow-sm dark:shadow-amber-950/20">
+          <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#0B0F1A]/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm">
             <div className="h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-              {/* Mobile Menu Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMobileSidebarOpen(true)}
-                className="lg:hidden text-muted-foreground hover:text-foreground"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-
-              {/* Breadcrumbs */}
-              <div className="flex items-center gap-2 text-sm">
-                <Link
-                  href="/"
-                  className="text-gray-500 dark:text-amber-200/60 hover:text-gray-900 dark:hover:text-amber-200 no-underline transition-colors"
+              <div className="flex items-center gap-4">
+                {/* Mobile Menu Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="lg:hidden text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
                 >
-                  {t("admin.layout.home", { defaultValue: "Home" })}
-                </Link>
-                {generateBreadcrumbs().map((crumb, index) => {
-                  const breadcrumbs = generateBreadcrumbs();
-                  return (
+                  <Menu className="h-5 w-5" />
+                </Button>
+
+                {/* Breadcrumbs */}
+                <nav className="hidden sm:flex items-center gap-2 text-sm font-medium">
+                  <Link
+                    href="/admin"
+                    className="text-slate-400 hover:text-[#D4AF37] no-underline transition-colors"
+                  >
+                    {t("admin.layout.dashboard", { defaultValue: "Dashboard" })}
+                  </Link>
+                  {generateBreadcrumbs().map((crumb, index, array) => (
                     <div key={crumb.href} className="flex items-center gap-2">
-                      <span className="text-gray-400 dark:text-amber-500/50">
-                        /
-                      </span>
+                      <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600" />
                       <Link
                         href={crumb.href}
                         className={cn(
                           "no-underline transition-colors",
-                          index === breadcrumbs.length - 1
-                            ? "text-gray-900 dark:text-amber-200 font-semibold"
-                            : "text-gray-500 dark:text-amber-200/60 hover:text-gray-900 dark:hover:text-amber-200"
+                          index === array.length - 1
+                            ? "text-slate-900 dark:text-slate-100 font-semibold cursor-default pointer-events-none"
+                            : "text-slate-400 hover:text-[#D4AF37] dark:text-slate-500 dark:hover:text-[#D4AF37]"
                         )}
                       >
                         {crumb.label}
                       </Link>
                     </div>
-                  );
-                })}
+                  ))}
+                </nav>
               </div>
 
               {/* Right side - Theme Toggle and User Avatar */}
-              <div className="flex items-center gap-3">
-                {/* Theme Toggle */}
-                <ModeToggle />
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* Settings Button (Language & Theme) */}
+                <SettingsButton />
 
-                {/* User Avatar */}
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 dark:from-amber-600 dark:to-yellow-700 flex items-center justify-center text-white font-semibold shadow-lg shadow-amber-500/30 dark:shadow-amber-900/40 ring-2 ring-white dark:ring-slate-800">
-                  {user?.fullName?.charAt(0).toUpperCase() || "A"}
+                <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+
+                {/* User Profile Hook */}
+                <div className="flex items-center gap-3 pl-1">
+                  <div className="hidden md:flex flex-col items-end">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+                      {user?.fullName || "Admin User"}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
+                      {user?.roles?.[0] || "Administrator"}
+                    </span>
+                  </div>
+                  <div className="h-10 w-10 rounded-full border-2 border-gray-100 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-800 transition-transform hover:scale-105">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.fullName || "User"} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#D4AF37] to-[#B8962D] text-white font-bold text-sm">
+                        {user?.fullName?.charAt(0).toUpperCase() || "A"}
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                {/* Language Selector */}
-                <LanguageSwitcher />
-              </div>
-            </div>
-
-            {/* Welcome Message - Below Navigation */}
-            <div className="px-4 sm:px-6 lg:px-8 pb-3 pt-1">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-gray-700 dark:text-amber-100/80">
-                  {t("admin.layout.welcomeBack", { defaultValue: "Welcome back," })}{" "}
-                  <span className="bg-gradient-to-r from-amber-600 to-yellow-600 dark:from-amber-400 dark:to-yellow-400 bg-clip-text text-transparent font-semibold">
-                    {user?.fullName || t("admin.layout.admin", { defaultValue: "Admin" })}
-                  </span>
-                </p>
-                <span className="text-gray-400 dark:text-amber-500/50"><UserCircle2 className="h-5 w-5 text-gray-400 dark:text-amber-500/50" /></span>
-                <p className="text-xs text-gray-500 dark:text-amber-200/50">
-                  {user?.email || "admin@aurea.com"}
-                </p>
               </div>
             </div>
           </header>

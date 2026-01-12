@@ -4,8 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks';
 import { User, LogOut, Settings, Menu, X, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ModeToggle } from '@/components/ui/ModeToggle';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { SettingsButton } from '@/components/ui/SettingsButton';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { clearCartData } from '@/lib/utils';
@@ -84,55 +83,30 @@ export function LuxuryNavBar() {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-            {/* Language Switcher - Hidden on mobile */}
-            <div className="hidden sm:block">
-              <LanguageSwitcher />
-            </div>
-            
-            {/* Theme Toggle */}
-            <ModeToggle />
-            
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Desktop Auth Actions */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-4">
               {isAuthenticated ? (
                 <>
-                  {isAdmin && user && (
-                    <Link href="/admin/products">
-                      <Button
-                        variant="ghost"
-                        className="font-light tracking-wide px-3 py-2 text-xs text-[#8B7355] dark:text-[#B8A072] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 border border-[#D4AF37]/30 transition-colors duration-300"
-                      >
-                        <Settings className="h-3.5 w-3.5 mr-1.5" />
-                        {t("navbar.admin")}
-                      </Button>
-                    </Link>
-                  )}
-
-                  <Link href="/account">
+                  <Link href="/account" className="no-underline">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-10 w-10 rounded-full border border-[#D4AF37]/30 text-[#8B7355] dark:text-[#B8A072] hover:text-[#D4AF37] hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/10 transition-colors duration-300"
+                      className="h-10 w-10 rounded-full border-2 border-[#D4AF37] p-0 overflow-hidden hover:scale-105 transition-all bg-white dark:bg-[#161616]"
                     >
-                      <User className="h-5 w-5" />
+                      {user?.avatarUrl ? (
+                         <img src={user.avatarUrl} alt={user.fullName || 'User'} className="h-full w-full object-cover" />
+                      ) : (
+                        <User className="h-5 w-5 text-[#D4AF37]" />
+                      )}
                     </Button>
                   </Link>
-
-                  <Button
-                    variant="ghost"
-                    onClick={handleLogout}
-                    className="font-light tracking-wide px-3 py-2 text-xs text-[#8B7355] dark:text-[#B8A072] hover:text-[#D4AF37] transition-colors duration-300"
-                  >
-                    <LogOut className="h-3.5 w-3.5 mr-1.5" />
-                    {t("navbar.logout")}
-                  </Button>
                 </>
               ) : (
-                <Link href="/login">
+                <Link href="/login" className="no-underline">
                   <Button
                     variant="outline"
-                    className="font-light tracking-wide px-5 py-2 border-2 border-[#D4AF37] text-[#D4AF37] hover:text-white dark:hover:text-[#1A1A1A] hover:bg-[#D4AF37] dark:hover:bg-[#D4AF37] transition-all duration-300"
+                    className="font-light tracking-wide px-6 py-2 border-2 border-[#D4AF37] text-[#D4AF37] hover:text-white dark:hover:text-[#1A1A1A] hover:bg-[#D4AF37] dark:hover:bg-[#D4AF37] rounded-full transition-all duration-300 shadow-md shadow-[#D4AF37]/20"
                     suppressHydrationWarning
                   >
                     {mounted ? t("navbar.signIn") : "Sign In"}
@@ -141,15 +115,20 @@ export function LuxuryNavBar() {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden h-9 w-9 text-[#8B7355] dark:text-[#B8A072]"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            {/* Mobile Menu Button - Shown only on small screens */}
+            <div className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-[#8B7355] dark:text-[#B8A072] rounded-full border border-[#D4AF37]/20"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </div>
+
+            {/* Settings Button (Language & Theme) - Aligned to the end */}
+            <SettingsButton />
           </div>
         </div>
       </div>
@@ -174,8 +153,8 @@ export function LuxuryNavBar() {
             <div className="border-t border-[#D4AF37]/20 dark:border-[#2A2A2A] pt-3 mt-3">
               {/* Mobile Language Switcher */}
               <div className="flex items-center gap-2 py-2">
-                <span className="text-xs text-[#666666] dark:text-[#888888]">Language:</span>
-                <LanguageSwitcher />
+                <span className="text-xs text-[#666666] dark:text-[#888888]">Settings:</span>
+                <SettingsButton />
               </div>
               
               {/* Mobile Auth */}

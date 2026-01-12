@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, X as CloseIcon } from "lucide-react";
+import { ArrowLeft, Save, X as CloseIcon, ChevronRight, XCircle, RefreshCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,9 @@ import { clientApi } from "@/lib/api-client";
 import { ProductResponse, ApiResult } from "@/lib/types/product";
 import { productApi } from "@/lib/api/product";
 import { useTranslation, Trans } from "react-i18next";
+import { AdminErrorDisplay } from "@/components/admin/AdminErrorDisplay";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 type Tab = "general" | "media" | "variants" | "settings";
 
@@ -32,6 +35,8 @@ interface ProductData {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string;
+  stock?: number;
+  sku?: string;
   // Deprecated fields (kept for backward compatibility)
   /** @deprecated Use assets array instead */
   thumbnail?: string;
@@ -49,9 +54,11 @@ export default function ProductDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Store original data for change detection
   const [originalData, setOriginalData] = useState<ProductData | null>(null);
+  const [pageError, setPageError] = useState<{ title: string; description?: string; items?: any[] } | null>(null);
 
   const [productData, setProductData] = useState<ProductData>({
     id: productId,
@@ -76,30 +83,25 @@ export default function ProductDetailPage() {
         const response = await clientApi.getProductById(productId);
 
         if (response.error) {
-          const errorMsg = response.error.message || "Failed to load product";
+          const errorMsg = response.error.message || t("admin.productDetail.loadProductError");
           const traceId = (response.error as any).traceId;
           console.error("Product fetch error:", {
             productId,
             error: response.error,
             traceId,
           });
-          toast.error(traceId ? `${errorMsg} (Trace: ${traceId})` : errorMsg);
-          router.push("/admin/products");
+          setPageError({
+             title: "Access Denied or Connection Failure",
+             description: "We couldn't retrieve the requested boutique item from the vault.",
+             items: [{ label: "Product ID", message: productId }, { label: "Error", message: errorMsg }]
+          });
         } else {
           const result = response.data as ApiResult<ProductResponse>;
           const product = result?.data;
 
-          console.log("=== PRODUCT FETCH DEBUG ===");
-          console.log("Full product response:", product);
-          console.log("Product variants:", product?.variants);
           if (product?.variants && product.variants.length > 0) {
-            console.log("First variant:", product.variants[0]);
-            console.log(
-              "First variant keys:",
-              Object.keys(product.variants[0])
-            );
+            // Log structure of first variant if needed in dev
           }
-          console.log("=========================");
 
           if (product) {
             // Convert backend assets to frontend format
@@ -152,10 +154,11 @@ export default function ProductDetailPage() {
       } catch (error) {
         console.error("Error fetching product:", error);
         const errorMsg = error instanceof Error ? error.message : "Unknown error";
-        toast.error(
-          `${t("admin.productDetail.loadProductError")}: ${errorMsg}`
-        );
-        router.push("/admin/products");
+        setPageError({
+           title: "Access Denied or Connection Failure",
+           description: "We couldn't retrieve the requested boutique item from the vault.",
+           items: [{ label: "Product ID", message: productId }, { label: "Error", message: errorMsg }]
+        });
       } finally {
         setIsLoading(false);
       }
@@ -166,10 +169,82 @@ export default function ProductDetailPage() {
 
   const tabs = [
     { id: "general" as Tab, label: t("admin.productDetail.general"), icon: "📝" },
-    { id: "media" as Tab, label: t("admin.productDetail.media"), icon: "🖼️" },
+    { id: "media" as Tab, label: t("admin.productDetail.media.label"), icon: "🖼️" },
     { id: "variants" as Tab, label: t("admin.productDetail.variants"), icon: "💰" },
     { id: "settings" as Tab, label: t("admin.productDetail.settings"), icon: "⚙️" },
   ];
+
+  // Perform overall validation before save
+  const validateProductData = () => {
+    const newErrors: Record<string, string> = {};
+
+    // General Information validation
+    if (!productData.name?.trim()) {
+      newErrors.name = t("admin.productDetail.createDialog.validation.nameRequired");
+    } else if (productData.name.trim().length < 3) {
+      newErrors.name = t("admin.productDetail.createDialog.validation.nameTooShort");
+    }
+
+    if (!productData.categoryId) {
+      newErrors.categoryId = t("admin.productDetail.createDialog.validation.categoryRequired");
+    }
+
+    if (!productData.basePrice || productData.basePrice < 1000) {
+      newErrors.basePrice = t("admin.productDetail.createDialog.validation.pricePositive");
+    }
+
+    if (!productData.description?.trim()) {
+      newErrors.description = t("admin.productDetail.createDialog.validation.descriptionRequired");
+    } else if (productData.description.trim().length < 20) {
+      newErrors.description = t("admin.productDetail.createDialog.validation.descriptionTooShort");
+    }
+
+    // SEO validation
+    if (productData.seoTitle && productData.seoTitle.length > 60) {
+      newErrors.seoTitle = t("admin.productDetail.createDialog.validation.seoTitleTooLong");
+    }
+    if (productData.seoDescription && productData.seoDescription.length > 160) {
+      newErrors.seoDescription = t("admin.productDetail.createDialog.validation.seoDescriptionTooLong");
+    }
+
+    // Variants validation (if any)
+    if (productData.variants && productData.variants.length > 0) {
+      productData.variants.forEach((v, idx) => {
+        const quantity = v.quantity ?? v.stock ?? 0;
+        if (quantity < 0) {
+          newErrors[`variant_${idx}_stock`] = t("admin.productDetail.createDialog.validation.stockNonNegative");
+        }
+        if (v.priceOverride !== null && v.priceOverride !== undefined && v.priceOverride > 0 && v.priceOverride < 1000) {
+          newErrors[`variant_${idx}_price`] = t("admin.productDetail.createDialog.validation.priceOverridePositive");
+        }
+      });
+    }
+
+    // Active status validation requirements
+    if (productData.productStatus === "active") {
+      const hasThumbnail = productData.assets?.some(a => a.isThumbnail);
+      if (!hasThumbnail) {
+        newErrors.thumbnail = t("admin.productDetail.createDialog.validation.thumbnailRequired");
+      }
+    }
+
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      toast.error(t("admin.productDetail.createDialog.validation.genericError"));
+      // Switch to the first tab that has errors
+      if (newErrors.name || newErrors.categoryId || newErrors.basePrice || newErrors.description) {
+        setActiveTab("general");
+      } else if (newErrors.thumbnail) {
+        setActiveTab("media");
+      } else if (newErrors.seoTitle || newErrors.seoDescription) {
+        setActiveTab("settings");
+      }
+      return false;
+    }
+    
+    return true;
+  };
 
   // Detect what changed to call the minimal API
   const detectChanges = () => {
@@ -227,14 +302,13 @@ export default function ProductDetailPage() {
   };
 
   const handleSave = async () => {
+    if (!validateProductData()) return;
+
     setIsSaving(true);
+    setErrors({}); // Clear errors before save attempt
     try {
       let response: any;
       const changeType = detectChanges();
-
-      console.log("=== SMART SAVE DETECTION ===");
-      console.log("Change type detected:", changeType.type);
-      console.log("============================");
 
       if (changeType.type === "none") {
         toast.info(t("admin.productDetail.noChangesToSave"));
@@ -369,14 +443,28 @@ export default function ProductDetailPage() {
       }
 
       if (response?.error) {
-        const errorMsg = response.error.message || "Failed to save product";
+        // Map backend errors if they exist in a structured way (details object)
+        if ((response.error as any).details) {
+          const details = (response.error as any).details;
+          const newErrors: Record<string, string> = {};
+          Object.keys(details).forEach((key) => {
+            newErrors[key] = details[key];
+          });
+          setErrors(newErrors);
+        }
+
+        const errorMsg = response.error.message || t("admin.productDetail.saveProductError");
         const traceId = (response.error as any).traceId;
         console.error("Product save error:", {
           productId,
           error: response.error,
           traceId,
         });
-        toast.error(traceId ? `${errorMsg} (Trace: ${traceId})` : errorMsg);
+        setPageError({
+          title: "Save Operation Failed",
+          description: "Changes to this luxury piece could not be committed to the collection.",
+          items: [{ message: traceId ? `${errorMsg} (Trace: ${traceId})` : errorMsg }]
+       });
       } else {
         const updateTypeKey = `admin.productDetail.updateType.${changeType.type}`;
         const updateType = t(updateTypeKey);
@@ -490,8 +578,8 @@ export default function ProductDetailPage() {
       ) : (
         <>
           {/* Sticky Header Bar - Account for main navbar height */}
-          <div className="sticky top-0 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-amber-900/30 shadow-sm">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="sticky top-0 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-amber-900/30 shadow-sm mx-auto">
+            <div className=" mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3 sm:py-0 sm:h-16">
                 {/* Left: Back Button & Title */}
                 <div className="flex items-center gap-2 sm:gap-4 flex-1 sm:flex-initial">
@@ -590,6 +678,24 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
+          {/* Global Persistence Error Center */}
+          <AnimatePresence>
+            {pageError && (
+              <div className="max-w-7xl mx-auto px-1 sm:px-4 md:px-6 lg:px-8 pt-4">
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                  <AdminErrorDisplay
+                    title={pageError.title}
+                    description={pageError.description}
+                    items={pageError.items}
+                    onClose={() => setPageError(null)}
+                    onRetry={handleSave}
+                    className="shadow-2xl shadow-red-500/10 border-red-200/50"
+                  />
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Tab Content */}
           <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
             <div className="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 border border-gray-200 dark:border-amber-900/30 rounded-lg sm:rounded-xl shadow-xl dark:shadow-amber-950/30 p-4 sm:p-5 md:p-6 min-h-[400px] sm:min-h-[500px] md:min-h-[600px]">
@@ -616,16 +722,16 @@ export default function ProductDetailPage() {
               )}
               
               {activeTab === "general" && (
-                <GeneralTab data={productData} onChange={updateProductData} />
+                <GeneralTab data={productData} onChange={updateProductData} errors={errors} />
               )}
               {activeTab === "media" && (
-                <MediaTab data={productData} onChange={updateProductData} />
+                <MediaTab data={productData} onChange={updateProductData} errors={errors} />
               )}
               {activeTab === "variants" && (
-                <VariantsTab data={productData} onChange={updateProductData} />
+                <VariantsTab data={productData} onChange={updateProductData} errors={errors} />
               )}
               {activeTab === "settings" && (
-                <SettingsTab data={productData} onChange={updateProductData} />
+                <SettingsTab data={productData} onChange={updateProductData} errors={errors} />
               )}
             </div>
           </div>

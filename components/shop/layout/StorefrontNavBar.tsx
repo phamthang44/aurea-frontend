@@ -7,8 +7,7 @@ import { User, Heart, ShoppingBag, Search, Menu, X, LogOut, Settings } from 'luc
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ModeToggle } from '@/components/ui/ModeToggle';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { SettingsButton } from '@/components/ui/SettingsButton';
 import { logoutAction } from '@/app/actions/auth';
 import { clearAuth } from '@/lib/store/authSlice';
 import { useCart } from '@/components/providers/CartProvider';
@@ -121,100 +120,83 @@ export function StorefrontNavBar() {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-1 sm:gap-2 lg:gap-3">
-            {/* Search Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5]"
-              onClick={() => setSearchOpen(!searchOpen)}
-            >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-
-            {/* Language Switcher - Desktop only */}
-            <div className="hidden md:block">
-              <LanguageSwitcher />
-            </div>
-
-            {/* Theme Toggle */}
-            <ModeToggle />
-
-            {/* Wishlist */}
-            <Link href={`/wishlist`}>
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Action Group: Search, Wishlist, Cart */}
+            <div className="flex items-center bg-gray-100/50 dark:bg-white/5 rounded-full px-1.5 py-1 gap-1">
+              {/* Search Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="hidden sm:flex h-9 w-9 text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5]"
+                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-zinc-800 shadow-sm transition-all"
+                onClick={() => setSearchOpen(!searchOpen)}
               >
-                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-            </Link>
 
-            {/* User */}
+              {/* Wishlist */}
+              <Link href={`/wishlist`}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden sm:flex h-9 w-9 rounded-full text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-zinc-800 shadow-sm transition-all"
+                >
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+              </Link>
+
+              {/* Cart */}
+              <Link href={`/cart`} className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-zinc-800 shadow-sm transition-all"
+                >
+                  <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {cartItemCount > 0 && (
+                    <span 
+                      className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full text-white text-[9px] sm:text-[10px] font-medium flex items-center justify-center border-2 border-white dark:border-zinc-900"
+                      style={{ backgroundColor: store.theme?.primaryColor || '#D4AF37' }}
+                    >
+                      {cartItemCount > 9 ? '9+' : cartItemCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            </div>
+
+            {/* User Section - Circled */}
+            <div className="h-9 w-px bg-gray-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
+            
             {isAuthenticated ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden sm:flex h-9 w-9 text-[#D4AF37] hover:text-[#C19B2B] hover:bg-[#D4AF37]/10"
-                  >
-                    <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-56 p-2 bg-[#FDFCF8] dark:bg-[#1A1A1A] border border-[#E8E4DD] dark:border-[#2A2A2A]">
-                  <div className="px-2 py-1.5 mb-1">
-                    <p className="text-xs font-light text-muted-foreground uppercase tracking-wider">Signed in as</p>
-                    <p className="text-sm font-medium truncate text-[#1A1A1A] dark:text-[#F5F5F5]">{user?.fullName || user?.email || 'Customer'}</p>
-                  </div>
-                  <div className="h-px bg-[#E8E4DD] dark:bg-[#2A2A2A] my-1" />
-                  <Link 
-                    href="/account" 
-                    className="flex items-center gap-2 px-2 py-2 text-sm font-light text-[#666666] dark:text-[#A0A0A0] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] rounded-md transition-colors w-full no-underline"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span>{t('navbar.account', { defaultValue: 'My Account' })}</span>
-                  </Link>
-                  <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-2 py-2 text-sm font-light text-red-500/80 hover:bg-red-500/10 hover:text-red-500 rounded-md transition-colors w-full text-left"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>{t('navbar.logout', { defaultValue: 'Logout' })}</span>
-                  </button>
-                </PopoverContent>
-              </Popover>
+              <Link href="/account" className="no-underline">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full border-2 border-[#D4AF37] p-0 overflow-hidden hover:scale-105 transition-transform bg-white dark:bg-zinc-900"
+                >
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName || 'User'} className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-5 w-5 text-[#D4AF37]" />
+                  )}
+                </Button>
+              </Link>
             ) : (
               <Link href="/login" title={t('navbar.signIn', { defaultValue: 'Sign In' })}>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hidden sm:flex h-9 w-9 text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5]"
+                  className="h-9 w-9 rounded-full border border-gray-200 dark:border-zinc-800 text-[#666666] dark:text-[#A0A0A0] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all"
                 >
                   <User className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
             )}
 
-            {/* Cart */}
-            <Link href={`/cart`} className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 text-[#666666] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5]"
-              >
-                <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
-                {cartItemCount > 0 && (
-                  <span 
-                    className="absolute -top-0.5 -right-0.5 h-4 w-4 sm:h-5 sm:w-5 rounded-full text-white text-[9px] sm:text-[10px] font-medium flex items-center justify-center"
-                    style={{ backgroundColor: store.theme?.primaryColor || '#D4AF37' }}
-                  >
-                    {cartItemCount > 9 ? '9+' : cartItemCount}
-                  </span>
-                )}
-              </Button>
-            </Link>
+            {/* Settings (Language & Theme) - Far Right */}
+            <div className="ml-1">
+              <SettingsButton />
+            </div>
           </div>
         </div>
       </div>
@@ -257,7 +239,7 @@ export function StorefrontNavBar() {
             ))}
             
             <div className="pt-4 flex items-center gap-4">
-              <LanguageSwitcher />
+              <SettingsButton />
               {isAuthenticated ? (
                 <Button
                   variant="ghost"

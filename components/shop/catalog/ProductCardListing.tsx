@@ -23,6 +23,40 @@ function formatVND(amount: number): string {
   }).format(amount).replace(/,/g, ".") + "đ";
 }
 
+// Luxury placeholder component for missing/broken images
+function LuxuryPlaceholder() {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+      {/* Decorative Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-[#D4AF37] rotate-45" />
+        <div className="absolute bottom-1/4 right-1/4 w-24 h-24 border border-[#D4AF37] rotate-12" />
+      </div>
+      
+      {/* Icon & Text */}
+      <div className="relative z-10 flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 flex items-center justify-center">
+          <ShoppingBag className="h-8 w-8 text-[#D4AF37]/40" />
+        </div>
+        <div className="text-center">
+          <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#D4AF37]/60">
+            Aurea
+          </p>
+          <p className="text-[8px] tracking-widest uppercase text-zinc-400 mt-1">
+            Image Coming Soon
+          </p>
+        </div>
+      </div>
+      
+      {/* Corner Accents */}
+      <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-[#D4AF37]/20" />
+      <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-[#D4AF37]/20" />
+      <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-[#D4AF37]/20" />
+      <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-[#D4AF37]/20" />
+    </div>
+  );
+}
+
 export function ProductCardListing({
   product,
   showQuickView = true,
@@ -30,10 +64,11 @@ export function ProductCardListing({
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { t } = useTranslation();
   
   const isInStock = product.inStock !== undefined ? product.inStock : true;
-  const rating = product.rating || 4.5; // Default if not provided
+  const rating = product.rating || 4.5;
   const reviewCount = product.reviewCount || 12;
   const colors = product.availableColors || ["#D4AF37", "#121212", "#E5E5E5"];
 
@@ -72,7 +107,7 @@ export function ProductCardListing({
           className="relative block aspect-[3/4] overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-sm"
         >
           {/* Main Image */}
-          {product.thumbnail ? (
+          {product.thumbnail && !imageError ? (
             <Image
               src={product.thumbnail}
               alt={product.name}
@@ -80,36 +115,10 @@ export function ProductCardListing({
               className="object-cover transition-transform duration-1000 group-hover:scale-110"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
+              onError={() => setImageError(true)}
             />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
-              {/* Decorative Pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-[#D4AF37] rotate-45" />
-                <div className="absolute bottom-1/4 right-1/4 w-24 h-24 border border-[#D4AF37] rotate-12" />
-              </div>
-              
-              {/* Icon & Text */}
-              <div className="relative z-10 flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 flex items-center justify-center">
-                  <ShoppingBag className="h-8 w-8 text-[#D4AF37]/40" />
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#D4AF37]/60">
-                    Aurea
-                  </p>
-                  <p className="text-[8px] tracking-widest uppercase text-zinc-400 mt-1">
-                    Image Coming Soon
-                  </p>
-                </div>
-              </div>
-              
-              {/* Corner Accents */}
-              <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-[#D4AF37]/20" />
-              <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-[#D4AF37]/20" />
-              <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-[#D4AF37]/20" />
-              <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-[#D4AF37]/20" />
-            </div>
+            <LuxuryPlaceholder />
           )}
 
           {/* Luxury Badge (Sale/New) */}

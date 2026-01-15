@@ -69,7 +69,9 @@
     "about": "Về chúng tôi",
     "signIn": "Đăng nhập",
     "logout": "Đăng xuất",
-    "admin": "Quản trị"
+    "admin": "Quản trị",
+    "myOrders": "Đơn hàng của tôi",
+    "wishlist": "Yêu thích"
   },
   "megaMenu": {
     "featured": {
@@ -1142,5 +1144,82 @@
     "myAccount": "Tài khoản của tôi",
     "logout": "Đăng xuất",
     "signIn": "Đăng nhập"
+  },
+  "orders": {
+    "title": "Đơn hàng của tôi",
+    "subtitle": "Theo dõi và quản lý lịch sử đơn hàng của bạn",
+    "tabs": {
+      "all": "Tất cả",
+      "pending": "Chờ xử lý",
+      "confirmed": "Đã xác nhận",
+      "shipping": "Đang giao",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    },
+    "status": {
+      "pending": "Chờ xử lý",
+      "confirmed": "Đã xác nhận",
+      "shipping": "Đang giao",
+      "completed": "Hoàn thành",
+      "cancelled": "Đơn hàng đã hủy",
+      "returned": "Đơn hàng đã trả"
+    },
+    "progress": {
+      "placed": "Đã đặt",
+      "confirmed": "Xác nhận",
+      "shipping": "Giao hàng",
+      "completed": "Hoàn thành"
+    },
+    "empty": {
+      "title": "Chưa có đơn hàng",
+      "description": "Có vẻ như bạn chưa đặt đơn hàng nào. Hãy khám phá bộ sưu tập của chúng tôi và chiêu đãi bản thân điều gì đó đặc biệt!",
+      "startShopping": "Bắt đầu mua sắm"
+    },
+    "showing": "Đang hiển thị {{count}} đơn hàng",
+    "pageInfo": "Trang {{current}} / {{total}}",
+    "total": "Tổng cộng",
+    "viewDetail": "Xem chi tiết",
+    "unknownProduct": "Sản phẩm",
+    "andOtherItems": "và {{count}} sản phẩm khác",
+    "backToOrders": "Quay lại đơn hàng",
+    "placedOn": "Đặt ngày {{date}}",
+    "items": "Sản phẩm đã đặt",
+    "shippingAddress": "Địa chỉ giao hàng",
+    "contactEmail": "Email liên hệ",
+    "paymentInfo": "Thông tin thanh toán",
+    "method": "Phương thức",
+    "paymentStatus": "Trạng thái",
+    "summary": "Tóm tắt đơn hàng",
+    "subtotal": "Tạm tính",
+    "shippingFee": "Phí vận chuyển",
+    "discount": "Giảm giá",
+    "free": "Miễn phí",
+    "size": "Kích cỡ",
+    "color": "Màu sắc",
+    "quantity": "SL",
+    "note": "Ghi chú đơn hàng",
+    "cancelOrder": "Hủy đơn hàng",
+    "cancelling": "Đang hủy...",
+    "confirmCancel": "Hủy đơn hàng này?",
+    "confirmCancelDesc": "Hành động này không thể hoàn tác. Đơn hàng của bạn sẽ bị hủy và bạn cần đặt đơn hàng mới nếu thay đổi ý định.",
+    "yesCancel": "Đồng ý, hủy đơn",
+    "reorder": "Đặt lại đơn",
+    "continueShopping": "Tiếp tục mua sắm",
+    "viewAllOrders": "Xem tất cả đơn hàng",
+    "notFound": "Không tìm thấy đơn hàng",
+    "notFoundDesc": "Đơn hàng bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.",
+    "errors": {
+      "fetchFailed": "Không thể tải danh sách đơn hàng",
+      "fetchDetailFailed": "Không thể tải chi tiết đơn hàng",
+      "cancelFailed": "Không thể hủy đơn hàng"
+    },
+    "success": {
+      "cancelled": "Đã hủy đơn hàng thành công"
+    },
+    "messages": {
+      "cancelledDesc": "Đơn hàng này đã bị hủy.",
+      "returnedDesc": "Đơn hàng này đã được trả lại.",
+      "reorderComingSoon": "Tính năng đặt lại đơn sẽ sớm ra mắt!"
+    }
   }
 }

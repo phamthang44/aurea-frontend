@@ -326,7 +326,7 @@ export default function AdminProductsPage() {
                     {t("admin.products.id")}
                   </th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {t("admin.products.name")}
+                    {t("admin.products.productName")}
                   </th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t("admin.products.category")}

@@ -512,6 +512,49 @@ export const clientApi = {
     const client = new ApiClient();
     return client.delete(`products/variants/${variantId}`);
   },
+
+  // Inventory API methods
+  importStock: async (data: { variantId: string; quantity: number; note?: string }) => {
+    const client = new ApiClient();
+    return client.post("inventory/import", data);
+  },
+
+  adjustStock: async (data: { variantId: string; quantityDelta: number; reason: string; reference?: string }) => {
+    const client = new ApiClient();
+    return client.post("inventory/adjust", data);
+  },
+
+  getInventories: async (params?: {
+    keyword?: string;
+    page?: number;
+    size?: number;
+  }) => {
+    const client = new ApiClient();
+    const queryParams = new URLSearchParams();
+    if (params?.keyword) queryParams.append("keyword", params.keyword);
+    if (params?.page !== undefined) queryParams.append("page", params.page.toString());
+    if (params?.size !== undefined) queryParams.append("size", params.size.toString());
+
+    const query = queryParams.toString();
+    return client.get(`inventory${query ? `?${query}` : ""}`);
+  },
+
+  getInventoryByVariant: async (variantId: string) => {
+    const client = new ApiClient();
+    return client.get(`inventory/variant/${variantId}`);
+  },
+
+  getInventoryTransactions: async (variantId: string, page: number = 0, size: number = 20) => {
+    const client = new ApiClient();
+    return client.get(`inventory/variant/${variantId}/transactions?page=${page}&size=${size}`);
+  },
+
+  getInventoryStatuses: async (variantIds: string[]) => {
+    const client = new ApiClient();
+    // Convert strings to numbers if backend expects Long
+    const ids = variantIds.map(id => parseInt(id)).filter(id => !isNaN(id));
+    return client.post("inventory/status", ids);
+  },
 };
 
 // Export the Axios instance for direct use if needed

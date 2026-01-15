@@ -17,6 +17,7 @@ import {
   Upload,
   UserCircle2,
   LayoutGrid,
+  Warehouse,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -52,6 +53,11 @@ const navItems: NavItem[] = [
     icon: LayoutGrid,
   },
   {
+    label: "Inventory",
+    href: "/admin/inventory",
+    icon: Warehouse,
+  },
+  {
     label: "Import",
     href: "/admin/imports",
     icon: Upload,
@@ -73,6 +79,7 @@ function getNavLabel(key: string): string {
     Dashboard: "admin.layout.dashboard",
     Products: "admin.layout.products",
     Categories: "admin.layout.categories",
+    Inventory: "admin.layout.inventory",
     Import: "admin.layout.import",
     Users: "admin.layout.users",
     Settings: "admin.layout.settings",

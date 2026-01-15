@@ -168,19 +168,62 @@ export function StorefrontNavBar() {
             <div className="h-9 w-px bg-gray-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
             
             {isAuthenticated ? (
-              <Link href="/account" className="no-underline">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-full border-2 border-[#D4AF37] p-0 overflow-hidden hover:scale-105 transition-transform bg-white dark:bg-zinc-900"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-full border-2 border-[#D4AF37] p-0 overflow-hidden hover:scale-105 transition-transform bg-white dark:bg-zinc-900"
+                  >
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.fullName || 'User'} className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-5 w-5 text-[#D4AF37]" />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-56 p-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-lg rounded-xl"
+                  align="end"
+                  sideOffset={8}
                 >
-                  {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.fullName || 'User'} className="h-full w-full object-cover" />
-                  ) : (
-                    <User className="h-5 w-5 text-[#D4AF37]" />
-                  )}
-                </Button>
-              </Link>
+                  {/* User Info Header */}
+                  <div className="px-3 py-2 border-b border-gray-100 dark:border-zinc-800 mb-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {user?.fullName || t('navbar.account', { defaultValue: 'My Account' })}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">
+                      {user?.email || ''}
+                    </p>
+                  </div>
+                  
+                  {/* Menu Items */}
+                  <div className="space-y-0.5">
+                    <Link href="/account/orders" className="no-underline">
+                      <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-left">
+                        <ShoppingBag className="w-4 h-4" />
+                        {t('navbar.myOrders', { defaultValue: 'My Orders' })}
+                      </button>
+                    </Link>
+                    <Link href="/wishlist" className="no-underline">
+                      <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-left">
+                        <Heart className="w-4 h-4" />
+                        {t('navbar.wishlist', { defaultValue: 'Wishlist' })}
+                      </button>
+                    </Link>
+                  </div>
+
+                  <div className="border-t border-gray-100 dark:border-zinc-800 mt-1 pt-1">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t('navbar.logout', { defaultValue: 'Logout' })}
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             ) : (
               <Link href="/login" title={t('navbar.signIn', { defaultValue: 'Sign In' })}>
                 <Button
@@ -238,23 +281,33 @@ export function StorefrontNavBar() {
               </Link>
             ))}
             
-            <div className="pt-4 flex items-center gap-4">
-              <SettingsButton />
-              {isAuthenticated ? (
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="text-sm text-[#666666]"
+            <div className="pt-4 space-y-2">
+              {isAuthenticated && (
+                <Link 
+                  href="/account/orders"
+                  className="block py-2 text-sm font-medium text-[#D4AF37] hover:text-[#C4A030] no-underline"
                 >
-                  {t('navbar.logout', { defaultValue: 'Logout' })}
-                </Button>
-              ) : (
-                <Link href="/login">
-                  <Button variant="ghost" className="text-sm text-[#666666]">
-                    {t('navbar.signIn', { defaultValue: 'Sign In' })}
-                  </Button>
+                  {t('navbar.myOrders', { defaultValue: 'My Orders' })}
                 </Link>
               )}
+              <div className="flex items-center gap-4 pt-2">
+                <SettingsButton />
+                {isAuthenticated ? (
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="text-sm text-[#666666]"
+                  >
+                    {t('navbar.logout', { defaultValue: 'Logout' })}
+                  </Button>
+                ) : (
+                  <Link href="/login">
+                    <Button variant="ghost" className="text-sm text-[#666666]">
+                      {t('navbar.signIn', { defaultValue: 'Sign In' })}
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>

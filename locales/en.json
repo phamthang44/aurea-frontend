@@ -69,7 +69,9 @@
     "about": "About Us",
     "signIn": "Sign In",
     "logout": "Logout",
-    "admin": "Admin"
+    "admin": "Admin",
+    "myOrders": "My Orders",
+    "wishlist": "Wishlist"
   },
   "megaMenu": {
     "featured": {
@@ -1023,7 +1025,66 @@
       "logout": "Logout",
       "home": "Home",
       "welcomeBack": "Welcome back,",
-      "admin": "Admin"
+      "admin": "Admin",
+      "inventory": "Inventory"
+    },
+    "inventory": {
+      "title": "Inventory Management",
+      "subtitle": "Manage stock levels, imports, and adjustments.",
+      "searchPlaceholder": "Search product or SKU...",
+      "product": "Product",
+      "sku": "SKU",
+      "category": "Category",
+      "available": "Available",
+      "reserved": "Reserved",
+      "total": "Total",
+      "actions": "Actions",
+      "noResults": "No inventory items found matching your search.",
+      "actionsTitle": "Actions",
+      "menuActions": {
+        "import": "Import Stock",
+        "adjust": "Adjust Stock",
+        "history": "History"
+      },
+      "import": {
+        "title": "Import Stock",
+        "description": "Add new stock for SKU: {{sku}} ({{product}})",
+        "quantity": "Quantity to Import",
+        "note": "Note (Optional)",
+        "notePlaceholder": "e.g., PO #12345",
+        "submit": "Import Stock",
+        "success": "Stock imported successfully",
+        "error": "Failed to import stock",
+        "quantityRequired": "Please enter a valid quantity",
+        "unexpectedError": "An unexpected error occurred"
+      },
+      "adjust": {
+        "title": "Adjust Stock",
+        "description": "Correct stock level for SKU: {{sku}}. Current Total: {{current}}",
+        "type": "Adjustment Type",
+        "increase": "Increase Stock (+)",
+        "decrease": "Decrease Stock (-)",
+        "quantity": "Quantity",
+        "reason": "Reason",
+        "reasonPlaceholder": "e.g., Damaged during shipping, inventory count correction",
+        "submit": "Adjust Stock",
+        "success": "Stock adjusted successfully",
+        "error": "Failed to adjust stock",
+        "quantityRequired": "Please enter a quantity",
+        "reasonRequired": "Please provide a reason",
+        "unexpectedError": "An unexpected error occurred"
+      },
+      "history": {
+        "title": "Transaction History",
+        "description": "Stock movement for SKU: {{sku}} ({{product}})",
+        "date": "Date",
+        "type": "Type",
+        "change": "Change",
+        "balance": "Balance",
+        "reference": "Reference / Note",
+        "performedBy": "Performed By",
+        "noData": "No history found for this item."
+      }
     }
   },
 
@@ -1190,5 +1251,82 @@
     "myAccount": "My Account",
     "logout": "Logout",
     "signIn": "Sign In"
+  },
+  "orders": {
+    "title": "My Orders",
+    "subtitle": "Track and manage your order history",
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "shipping": "Shipping",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "shipping": "Shipping",
+      "completed": "Completed",
+      "cancelled": "Order Cancelled",
+      "returned": "Order Returned"
+    },
+    "progress": {
+      "placed": "Placed",
+      "confirmed": "Confirmed",
+      "shipping": "Shipping",
+      "completed": "Completed"
+    },
+    "empty": {
+      "title": "No orders yet",
+      "description": "Looks like you haven't placed any orders yet. Start exploring our collection and treat yourself to something special!",
+      "startShopping": "Start Shopping"
+    },
+    "showing": "Showing {{count}} order(s)",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "total": "Total",
+    "viewDetail": "View Detail",
+    "unknownProduct": "Product",
+    "andOtherItems": "and {{count}} other item(s)",
+    "backToOrders": "Back to Orders",
+    "placedOn": "Placed on {{date}}",
+    "items": "Order Items",
+    "shippingAddress": "Shipping Address",
+    "contactEmail": "Contact Email",
+    "paymentInfo": "Payment Info",
+    "method": "Method",
+    "paymentStatus": "Status",
+    "summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shippingFee": "Shipping",
+    "discount": "Discount",
+    "free": "Free",
+    "size": "Size",
+    "color": "Color",
+    "quantity": "Qty",
+    "note": "Order Note",
+    "cancelOrder": "Cancel Order",
+    "cancelling": "Cancelling...",
+    "confirmCancel": "Cancel this order?",
+    "confirmCancelDesc": "This action cannot be undone. Your order will be cancelled and you will need to place a new order if you change your mind.",
+    "yesCancel": "Yes, Cancel Order",
+    "reorder": "Order Again",
+    "continueShopping": "Continue Shopping",
+    "viewAllOrders": "View All Orders",
+    "notFound": "Order not found",
+    "notFoundDesc": "The order you're looking for doesn't exist or you don't have access to it.",
+    "errors": {
+      "fetchFailed": "Failed to fetch orders",
+      "fetchDetailFailed": "Failed to fetch order details",
+      "cancelFailed": "Failed to cancel order"
+    },
+    "success": {
+      "cancelled": "Order cancelled successfully"
+    },
+    "messages": {
+      "cancelledDesc": "This order has been cancelled.",
+      "returnedDesc": "This order has been returned.",
+      "reorderComingSoon": "Re-order feature coming soon!"
+    }
   }
 }

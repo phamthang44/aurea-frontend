@@ -31,6 +31,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
   const [variants, setVariants] = useState(data.variants || []);
   const [isSaving, setIsSaving] = useState(false);
 
+
   const handleToggleVariants = () => {
     if (hasVariants) {
       // Switching to simple product
@@ -46,7 +47,6 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
         id: null, // New variant, no ID yet
         attributes: { size: "M", color: "Black" },
         priceOverride: 0,
-        quantity: 0,
         isActive: true,
       };
       setVariants([defaultVariant]);
@@ -59,7 +59,6 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
       id: null, // New variant, no ID yet
       attributes: { size: "", color: "" },
       priceOverride: 0,
-      quantity: 0,
       isActive: true,
     };
     const updated = [...variants, newVariant];
@@ -93,19 +92,15 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
 
     try {
       // Check if variant has an ID (existing variant) or is new
-      // Use truthy check - if ID exists and is not empty string, it's existing
       const isExisting = Boolean(variant.id);
 
       if (isExisting) {
-        // Update existing variant via event-driven architecture
+        // Update existing variant
         console.log("Updating existing variant:", variant.id);
 
-        // Update variant price & quantity (quantity triggers VariantStockUpdatedEvent)
         const variantResponse = await clientApi.updateVariant(variant.id, {
           priceOverride: variant.priceOverride,
-          quantity: variant.quantity, // ✅ Backend publishes event → Inventory listener updates stock
-          // ❌ DO NOT send attributes - they are immutable (SKU is derived from them)
-          // ❌ DO NOT send imageUrl - images are saved at product level via main "Save Changes" button
+          // ❌ Quantity removed - managed in Inventory tab
         });
 
         if (variantResponse.error) {
@@ -123,20 +118,16 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
         const updatedVariant = result?.data;
         if (updatedVariant) {
           const updated = [...variants];
-          updated[index] = { ...updatedVariant, quantity: variant.quantity };
+          updated[index] = { ...updatedVariant };
           setVariants(updated);
-          // ❌ DO NOT call onChange - variant already saved to DB
-          // Calling onChange triggers parent to include this in next bulk save,
-          // which can cause duplicate/update issues
         }
       } else {
-        // Create new variant - quantity IS used for initial stock
+        // Create new variant
         console.log("Creating new variant for product:", data.id);
         const response = await clientApi.createVariant(data.id, {
           priceOverride: variant.priceOverride || null,
-          quantity: variant.quantity, // ✅ Initial stock for new variants
           attributes: variant.attributes,
-          // ❌ DO NOT send imageUrl - images are saved at product level via main "Save Changes" button
+          // ❌ Quantity removed - initial stock is 0
         });
 
         if (response.error) {
@@ -150,7 +141,6 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
             const updated = [...variants];
             updated[index] = newVariant;
             setVariants(updated);
-            // ❌ DO NOT call onChange - variant already saved to DB
           }
         }
       }
@@ -304,26 +294,6 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
                 className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base font-mono"
               />
             </FormField>
-
-            <FormField
-              label={t("admin.productDetail.initialStock")}
-              error={errors.stock}
-              hint={t("admin.productDetail.initialStockDesc")}
-              className="md:col-span-6"
-            >
-              <Input
-                id="stock"
-                type="number"
-                value={(data as any).stock || 0}
-                onChange={(e) => onChange({ stock: parseInt(e.target.value) || 0 })}
-                placeholder="0"
-                aria-invalid={!!errors.stock}
-                className={cn(
-                  "h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base",
-                  errors.stock && "border-rose-500 focus:ring-rose-500/20"
-                )}
-              />
-            </FormField>
           </div>
         )}
 
@@ -335,7 +305,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
               <Button
                 onClick={addVariant}
                 size="sm"
-                className="bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 h-9 px-4 font-bold rounded-lg"
+                className="bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 h-9 px-4 font-bold rounded-lg"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t("admin.productDetail.addVariant")}
@@ -351,7 +321,6 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.attributeSize")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.attributeColor")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.priceOverride")}</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.currentStock")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t("admin.productDetail.tableStatus")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.tableActions")}</th>
                     </tr>
@@ -401,28 +370,6 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
                             />
                             {errors[`variant_${index}_price`] && (
                               <span className="text-[9px] text-rose-500 font-bold">{errors[`variant_${index}_price`]}</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex flex-col items-end gap-1">
-                            <div className="flex items-center justify-end gap-2 w-full">
-                               <Input
-                                type="number"
-                                value={variant.quantity || 0}
-                                onChange={(e) => updateVariant(index, "quantity", Number(e.target.value) || 0)}
-                                aria-invalid={!!errors[`variant_${index}_stock`]}
-                                className={cn(
-                                  "h-9 w-20 bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-bold text-slate-900 dark:text-slate-100",
-                                  errors[`variant_${index}_stock`] && "border-rose-500 bg-rose-50 dark:bg-rose-500/10"
-                                )}
-                              />
-                              {variant.quantity < 5 && variant.quantity > 0 && (
-                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                              )}
-                            </div>
-                            {errors[`variant_${index}_stock`] && (
-                              <span className="text-[9px] text-rose-500 font-bold">{errors[`variant_${index}_stock`]}</span>
                             )}
                           </div>
                         </td>

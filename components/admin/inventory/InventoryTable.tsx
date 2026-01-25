@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -11,22 +12,66 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Search, MoreHorizontal, History, ArrowDownToLine, ArrowRightLeft, RefreshCw, Loader2 } from "lucide-react";
+import { 
+  Search, 
+  Package, 
+  ArrowDownToLine, 
+  ArrowRightLeft, 
+  History, 
+  RefreshCw, 
+  Loader2,
+  AlertTriangle,
+  CheckCircle2
+} from "lucide-react";
 import { clientApi } from "@/lib/api-client";
-import { ProductResponse, VariantResponse } from "@/lib/types/product";
 import { useTranslation } from "react-i18next";
-import { ImportStockDialog } from "./ImportStockDialog";
-import { AdjustStockDialog } from "./AdjustStockDialog";
-import { TransactionHistoryDialog } from "./TransactionHistoryDialog";
+import { ImportStockDrawer } from "./ImportStockDrawer";
+import { AdjustStockDrawer } from "./AdjustStockDrawer";
+import { TransactionHistoryDrawer } from "./TransactionHistoryDrawer";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ProductImagePlaceholder } from "./ProductImagePlaceholder";
+
+// Inline component to handle image errors in table
+function ProductThumbnail({ src, alt }: { src?: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+  
+  if (!src || hasError) {
+    return <ProductImagePlaceholder size="sm" />;
+  }
+  
+  return (
+    <div className="relative w-10 h-10 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        onError={() => setHasError(true)}
+        unoptimized
+      />
+    </div>
+  );
+}
+
+interface InventoryApiResponse {
+  data: InventoryItem[];
+  meta?: {
+    totalElements?: number;
+  };
+}
+
+interface AuditorResponse {
+  username?: string;
+  email?: string;
+  id?: number;
+  avatarUrl?: string;
+}
 
 interface InventoryItem {
   id: string;
@@ -36,10 +81,16 @@ interface InventoryItem {
   quantity: number;
   reservedQuantity: number;
   availableStock: number;
-  productName: string;
+  reorderLevel?: number;
+  productName?: string;
   categoryName?: string;
-  attributes: Record<string, string>;
+  thumbnailUrl?: string;
+  attributes?: Record<string, string>;
+  price?: number;
+  costPrice?: number;
 }
+
+const LOW_STOCK_THRESHOLD = 10;
 
 export function InventoryTable() {
   const { t } = useTranslation();
@@ -49,7 +100,7 @@ export function InventoryTable() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
 
   // Dialog states
@@ -58,7 +109,7 @@ export function InventoryTable() {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await clientApi.getInventories({ 
@@ -68,7 +119,7 @@ export function InventoryTable() {
       });
 
       if (response.data) {
-        const inventoryData = response.data as any;
+        const inventoryData = response.data as InventoryApiResponse;
         setItems(inventoryData.data || []);
         setTotalElements(inventoryData.meta?.totalElements || 0);
       }
@@ -77,23 +128,22 @@ export function InventoryTable() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize, searchTerm]);
 
   useEffect(() => {
-    // Debounce search
     const timer = setTimeout(() => {
         if (currentPage === 0) {
             fetchData();
         } else {
-            setCurrentPage(0); // Reset to first page on search
+            setCurrentPage(0);
         }
-    }, 500);
+    }, 400);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, currentPage, fetchData]);
 
   useEffect(() => {
       fetchData();
-  }, [currentPage, pageSize]);
+  }, [fetchData]);
 
   const handleAction = (action: 'import' | 'adjust' | 'history', item: InventoryItem) => {
       setSelectedItem(item);
@@ -106,102 +156,241 @@ export function InventoryTable() {
       fetchData();
   };
 
+  const getStockStatus = (item: InventoryItem) => {
+    const threshold = item.reorderLevel ?? LOW_STOCK_THRESHOLD;
+    if (item.availableStock <= 0) return 'out';
+    if (item.availableStock <= threshold) return 'low';
+    return 'ok';
+  };
+
+  const renderStockBadge = (item: InventoryItem) => {
+    const status = getStockStatus(item);
+    if (status === 'out') {
+      return (
+        <Badge variant="outline" className="gap-1 text-[10px] font-medium text-rose-600 border-rose-300 bg-rose-50 dark:bg-rose-900/20">
+          <AlertTriangle className="h-3 w-3" />
+          {t("admin.inventory.status.outOfStock")}
+        </Badge>
+      );
+    }
+    if (status === 'low') {
+      return (
+        <Badge variant="outline" className="gap-1 text-[10px] font-medium text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-900/20">
+          <AlertTriangle className="h-3 w-3" />
+          {t("admin.inventory.status.lowStock")}
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="gap-1 text-[10px] font-medium text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20">
+        <CheckCircle2 className="h-3 w-3" />
+        {t("admin.inventory.status.inStock")}
+      </Badge>
+    );
+  };
+
+  const renderVariantAttributes = (item: InventoryItem) => {
+    if (!item.attributes || Object.keys(item.attributes).length === 0) {
+      return <span className="text-slate-400 text-xs">—</span>;
+    }
+    return (
+      <div className="flex flex-wrap gap-1">
+        {Object.entries(item.attributes).map(([key, val]) => (
+          <span 
+            key={key} 
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+          >
+            {val}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const totalPages = Math.ceil(totalElements / pageSize);
+
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="relative w-72">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
+        <div className="relative w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
-            placeholder={t("admin.inventory.searchPlaceholder", "Search product or SKU...")}
+            placeholder={t("admin.inventory.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+            className="pl-9 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 h-9"
           />
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            {t("common.refresh")}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh} 
+          className="gap-2 h-9"
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          {t("common.refresh")}
         </Button>
       </div>
 
-      <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+      {/* Table */}
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900/50">
-              <TableHead className="w-[300px]">{t("admin.inventory.product")}</TableHead>
-              <TableHead>{t("admin.inventory.sku")}</TableHead>
-              <TableHead>{t("admin.inventory.category")}</TableHead>
-              <TableHead className="text-right">{t("admin.inventory.available")}</TableHead>
-              <TableHead className="text-right">{t("admin.inventory.reserved")}</TableHead>
-              <TableHead className="text-right">{t("admin.inventory.total")}</TableHead>
-              <TableHead className="text-right">{t("admin.inventory.actions")}</TableHead>
+            <TableRow className="bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+              <TableHead className="w-[280px] font-semibold text-slate-700 dark:text-slate-300">
+                {t("admin.inventory.product")}
+              </TableHead>
+              <TableHead className="w-[180px] font-semibold text-slate-700 dark:text-slate-300">
+                {t("admin.inventory.variant")}
+              </TableHead>
+              <TableHead className="text-right w-[100px] font-semibold text-slate-700 dark:text-slate-300">
+                {t("admin.inventory.available")}
+              </TableHead>
+              <TableHead className="text-right w-[100px] font-semibold text-slate-700 dark:text-slate-300">
+                {t("admin.inventory.reserved")}
+              </TableHead>
+              <TableHead className="w-[110px] font-semibold text-slate-700 dark:text-slate-300">
+                {t("admin.inventory.status.label")}
+              </TableHead>
+              <TableHead className="text-right w-[140px] font-semibold text-slate-700 dark:text-slate-300">
+                {t("admin.inventory.actions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" />
+                <TableCell colSpan={6} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <span className="text-sm text-slate-500">{t("common.loading")}</span>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-slate-500">
-                  {t("admin.inventory.noResults")}
+                <TableCell colSpan={6} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Package className="h-10 w-10 text-slate-300" />
+                    <span className="text-sm text-slate-500">{t("admin.inventory.noResults")}</span>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               items.map((item) => (
-                <TableRow key={item.id} className="border-slate-100 dark:border-slate-800">
-                  <TableCell className="font-medium">
-                    <div className="flex flex-col">
-                        <span className="text-sm text-slate-900 dark:text-slate-100">{item.productName}</span>
-                        <div className="flex gap-2 text-xs text-slate-500">
-                           {item.attributes && Object.entries(item.attributes).map(([key, val]) => (
-                               <span key={key} className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{val}</span>
-                           ))}
-                        </div>
+                <TableRow 
+                  key={item.id} 
+                  className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                  onClick={() => handleAction('import', item)}
+                >
+                  {/* Product Name */}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <ProductThumbnail 
+                        src={item.thumbnailUrl} 
+                        alt={item.productName || ''} 
+                      />
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">
+                          {item.productName || t("admin.inventory.unknownProduct")}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {item.categoryName || '—'}
+                        </p>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{item.sku}</TableCell>
-                  <TableCell className="text-slate-500 text-sm">{item.categoryName || "-"}</TableCell>
+
+                  {/* Variant (SKU + Attributes) */}
+                  <TableCell>
+                    <div className="space-y-1">
+                      <code className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                        {item.sku}
+                      </code>
+                      {renderVariantAttributes(item)}
+                    </div>
+                  </TableCell>
+
+                  {/* Available (Highlighted) */}
                   <TableCell className="text-right">
-                    <span className={`font-bold ${item.availableStock > 0 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                        {item.availableStock ?? 0}
+                    <span className={`text-lg font-bold tabular-nums ${
+                      item.availableStock <= 0 
+                        ? 'text-rose-600 dark:text-rose-500' 
+                        : item.availableStock <= (item.reorderLevel ?? LOW_STOCK_THRESHOLD)
+                          ? 'text-amber-600 dark:text-amber-500'
+                          : 'text-slate-900 dark:text-slate-100'
+                    }`}>
+                      {item.availableStock ?? 0}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right text-amber-600 font-medium">
-                     {item.reservedQuantity ?? 0}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                     {item.quantity ?? 0}
-                  </TableCell>
+
+                  {/* Reserved (Muted) */}
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                        <DropdownMenuLabel>{t("admin.inventory.actionsTitle")}</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleAction('import', item)}>
-                          <ArrowDownToLine className="mr-2 h-4 w-4" />
-                          {t("admin.inventory.menuActions.import")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAction('adjust', item)}>
-                          <ArrowRightLeft className="mr-2 h-4 w-4" />
-                          {t("admin.inventory.menuActions.adjust")}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleAction('history', item)}>
-                          <History className="mr-2 h-4 w-4" />
-                          {t("admin.inventory.menuActions.history")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <span className="text-sm font-medium tabular-nums text-slate-400">
+                      {item.reservedQuantity ?? 0}
+                    </span>
+                  </TableCell>
+
+                  {/* Status Badge */}
+                  <TableCell>
+                    {renderStockBadge(item)}
+                  </TableCell>
+
+                  {/* Actions */}
+                  <TableCell className="text-right">
+                    <TooltipProvider delayDuration={100}>
+                      <div className="flex items-center justify-end gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); handleAction('import', item); }}
+                            >
+                              <ArrowDownToLine className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            {t("admin.inventory.menuActions.import")}
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); handleAction('adjust', item); }}
+                            >
+                              <ArrowRightLeft className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            {t("admin.inventory.menuActions.adjust")}
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-slate-600 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); handleAction('history', item); }}
+                            >
+                              <History className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            {t("admin.inventory.menuActions.history")}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
               ))
@@ -210,63 +399,71 @@ export function InventoryTable() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-2 py-4">
-        <div className="text-sm text-slate-500">
-          {t("common.pagination.showing", { 
-            count: items.length, 
-            total: totalElements 
-          })}
-        </div>
-        <div className="flex items-center space-x-2">
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-1">
+        <p className="text-sm text-slate-500">
+          {t("common.pagination.showing", { count: items.length, total: totalElements })}
+        </p>
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
             disabled={currentPage === 0 || isLoading}
+            className="h-8"
           >
             {t("common.pagination.prev")}
           </Button>
-          <div className="text-sm font-medium">
-            {t("common.pagination.page", { current: currentPage + 1, total: Math.ceil(totalElements / pageSize) })}
-          </div>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 min-w-[80px] text-center">
+            {t("common.pagination.page", { current: currentPage + 1, total: totalPages || 1 })}
+          </span>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(prev => prev + 1)}
-            disabled={(currentPage + 1) * pageSize >= totalElements || isLoading}
+            disabled={currentPage + 1 >= totalPages || isLoading}
+            className="h-8"
           >
             {t("common.pagination.next")}
           </Button>
         </div>
       </div>
 
+      {/* Dialogs */}
       {selectedItem && (
-          <>
-            <ImportStockDialog 
-                open={importDialogOpen} 
-                onOpenChange={setImportDialogOpen} 
-                variantId={selectedItem.variantId}
-                variantSku={selectedItem.sku}
-                productName={selectedItem.productName}
-                onSuccess={handleRefresh}
-            />
-            <AdjustStockDialog 
-                open={adjustDialogOpen} 
-                onOpenChange={setAdjustDialogOpen} 
-                variantId={selectedItem.variantId}
-                variantSku={selectedItem.sku}
-                currentStock={selectedItem.quantity || 0}
-                productName={selectedItem.productName}
-                onSuccess={handleRefresh}
-            />
-            <TransactionHistoryDialog 
-                open={historyDialogOpen} 
-                onOpenChange={setHistoryDialogOpen} 
-                variantId={selectedItem.variantId}
-                variantSku={selectedItem.sku}
-                productName={selectedItem.productName}
-            />
-          </>
+        <>
+          <ImportStockDrawer 
+            open={importDialogOpen} 
+            onOpenChange={setImportDialogOpen} 
+            variantId={selectedItem.variantId}
+            variantSku={selectedItem.sku}
+            productName={selectedItem.productName || ''}
+            currentStock={selectedItem.availableStock}
+            thumbnailUrl={selectedItem.thumbnailUrl}
+            currentCostPrice={selectedItem.costPrice}
+            onSuccess={handleRefresh}
+          />
+          <AdjustStockDrawer 
+            open={adjustDialogOpen} 
+            onOpenChange={setAdjustDialogOpen} 
+            variantId={selectedItem.variantId}
+            variantSku={selectedItem.sku}
+            productName={selectedItem.productName || ''}
+            currentStock={selectedItem.quantity || 0}
+            thumbnailUrl={selectedItem.thumbnailUrl}
+            onSuccess={handleRefresh}
+          />
+          <TransactionHistoryDrawer 
+            open={historyDialogOpen} 
+            onOpenChange={setHistoryDialogOpen} 
+            variantId={selectedItem.variantId}
+            variantSku={selectedItem.sku}
+            productName={selectedItem.productName || ''}
+            thumbnailUrl={selectedItem.thumbnailUrl}
+            currentAvailable={selectedItem.availableStock}
+            currentReserved={selectedItem.reservedQuantity}
+          />
+        </>
       )}
     </div>
   );

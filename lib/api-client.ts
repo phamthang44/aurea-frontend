@@ -514,7 +514,7 @@ export const clientApi = {
   },
 
   // Inventory API methods
-  importStock: async (data: { variantId: string; quantity: number; note?: string }) => {
+  importStock: async (data: { variantId: string; quantity: number; importPrice: number; note?: string }) => {
     const client = new ApiClient();
     return client.post("inventory/import", data);
   },

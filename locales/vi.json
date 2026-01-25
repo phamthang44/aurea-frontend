@@ -19,7 +19,14 @@
     "apply": "Áp dụng",
     "submit": "Gửi",
     "clear": "Xóa",
-    "menu": "Danh mục"
+    "menu": "Danh mục",
+    "refresh": "Làm mới",
+    "pagination": {
+      "showing": "Hiển thị {{count}} trong {{total}}",
+      "prev": "Trước",
+      "next": "Sau",
+      "page": "Trang {{current}} / {{total}}"
+    }
   },
   "validation": {
     "fieldRequired": "Trường này là bắt buộc",
@@ -524,7 +531,10 @@
       "id": "ID",
       "productName": "Tên sản phẩm",
       "category": "Danh mục",
-      "price": "Giá",
+      "minPrice": "Giá tối thiểu",
+      "sellingPrice": "Giá bán",
+      "originalPrice": "Giá niêm yết",
+      "costPrice": "Giá vốn",
       "status": "Trạng thái",
       "variants": "Biến thể",
       "created": "Đã tạo",
@@ -550,9 +560,9 @@
       "deleteConfirmMessage": "Bạn có chắc chắn muốn xóa \"{{name}}\" khỏi bộ sưu tập? Hành động này không thể hoàn tác.",
       "removing": "Đang xóa...",
       "deleteProduct": "Xóa sản phẩm",
-      "quantityUpdatesNotice": "Thông báo cập nhật số lượng tồn kho của sản phẩm",
-      "quantityUpdatesNoticeDescription": "<strong>Quan trọng: Muốn cập nhật số lượng thì nhấn vào hành động chỉnh sửa của sản phẩm trong bảng bên dưới để vào trang chỉnh sửa chi tiết của sản phẩm rồi nhấn vào tab biến thể để chỉnh sửa số lượng tồn kho.",
-      "quantityUpdatesNoticeImportant": "Quan trọng: Muốn cập nhật số lượng thì nhấn vào hành động chỉnh sửa của sản phẩm trong bảng bên dưới",
+      "quantityUpdatesNotice": "Quản lý tồn kho sản phẩm",
+      "quantityUpdatesNoticeDescription": "<strong>Quan trọng:</strong> Để cập nhật số lượng tồn kho sản phẩm, vui lòng chuyển sang tab <strong>Tồn kho (Inventory)</strong>. Việc quản lý kho đã được tập trung để đảm bảo tính chính xác.",
+      "quantityUpdatesNoticeImportant": "Quan trọng: Vui lòng cập nhật số lượng tại tab Tồn kho.",
       "deleteProductSuccess": "Đã xóa sản phẩm thành công",
       "deleteProductError": "Không thể xóa sản phẩm",
       "fetchProductsError": "Không thể tải danh sách sản phẩm",
@@ -687,8 +697,8 @@
       "active": "Đang hoạt động",
       "disabled": "Vô hiệu hóa",
       "unsavedChangesConfirm": "Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn rời khỏi?",
-      "quantityUpdatesNotice": "Thông báo cập nhật số lượng",
-      "quantityUpdatesNoticeDescription": "<strong>Quan trọng:</strong> Khi sử dụng nút \"Lưu tất cả thay đổi\" ở trên, cập nhật số lượng cho <strong>các biến thể đã tồn tại</strong> sẽ <strong>không được lưu</strong>. Để cập nhật số lượng cho một biến thể cụ thể, hãy sử dụng nút <strong>Lưu</strong> ở hàng của biến thể đó trong bảng bên dưới. Số lượng chỉ được cập nhật khi tạo <strong>biến thể mới</strong> hoặc khi sử dụng hành động lưu cụ thể cho biến thể đó.",
+      "quantityUpdatesNotice": "Thông báo quản lý kho hàng",
+      "quantityUpdatesNoticeDescription": "<strong>Quan trọng:</strong> Việc cập nhật số lượng tồn kho hiện được quản lý độc quyền tại tab <strong>Tồn kho (Inventory)</strong>. Mọi thay đổi về số lượng tại bảng này sẽ không có hiệu lực.",
       "quantityUpdatesNoticeImportant": "Quan trọng:",
       "quantityUpdatesNoticeExistingVariants": "các biến thể đã tồn tại",
       "quantityUpdatesNoticeNotSaved": "không được lưu",
@@ -842,6 +852,8 @@
       "searchPlaceholder": "Truy tìm danh mục theo tên hoặc slug...",
       "addRoot": "Danh mục Gốc mới",
       "addChild": "Thêm danh mục con",
+      "expandAll": "Mở rộng tất cả",
+      "collapseAll": "Thu gọn tất cả",
       "edit": "Cấu hình",
       "delete": "Gỡ bỏ",
       "move": "Thay đổi vị trí",
@@ -871,6 +883,20 @@
           "slugRequired": "Định danh SEO là bắt buộc",
           "circularRef": "Vi phạm kiến trúc: Phát hiện hệ thống phân cấp đệ quy.",
           "leafProductWarn": "Cảnh báo Toàn vẹn: Danh mục này chứa sản phẩm và không thể làm danh mục cha."
+        },
+        "policies": {
+          "integrity": {
+            "title": "Toàn vẹn Phân cấp",
+            "desc": "Các quan hệ cha con đệ quy bị chặn theo thiết kế. Một danh mục không thể trở thành con của chính nó."
+          },
+          "leaf": {
+            "title": "Tồn kho tại Lá",
+            "desc": "Sản phẩm chỉ được phép nằm trong các danh mục lá. Các nút không phải lá đóng vai trò là kiến trúc điều phối."
+          },
+          "root": {
+            "title": "Bảo tồn Gốc",
+            "desc": "Gốc kiến trúc nền tảng được bảo vệ khỏi việc gỡ bỏ ngẫu nhiên."
+          }
         }
       },
       "moveModal": {
@@ -977,7 +1003,119 @@
       "logout": "Đăng xuất",
       "home": "Trang chủ",
       "welcomeBack": "Chào mừng trở lại,",
-      "admin": "Quản trị viên"
+      "admin": "Quản trị viên",
+      "inventory": "Kho hàng"
+    },
+    "inventory": {
+      "title": "Quản lý Kho hàng",
+      "subtitle": "Quản lý tồn kho, nhập hàng và điều chỉnh.",
+      "searchPlaceholder": "Tìm kiếm sản phẩm hoặc SKU...",
+      "product": "Sản phẩm",
+      "variant": "Biến thể",
+      "sku": "SKU",
+      "category": "Danh mục",
+      "available": "Có sẵn",
+      "reserved": "Đã đặt",
+      "total": "Tổng",
+      "actions": "Hành động",
+      "noResults": "Không tìm thấy mặt hàng kho phù hợp.",
+      "unknownProduct": "Sản phẩm không xác định",
+      "actionsTitle": "Hành động",
+      "status": {
+        "label": "Trạng thái",
+        "inStock": "Còn hàng",
+        "lowStock": "Sắp hết",
+        "outOfStock": "Hết hàng"
+      },
+      "menuActions": {
+        "import": "Nhập",
+        "adjust": "Điều chỉnh",
+        "history": "Lịch sử"
+      },
+      "import": {
+        "title": "Nhập kho",
+        "description": "Thêm hàng mới cho {{product}}",
+        "drawerDescription": "Ghi nhận hàng nhập kho mới với giá chính xác để theo dõi chi phí",
+        "productInfo": "Thông tin sản phẩm",
+        "inputSection": "Chi tiết nhập kho",
+        "productName": "Tên sản phẩm",
+        "currentStock": "Tồn kho hiện tại",
+        "currentCostPrice": "Giá vốn hiện tại",
+        "quantity": "Số lượng nhập",
+        "importPrice": "Giá nhập (mỗi đơn vị)",
+        "importPriceRequired": "Vui lòng nhập giá nhập hợp lệ",
+        "importPriceHint": "Nhập giá mua mỗi đơn vị để tính toán chi phí chính xác",
+        "totalImportValue": "Tổng giá trị nhập",
+        "priceWarningTitle": "Phát hiện chênh lệch giá",
+        "priceWarningMessage": "Giá nhập chênh lệch {{percentage}}% so với giá vốn hiện tại. Vui lòng kiểm tra lại.",
+        "note": "Ghi chú (Tùy chọn)",
+        "notePlaceholder": "v.d. PO #12345, Giao hàng từ nhà cung cấp",
+        "before": "Trước",
+        "after": "Sau",
+        "submit": "Xác nhận nhập kho",
+        "adding": "Đang xử lý...",
+        "success": "Nhập kho thành công",
+        "error": "Nhập kho thất bại",
+        "quantityRequired": "Vui lòng nhập số lượng hợp lệ",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn"
+      },
+      "adjust": {
+        "title": "Điều chỉnh tồn kho",
+        "drawerDescription": "Điều chỉnh mức tồn kho cho các trường hợp sai lệch hoặc đặc biệt",
+        "productInfo": "Thông tin sản phẩm",
+        "inputSection": "Chi tiết điều chỉnh",
+        "productName": "Tên sản phẩm",
+        "currentTotal": "Tổng tồn kho hiện tại",
+        "warning": "Chỉ sử dụng điều chỉnh cho các hiệu chỉnh hoặc sai lệch. Để nhập hàng thường xuyên, hãy dùng chức năng Nhập.",
+        "type": "Loại điều chỉnh",
+        "increase": "Tăng",
+        "decrease": "Giảm",
+        "quantity": "Số lượng",
+        "reason": "Lý do",
+        "reasonPlaceholder": "v.d. Hư hỏng khi vận chuyển, kiểm kê hiệu chỉnh",
+        "reasonHint": "Cung cấp lý do rõ ràng để theo dõi kiểm toán",
+        "before": "Trước",
+        "after": "Sau",
+        "units": "đơn vị",
+        "negativeWarningTitle": "Điều chỉnh không hợp lệ",
+        "submit": "Xác nhận điều chỉnh",
+        "adjusting": "Đang xử lý...",
+        "success": "Điều chỉnh tồn kho thành công",
+        "error": "Điều chỉnh tồn kho thất bại",
+        "quantityRequired": "Vui lòng nhập số lượng",
+        "reasonRequired": "Vui lòng cung cấp lý do",
+        "cannotGoNegative": "Tồn kho không thể âm. Số tồn kho kết quả sẽ dưới 0.",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn"
+      },
+      "history": {
+        "title": "Lịch sử giao dịch",
+        "drawerDescription": "Xem tất cả biến động và thay đổi tồn kho cho biến thể sản phẩm này",
+        "description": "Biến động kho cho SKU: {{sku}} ({{product}})",
+        "date": "Ngày",
+        "type": "Loại",
+        "change": "Thay đổi",
+        "balance": "Số dư",
+        "reference": "Tham chiếu / Ghi chú",
+        "performedBy": "Thực hiện bởi",
+        "noData": "Chưa có giao dịch nào",
+        "noDataHint": "Các giao dịch sẽ xuất hiện ở đây sau khi thao tác kho",
+        "legend": "Loại giao dịch",
+        "system": "Hệ thống",
+        "unknownType": "Loại giao dịch không xác định",
+        "reserved": "tạm giữ",
+        "rsvShort": "Tạm giữ:",
+        "avlShort": "Sẵn có:",
+        "types": {
+          "IMPORT": { "label": "Nhập kho", "description": "Nhập kho từ nhà cung cấp" },
+          "ADJUST": { "label": "Điều chỉnh", "description": "Điều chỉnh kho thủ công" },
+          "RESERVE": { "label": "Tạm giữ", "description": "Giữ hàng cho đơn hàng" },
+          "CONFIRM": { "label": "Xác nhận", "description": "Hàng trong kho đã được xuất đi" },
+          "RELEASE": { "label": "Giải phóng", "description": "Hoàn trả hàng đã tạm giữ về lại kho" },
+          "DAMAGED": { "label": "Hư hỏng", "description": "Ghi nhận hàng bị hư hỏng hoặc mất" },
+          "RETURN": { "label": "Hoàn trả", "description": "Khách hàng trả lại hàng" },
+          "OPENING_BALANCE": { "label": "Số dư đầu", "description": "Số dư tồn kho ban đầu" }
+        }
+      }
     }
   },
 

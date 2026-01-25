@@ -200,7 +200,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     [product.variants, selectedColor, selectedSize]
   );
   
-  const currentPrice = selectedVariant?.priceOverride || product.basePrice;
+  const currentPrice = selectedVariant?.sellingPrice || product.minPrice;
   const isInStock = selectedVariant ? selectedVariant.quantity > 0 : (product.variants || []).some(v => v.quantity > 0);
   const maxQuantity = selectedVariant?.quantity || 10;
   
@@ -448,9 +448,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <span className="text-2xl md:text-3xl font-semibold text-zinc-900 dark:text-zinc-100">
                 {formatVND(currentPrice)}
               </span>
-              {selectedVariant?.priceOverride && selectedVariant.priceOverride !== product.basePrice && (
+              {selectedVariant?.sellingPrice && selectedVariant.sellingPrice !== product.minPrice && (
                 <span className="text-lg text-zinc-400 line-through">
-                  {formatVND(product.basePrice)}
+                  {formatVND(product.minPrice)}
                 </span>
               )}
             </div>

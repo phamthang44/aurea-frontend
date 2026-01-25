@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -35,16 +36,37 @@ export function ProductFormModal({
   onSubmit,
   isLoading,
 }: ProductFormModalProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    basePrice: undefined as number | undefined,
-    categoryId: "",
-    thumbnail: "",
-    images: "",
-  });
+  // Derive initial form values from product prop
+  const initialFormData = useMemo(() => {
+    if (product) {
+      const thumbnailAsset = product.assets?.find((a) => a.isThumbnail);
+      const imageUrls = product.assets?.map((a) => a.url) || product.images || [];
+      return {
+        name: product.name || "",
+        description: product.description || "",
+        minPrice: product.minPrice,
+        originalPrice: product.originalPrice,
+        costPrice: product.costPrice,
+        categoryId: product.categoryId || "",
+        thumbnail: thumbnailAsset?.url || product.thumbnail || "",
+        images: imageUrls.join(", "),
+      };
+    }
+    return {
+      name: "",
+      description: "",
+      minPrice: undefined as number | undefined,
+      originalPrice: undefined as number | undefined,
+      costPrice: undefined as number | undefined,
+      categoryId: "",
+      thumbnail: "",
+      images: "",
+    };
+  }, [product]);
+
+  const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [selectedThumbnailFile, setSelectedThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -57,38 +79,26 @@ export function ProductFormModal({
     { id: "792254090050729592", name: "Sneaker" },
   ];
 
+  // Reset form when dialog opens or product changes
   useEffect(() => {
+    if (!open) return;
+    
+    // Reset form to initial values
+    setFormData(initialFormData);
+    
     if (product) {
-      // Convert assets to legacy format for backward compatibility
       const thumbnailAsset = product.assets?.find((a) => a.isThumbnail);
       const imageUrls = product.assets?.map((a) => a.url) || product.images || [];
-      
-      setFormData({
-        name: product.name || "",
-        description: product.description || "",
-        basePrice: product.basePrice,
-        categoryId: product.categoryId || "",
-        thumbnail: thumbnailAsset?.url || product.thumbnail || "",
-        images: imageUrls.join(", "),
-      });
       setThumbnailPreview(thumbnailAsset?.url || product.thumbnail || "");
       setImagePreviews(imageUrls);
     } else {
-      setFormData({
-        name: "",
-        description: "",
-        basePrice: undefined,
-        categoryId: "",
-        thumbnail: "",
-        images: "",
-      });
       setThumbnailPreview("");
       setImagePreviews([]);
     }
     setErrors({});
-    setThumbnailFile(null);
+    setSelectedThumbnailFile(null);
     setImageFiles([]);
-  }, [product, open]);
+  }, [product, open, initialFormData]);
 
   const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,7 +111,7 @@ export function ProductFormModal({
         toast.error("Please upload an image file");
         return;
       }
-      setThumbnailFile(file);
+      setSelectedThumbnailFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setThumbnailPreview(reader.result as string);
@@ -147,7 +157,7 @@ export function ProductFormModal({
   };
 
   const removeThumbnail = () => {
-    setThumbnailFile(null);
+    setSelectedThumbnailFile(null);
     setThumbnailPreview("");
     setFormData({ ...formData, thumbnail: "" });
   };
@@ -163,10 +173,10 @@ export function ProductFormModal({
       newErrors.description = "Description is required";
     }
 
-    if (formData.basePrice === undefined || formData.basePrice === null) {
-      newErrors.basePrice = "Base price is required";
-    } else if (formData.basePrice <= 0) {
-      newErrors.basePrice = "Price must be greater than 0";
+    if (formData.minPrice === undefined || formData.minPrice === null) {
+      newErrors.minPrice = "Min price is required";
+    } else if (formData.minPrice <= 0) {
+      newErrors.minPrice = "Price must be greater than 0";
     }
 
     if (!formData.categoryId.trim()) {
@@ -225,7 +235,9 @@ export function ProductFormModal({
     const baseData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
-      basePrice: formData.basePrice!,
+      minPrice: formData.minPrice!,
+      originalPrice: formData.originalPrice!,
+      costPrice: formData.costPrice!,
       categoryId: formData.categoryId.trim(),
       slug: generatedSlug,
       assets: assets.length > 0 ? assets : undefined,
@@ -234,7 +246,10 @@ export function ProductFormModal({
         ? undefined
         : [
             {
-              quantity: 1,
+              quantity: 0,
+              sellingPrice: formData.minPrice || 0,
+              originalPrice: formData.originalPrice || 0,
+              costPrice: formData.costPrice || 0,
               attributes: { color: "Default", size: "Default" },
             },
           ],
@@ -306,21 +321,21 @@ export function ProductFormModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="basePrice" className="text-foreground font-medium">
-                Base Price (VND) <span className="text-red-500">*</span>
+              <Label htmlFor="minPrice" className="text-foreground font-medium">
+                Min Price (VND) <span className="text-red-500">*</span>
               </Label>
               <CurrencyInput
-                id="basePrice"
-                value={formData.basePrice}
+                id="minPrice"
+                value={formData.minPrice}
                 onChange={(value) =>
-                  setFormData({ ...formData, basePrice: value })
+                  setFormData({ ...formData, minPrice: value })
                 }
                 placeholder="150,000"
-                error={!!errors.basePrice}
-                aria-invalid={!!errors.basePrice}
+                error={!!errors.minPrice}
+                aria-invalid={!!errors.minPrice}
               />
-              {errors.basePrice && (
-                <p className="text-sm text-red-500 font-medium">{errors.basePrice}</p>
+              {errors.minPrice && (
+                <p className="text-sm text-red-500 font-medium">{errors.minPrice}</p>
               )}
             </div>
 
@@ -358,10 +373,12 @@ export function ProductFormModal({
             <div className="space-y-3">
               {thumbnailPreview ? (
                 <div className="relative w-full h-48 rounded-lg border-2 border-border overflow-hidden bg-secondary/20">
-                  <img
+                  <Image
                     src={thumbnailPreview}
                     alt="Thumbnail preview"
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized={thumbnailPreview.startsWith('data:')}
                   />
                   <button
                     type="button"
@@ -408,10 +425,12 @@ export function ProductFormModal({
                       key={index}
                       className="relative aspect-square rounded-lg border border-border overflow-hidden bg-secondary/20 group"
                     >
-                      <img
+                      <Image
                         src={preview}
                         alt={`Product image ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        unoptimized={preview.startsWith('data:')}
                       />
                       <button
                         type="button"

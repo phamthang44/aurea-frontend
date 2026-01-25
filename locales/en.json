@@ -19,7 +19,14 @@
     "apply": "Apply",
     "submit": "Submit",
     "clear": "Clear",
-    "menu": "Menu"
+    "menu": "Menu",
+    "refresh": "Refresh",
+    "pagination": {
+      "showing": "Showing {{count}} of {{total}}",
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {{current}} of {{total}}"
+    }
   },
   "validation": {
     "fieldRequired": "This field is required",
@@ -532,7 +539,10 @@
       "id": "ID",
       "productName": "Product Name",
       "category": "Category",
-      "price": "Price",
+      "minPrice": "Min Price",
+      "sellingPrice": "Selling Price",
+      "originalPrice": "Original Price",
+      "costPrice": "Cost Price",
       "status": "Status",
       "variants": "Variants",
       "created": "Created",
@@ -558,9 +568,9 @@
       "deleteConfirmMessage": "Are you certain you wish to remove \"{{name}}\" from your collection? This action is irreversible.",
       "removing": "Removing...",
       "deleteProduct": "Delete Product",
-      "quantityUpdatesNotice": "Quantity Updates Notice of Product Stock",
-      "quantityUpdatesNoticeDescription": "<strong>Important: To update quantity, click the edit action in the product row below to go to the product detail page and then click the variants tab to update the quantity.",
-      "quantityUpdatesNoticeImportant": "Important: To update quantity, click the edit action in the product row below to go to the product detail page and then click the variants tab to update the quantity.",
+      "quantityUpdatesNotice": "Product Stock Management",
+      "quantityUpdatesNoticeDescription": "<strong>Important:</strong> To update product stock/quantity, please navigate to the <strong>Inventory</strong> tab. Stock management is now centralized for better accuracy.",
+      "quantityUpdatesNoticeImportant": "Important: To update quantity, please use the Inventory tab.",
       "deleteProductSuccess": "Product deleted successfully",
       "deleteProductError": "Failed to delete product",
       "fetchProductsError": "Failed to fetch products",
@@ -695,8 +705,8 @@
       "active": "Active",
       "disabled": "Disabled",
       "unsavedChangesConfirm": "You have unsaved changes. Are you sure you want to leave?",
-      "quantityUpdatesNotice": "Quantity Updates Notice",
-      "quantityUpdatesNoticeDescription": "<strong>Important:</strong> When using the \"Save All Changes\" button above, quantity changes for <strong>existing variants</strong> will <strong>not be saved</strong>. To update quantity for a specific variant, use the individual <strong>Save</strong> button in that variant's row in the table below. Quantity is only updated when creating <strong>new variants</strong> or when using the variant-specific save action.",
+      "quantityUpdatesNotice": "Inventory Management Notice",
+      "quantityUpdatesNoticeDescription": "<strong>Important:</strong> Product stock and quantity updates are now exclusively managed in the <strong>Inventory</strong> tab. Changes made here will not be reflected in the system's inventory tracking.",
       "quantityUpdatesNoticeImportant": "Important:",
       "quantityUpdatesNoticeExistingVariants": "existing variants",
       "quantityUpdatesNoticeNotSaved": "not be saved",
@@ -849,6 +859,8 @@
       "searchPlaceholder": "Trace category by name or distinct slug...",
       "addRoot": "New Root Category",
       "addChild": "Append Child",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
       "edit": "Configure",
       "delete": "Deconstruct",
       "move": "Reposition",
@@ -878,6 +890,20 @@
           "slugRequired": "SEO identifier is mandatory",
           "circularRef": "Architectural violation: Recursive hierarchy detected.",
           "leafProductWarn": "Integrity Alert: This category contains items and cannot serve as a parent."
+        },
+        "policies": {
+          "integrity": {
+            "title": "Hierarchical Integrity",
+            "desc": "Circular parent relations are blocked by design. A category cannot become its own descendant."
+          },
+          "leaf": {
+            "title": "Leaf-Only Inventory",
+            "desc": "Products are only permitted in leaf categories. Non-leaf nodes serve as structural curators."
+          },
+          "root": {
+            "title": "Root Preservation",
+            "desc": "The foundational architectural root is protected from accidental deconstruction."
+          }
         }
       },
       "moveModal": {
@@ -1033,6 +1059,7 @@
       "subtitle": "Manage stock levels, imports, and adjustments.",
       "searchPlaceholder": "Search product or SKU...",
       "product": "Product",
+      "variant": "Variant",
       "sku": "SKU",
       "category": "Category",
       "available": "Available",
@@ -1040,19 +1067,41 @@
       "total": "Total",
       "actions": "Actions",
       "noResults": "No inventory items found matching your search.",
+      "unknownProduct": "Unknown Product",
       "actionsTitle": "Actions",
+      "status": {
+        "label": "Status",
+        "inStock": "In Stock",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock"
+      },
       "menuActions": {
-        "import": "Import Stock",
-        "adjust": "Adjust Stock",
+        "import": "Import",
+        "adjust": "Adjust",
         "history": "History"
       },
       "import": {
         "title": "Import Stock",
-        "description": "Add new stock for SKU: {{sku}} ({{product}})",
-        "quantity": "Quantity to Import",
+        "description": "Add new stock for {{product}}",
+        "drawerDescription": "Record new inventory arrival with accurate pricing for cost tracking",
+        "productInfo": "Product Information",
+        "inputSection": "Import Details",
+        "productName": "Product Name",
+        "currentStock": "Current Available",
+        "currentCostPrice": "Current Cost Price",
+        "quantity": "Quantity to Add",
+        "importPrice": "Import Price (per unit)",
+        "importPriceRequired": "Please enter a valid import price",
+        "importPriceHint": "Enter the purchase price per unit for accurate cost calculation",
+        "totalImportValue": "Total Import Value",
+        "priceWarningTitle": "Price Discrepancy Detected",
+        "priceWarningMessage": "The import price differs by {{percentage}}% from the current cost price. Please verify this is correct.",
         "note": "Note (Optional)",
-        "notePlaceholder": "e.g., PO #12345",
-        "submit": "Import Stock",
+        "notePlaceholder": "e.g., PO #12345, Supplier delivery",
+        "before": "Before",
+        "after": "After",
+        "submit": "Confirm Import",
+        "adding": "Processing...",
         "success": "Stock imported successfully",
         "error": "Failed to import stock",
         "quantityRequired": "Please enter a valid quantity",
@@ -1060,22 +1109,35 @@
       },
       "adjust": {
         "title": "Adjust Stock",
-        "description": "Correct stock level for SKU: {{sku}}. Current Total: {{current}}",
+        "drawerDescription": "Make corrections to inventory levels for discrepancies or special cases",
+        "productInfo": "Product Information",
+        "inputSection": "Adjustment Details",
+        "productName": "Product Name",
+        "currentTotal": "Current Total Stock",
+        "warning": "Use adjustment only for corrections or discrepancies. For regular stock additions, use Import.",
         "type": "Adjustment Type",
-        "increase": "Increase Stock (+)",
-        "decrease": "Decrease Stock (-)",
+        "increase": "Increase",
+        "decrease": "Decrease",
         "quantity": "Quantity",
         "reason": "Reason",
         "reasonPlaceholder": "e.g., Damaged during shipping, inventory count correction",
-        "submit": "Adjust Stock",
+        "reasonHint": "Provide a clear reason for audit trail purposes",
+        "before": "Before",
+        "after": "After",
+        "units": "units",
+        "negativeWarningTitle": "Invalid Adjustment",
+        "submit": "Confirm Adjustment",
+        "adjusting": "Processing...",
         "success": "Stock adjusted successfully",
         "error": "Failed to adjust stock",
         "quantityRequired": "Please enter a quantity",
         "reasonRequired": "Please provide a reason",
+        "cannotGoNegative": "Stock cannot go negative. The resulting stock would be below zero.",
         "unexpectedError": "An unexpected error occurred"
       },
       "history": {
         "title": "Transaction History",
+        "drawerDescription": "View all stock movements and changes for this product variant",
         "description": "Stock movement for SKU: {{sku}} ({{product}})",
         "date": "Date",
         "type": "Type",
@@ -1083,7 +1145,24 @@
         "balance": "Balance",
         "reference": "Reference / Note",
         "performedBy": "Performed By",
-        "noData": "No history found for this item."
+        "noData": "No transactions yet",
+        "noDataHint": "Transactions will appear here after stock operations",
+        "legend": "Transaction Types",
+        "system": "System",
+        "unknownType": "Unknown transaction type",
+        "reserved": "reserved",
+        "rsvShort": "Rsv:",
+        "avlShort": "Avl:",
+        "types": {
+          "IMPORT": { "label": "Import", "description": "Stock imported from supplier" },
+          "ADJUST": { "label": "Adjust", "description": "Manual stock adjustment" },
+          "RESERVE": { "label": "Reserve", "description": "Stock reserved for order" },
+          "CONFIRM": { "label": "Confirm", "description": "Reserved stock shipped" },
+          "RELEASE": { "label": "Release", "description": "Reserved stock released" },
+          "DAMAGED": { "label": "Damaged", "description": "Stock marked as damaged/lost" },
+          "RETURN": { "label": "Return", "description": "Customer returned goods" },
+          "OPENING_BALANCE": { "label": "Opening", "description": "Initial stock balance" }
+        }
       }
     }
   },

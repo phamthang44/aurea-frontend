@@ -77,7 +77,9 @@ export type VariantAttributes = Record<string, string>;
 export interface VariantResponse {
   id: string;
   sku: string; // IMMUTABLE after creation
-  priceOverride?: number;
+  sellingPrice: number;
+  originalPrice: number;
+  costPrice: number;
   quantity: number; // Read-only for updates - managed by Inventory Module
   attributes: VariantAttributes;
   isActive: boolean;
@@ -107,7 +109,9 @@ export interface ProductResponse {
   name: string;
   slug: string;
   description: string;
-  basePrice: number;
+  minPrice: number;
+  originalPrice: number;
+  costPrice: number;
   categoryId: string;
   categoryName?: string;
   isActive: boolean;
@@ -143,7 +147,9 @@ export interface ProductResponse {
 export interface CreateVariantRequest {
   sku?: string; // Optional - auto-generated if not provided
   attributes: VariantAttributes;
-  priceOverride?: number;
+  sellingPrice: number;
+  originalPrice: number;
+  costPrice: number;
   quantity: number; // Initial stock (only used on creation)
   isActive?: boolean; // Default: true
 }
@@ -170,7 +176,7 @@ export interface CreateProductRequest {
   name: string;
   slug: string;
   description: string;
-  basePrice: number;
+  minPrice: number;
   categoryId: string;
   assets?: AssetRequest[]; // Replaced images: string[]
   isActive?: boolean; // Default: true
@@ -196,7 +202,7 @@ export interface CreateDraftProductRequest {
   slug: string;
   description?: string;
   categoryId: string;
-  basePrice: number;
+  minPrice: number;
   assets?: AssetRequest[]; // Replaced images?: string[]
   // Deprecated fields (kept for backward compatibility during migration)
   /** @deprecated Use assets array instead */
@@ -216,7 +222,9 @@ export interface CreateDraftProductRequest {
 export interface UpdateVariantRequest {
   // sku is NOT included - it's immutable
   attributes: VariantAttributes;
-  priceOverride?: number;
+  sellingPrice?: number;
+  originalPrice?: number;
+  costPrice?: number;
   // quantity is omitted - updates are ignored by backend
   isActive?: boolean;
 }
@@ -276,7 +284,7 @@ export interface ProductImage {
 export interface UpdateProductRequest {
   name: string;
   description: string;
-  basePrice: number;
+  minPrice: number;
   categoryId: string;
   assets?: AssetRequest[]; // Replaced images: ProductImage[]
   isActive: boolean;
@@ -301,7 +309,7 @@ export interface UpdateProductRequest {
 export interface UpdateProductInfoRequest {
   name?: string;
   description?: string;
-  basePrice?: number;
+  minPrice?: number;
   categoryId?: string;
   assets?: AssetRequest[]; // Replaced images?: ProductImage[]
   isActive?: boolean;
@@ -323,7 +331,9 @@ export interface UpdateProductInfoRequest {
  */
 export interface UpdateVariantInfoRequest {
   attributes: VariantAttributes;
-  priceOverride?: number;
+  sellingPrice?: number;
+  originalPrice?: number;
+  costPrice?: number;
 }
 
 /**
@@ -447,7 +457,7 @@ export interface ProductFormData {
   name: string;
   slug: string;
   description: string;
-  basePrice: number;
+  minPrice: number;
   categoryId: string;
   assets: ProductAsset[]; // Replaced images: string[]
   isActive: boolean;
@@ -468,7 +478,9 @@ export interface VariantFormData {
   id?: string; // Only for editing existing variants
   sku: string;
   attributes: VariantAttributes;
-  priceOverride: number | null;
+  sellingPrice: number;
+  originalPrice: number;
+  costPrice: number;
   quantity: number; // Used in UI, but filtered out for UpdateVariantWithId in full product updates
   isActive: boolean;
 }
@@ -487,7 +499,7 @@ export interface CategoryTreeNode extends CategoryResponse {
  * Product with computed fields for UI
  */
 export interface ProductWithComputed extends ProductResponse {
-  finalPrice: number; // basePrice or lowest variant price
+  finalPrice: number; // minPrice or lowest variant price
   isInStock: boolean; // Any variant has quantity > 0
   totalStock: number; // Sum of all variant quantities
   variantCount: number; // Number of variants
@@ -529,8 +541,8 @@ export function computeProductFields(
   // Find lowest price among variants (or use base price)
   const finalPrice =
     variants.length > 0
-      ? Math.min(...variants.map((v) => v.priceOverride || product.basePrice))
-      : product.basePrice;
+      ? Math.min(...variants.map((v) => v.sellingPrice || product.minPrice))
+      : product.minPrice;
 
   // Check if any variant is in stock
   const isInStock = variants.some((v) => v.quantity > 0 && v.isActive);
@@ -607,7 +619,9 @@ export interface ProductResponseAdmin {
   name: string;
   slug: string;
   description: string;
-  basePrice: number;
+  minPrice: number;
+  originalPrice: number;
+  costPrice: number;
   categoryId: string;
   categoryName: string;
   status: "ACTIVE" | "DRAFT" | "HIDDEN" | "ARCHIVED";

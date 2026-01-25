@@ -130,9 +130,9 @@ export function ProductCard({
   const displayPrice =
     activeVariants.length > 0
       ? Math.min(
-          ...activeVariants.map((v) => v.priceOverride || product.basePrice)
+          ...activeVariants.map((v) => v.sellingPrice || product.minPrice)
         )
-      : product.basePrice;
+      : product.minPrice;
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.preventDefault();

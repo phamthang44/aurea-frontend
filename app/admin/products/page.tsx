@@ -332,7 +332,7 @@ export default function AdminProductsPage() {
                     {t("admin.products.category")}
                   </th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {t("admin.products.price")}
+                    {t("admin.products.minPrice")}
                   </th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
                     {t("admin.products.status")}
@@ -373,7 +373,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                        {formatVND(product.basePrice)}
+                        {formatVND(product.minPrice)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -387,7 +387,7 @@ export default function AdminProductsPage() {
                             : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
                         )}
                       >
-                        {product.status}
+                        {t(`admin.products.${product.status.toLowerCase()}`)}
                       </span>
                     </td>
                     <td className="px-6 py-4">

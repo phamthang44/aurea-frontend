@@ -1,17 +1,14 @@
 ﻿'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
-import { useAppSelector, useAppDispatch } from '@/lib/store/hooks';
-import { User, LogOut, Settings, Menu, X, ShoppingBag, Search, Heart, ChevronDown } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useAppSelector } from '@/lib/store/hooks';
+import { User, Menu, X, ShoppingBag, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SettingsButton } from '@/components/ui/SettingsButton';
-import { logoutAction } from '@/app/actions/auth';
-import { clearAuth } from '@/lib/store/authSlice';
-import { clearCartData } from '@/lib/utils';
-import { useCartStore } from '@/lib/store/cartStore';
 import { MegaMenu } from './MegaMenu';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -48,40 +45,32 @@ const checkNavItems = [
 
 export function LuxuryNavBar() {
   const { t } = useTranslation();
-  const router = useRouter();
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const user = useAppSelector((state) => state.auth.user);
   const cartContext = useCartOptional();
   const cartItems = cartContext?.items ?? [];
   
+  // Track mounted state for animations
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
   
-  // Transform values for a dynamic "floating" effect
-  const backgroundColor = useTransform(
-    scrollY,
-    [0, 50],
-    ['rgba(253, 252, 248, 0)', 'rgba(253, 252, 248, 0.9)']
-  );
-  const darkBackgroundColor = useTransform(
-    scrollY,
-    [0, 50],
-    ['rgba(22, 22, 22, 0)', 'rgba(22, 22, 22, 0.9)']
-  );
+  // Transform values for scroll-linked animations
   const backdropBlur = useTransform(scrollY, [0, 50], ['blur(0px)', 'blur(16px)']);
-  const navPadding = useTransform(scrollY, [0, 50], ['2rem', '1rem']);
   const navHeight = useTransform(scrollY, [0, 50], ['5.5rem', '4.5rem']);
   const shadow = useTransform(scrollY, [0, 50], ['none', '0 10px 30px -10px rgba(0,0,0,0.1)']);
 
+  // Client-only state updates
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Close mobile menu on route change  
   useEffect(() => {
-    setMobileMenuOpen(false);
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
   }, [pathname]);
 
   const cartItemCount = cartItems?.length || 0;
@@ -150,7 +139,9 @@ export function LuxuryNavBar() {
                 <Link href="/account" className="flex items-center gap-3 group no-underline">
                   <div className="w-8 h-8 rounded-full border border-[#D4AF37]/30 p-0.5 group-hover:border-[#D4AF37] transition-colors duration-300 overflow-hidden bg-white dark:bg-zinc-800">
                     {user?.avatarUrl ? (
-                        <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover rounded-full" />
+                        <div className="relative w-full h-full rounded-full overflow-hidden">
+                          <Image src={user.avatarUrl} alt="User" fill className="object-cover" />
+                        </div>
                     ) : (
                         <User className="w-full h-full text-[#D4AF37] p-1" />
                     )}

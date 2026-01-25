@@ -1,7 +1,6 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -13,7 +12,7 @@ interface SettingsTabProps {
     seoDescription?: string;
     seoKeywords?: string;
   };
-  onChange: (updates: any, skipChangeTracking?: boolean) => void;
+  onChange: (updates: Partial<SettingsTabProps['data']>, skipChangeTracking?: boolean) => void;
   errors?: Record<string, string>;
 }
 
@@ -43,7 +42,7 @@ export function SettingsTab({ data, onChange, errors = {} }: SettingsTabProps) {
             ].map((status) => (
               <button
                 key={status.id}
-                onClick={() => onChange({ productStatus: status.id })}
+                onClick={() => onChange({ productStatus: status.id as SettingsTabProps['data']['productStatus'] })}
                 className={cn(
                   "p-5 rounded-2xl border-2 transition-all text-left group relative backdrop-blur-sm",
                   data.productStatus === status.id

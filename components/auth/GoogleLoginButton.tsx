@@ -12,14 +12,18 @@ interface GoogleLoginButtonProps {
 export function GoogleLoginButton({
   disabled = false,
 }: GoogleLoginButtonProps) {
+  // Initialize state directly - the ternary handles SSR
   const [isMounted, setIsMounted] = useState(false);
-  const [isGoogleAvailable, setIsGoogleAvailable] = useState(false);
+  const [isGoogleAvailable] = useState(() => {
+    // Check on client side only during initialization
+    if (typeof window === 'undefined') return false;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    return !!clientId && clientId !== "placeholder-client-id";
+  });
 
+  // Only set mounted flag after hydration
   useEffect(() => {
     setIsMounted(true);
-    // Check if Google Client ID is available
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    setIsGoogleAvailable(!!clientId && clientId !== "placeholder-client-id");
   }, []);
 
   // Get redirect URI - use environment variable or default to localhost

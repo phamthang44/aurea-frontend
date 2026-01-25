@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, X as CloseIcon, ChevronRight, XCircle, RefreshCcw, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, X as CloseIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -11,24 +11,23 @@ import { MediaTab } from "@/components/admin/product-detail/MediaTab";
 import { VariantsTab } from "@/components/admin/product-detail/VariantsTab";
 import { SettingsTab } from "@/components/admin/product-detail/SettingsTab";
 import { clientApi } from "@/lib/api-client";
-import { ProductResponse, ApiResult } from "@/lib/types/product";
+import { ProductResponse, ApiResult, ProductAsset } from "@/lib/types/product";
 import { productApi } from "@/lib/api/product";
 import { useTranslation, Trans } from "react-i18next";
 import { AdminErrorDisplay } from "@/components/admin/AdminErrorDisplay";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 
 type Tab = "general" | "media" | "variants" | "settings";
-
-import { ProductAsset } from "@/lib/types/product";
 
 interface ProductData {
   id: string;
   name: string;
   description: string;
   categoryId: string;
-  basePrice: number;
-  assets?: ProductAsset[]; // Replaced thumbnail and images
+  minPrice: number;
+  originalPrice: number;
+  costPrice: number;
+  assets?: ProductAsset[];
   variants?: any[];
   slug?: string;
   productStatus: "draft" | "active" | "inactive" | "archived";
@@ -37,7 +36,6 @@ interface ProductData {
   seoKeywords?: string;
   stock?: number;
   sku?: string;
-  // Deprecated fields (kept for backward compatibility)
   /** @deprecated Use assets array instead */
   thumbnail?: string;
   /** @deprecated Use assets array instead */
@@ -56,7 +54,6 @@ export default function ProductDetailPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Store original data for change detection
   const [originalData, setOriginalData] = useState<ProductData | null>(null);
   const [pageError, setPageError] = useState<{ title: string; description?: string; items?: any[] } | null>(null);
 
@@ -65,7 +62,9 @@ export default function ProductDetailPage() {
     name: "",
     description: "",
     categoryId: "",
-    basePrice: 0,
+    minPrice: 0,
+    originalPrice: 0,
+    costPrice: 0,
     assets: [],
     variants: [],
     slug: "",
@@ -75,7 +74,6 @@ export default function ProductDetailPage() {
     seoKeywords: "",
   });
 
-  // Load product data from API
   useEffect(() => {
     const fetchProduct = async () => {
       setIsLoading(true);
@@ -84,12 +82,6 @@ export default function ProductDetailPage() {
 
         if (response.error) {
           const errorMsg = response.error.message || t("admin.productDetail.loadProductError");
-          const traceId = (response.error as any).traceId;
-          console.error("Product fetch error:", {
-            productId,
-            error: response.error,
-            traceId,
-          });
           setPageError({
              title: "Access Denied or Connection Failure",
              description: "We couldn't retrieve the requested boutique item from the vault.",
@@ -99,13 +91,7 @@ export default function ProductDetailPage() {
           const result = response.data as ApiResult<ProductResponse>;
           const product = result?.data;
 
-          if (product?.variants && product.variants.length > 0) {
-            // Log structure of first variant if needed in dev
-          }
-
           if (product) {
-            // Convert backend assets to frontend format
-            // Backend returns assets array with ProductAsset structure
             const assets: ProductAsset[] = product.assets
               ? product.assets.map((asset: any) => ({
                   id: asset.id?.toString(),
@@ -119,7 +105,6 @@ export default function ProductDetailPage() {
                 }))
               : [];
 
-            // Enrich variants with their images (for backward compatibility)
             const enrichedVariants = (product.variants || []).map((v: any) => {
               const variantAsset = assets.find(
                 (a) => a.variantId === v.id?.toString() || a.variantId === v.sku
@@ -130,17 +115,19 @@ export default function ProductDetailPage() {
               };
             });
 
-            const loadedData = {
+            const loadedData: ProductData = {
               id: product.id,
               name: product.name || "",
               description: product.description || "",
               categoryId: product.categoryId || "",
-              basePrice: product.basePrice || 0,
+              minPrice: product.minPrice || 0,
+              originalPrice: product.originalPrice || 0,
+              costPrice: product.costPrice || 0,
               assets: assets,
               variants: enrichedVariants,
               slug: product.slug || "",
               productStatus: (
-                (product as any).status || "DRAFT"
+                (product as any).status || (product as any).productStatus || "DRAFT"
               ).toLowerCase() as "draft" | "active" | "inactive" | "archived",
               seoTitle: "",
               seoDescription: "",
@@ -148,7 +135,7 @@ export default function ProductDetailPage() {
             };
 
             setProductData(loadedData);
-            setOriginalData(JSON.parse(JSON.stringify(loadedData))); // Deep clone
+            setOriginalData(JSON.parse(JSON.stringify(loadedData)));
           }
         }
       } catch (error) {
@@ -165,7 +152,7 @@ export default function ProductDetailPage() {
     };
 
     fetchProduct();
-  }, [productId, router]);
+  }, [productId, t]);
 
   const tabs = [
     { id: "general" as Tab, label: t("admin.productDetail.general"), icon: "📝" },
@@ -174,11 +161,9 @@ export default function ProductDetailPage() {
     { id: "settings" as Tab, label: t("admin.productDetail.settings"), icon: "⚙️" },
   ];
 
-  // Perform overall validation before save
   const validateProductData = () => {
     const newErrors: Record<string, string> = {};
 
-    // General Information validation
     if (!productData.name?.trim()) {
       newErrors.name = t("admin.productDetail.createDialog.validation.nameRequired");
     } else if (productData.name.trim().length < 3) {
@@ -189,8 +174,8 @@ export default function ProductDetailPage() {
       newErrors.categoryId = t("admin.productDetail.createDialog.validation.categoryRequired");
     }
 
-    if (!productData.basePrice || productData.basePrice < 1000) {
-      newErrors.basePrice = t("admin.productDetail.createDialog.validation.pricePositive");
+    if (!productData.minPrice || productData.minPrice < 1000) {
+      newErrors.minPrice = t("admin.productDetail.createDialog.validation.pricePositive");
     }
 
     if (!productData.description?.trim()) {
@@ -199,46 +184,26 @@ export default function ProductDetailPage() {
       newErrors.description = t("admin.productDetail.createDialog.validation.descriptionTooShort");
     }
 
-    // SEO validation
-    if (productData.seoTitle && productData.seoTitle.length > 60) {
-      newErrors.seoTitle = t("admin.productDetail.createDialog.validation.seoTitleTooLong");
-    }
-    if (productData.seoDescription && productData.seoDescription.length > 160) {
-      newErrors.seoDescription = t("admin.productDetail.createDialog.validation.seoDescriptionTooLong");
-    }
-
-    // Variants validation (if any)
     if (productData.variants && productData.variants.length > 0) {
       productData.variants.forEach((v, idx) => {
         const quantity = v.quantity ?? v.stock ?? 0;
         if (quantity < 0) {
           newErrors[`variant_${idx}_stock`] = t("admin.productDetail.createDialog.validation.stockNonNegative");
         }
-        if (v.priceOverride !== null && v.priceOverride !== undefined && v.priceOverride > 0 && v.priceOverride < 1000) {
+        if (v.sellingPrice !== null && v.sellingPrice !== undefined && v.sellingPrice > 0 && v.sellingPrice < 1000) {
           newErrors[`variant_${idx}_price`] = t("admin.productDetail.createDialog.validation.priceOverridePositive");
         }
       });
-    }
-
-    // Active status validation requirements
-    if (productData.productStatus === "active") {
-      const hasThumbnail = productData.assets?.some(a => a.isThumbnail);
-      if (!hasThumbnail) {
-        newErrors.thumbnail = t("admin.productDetail.createDialog.validation.thumbnailRequired");
-      }
     }
 
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
       toast.error(t("admin.productDetail.createDialog.validation.genericError"));
-      // Switch to the first tab that has errors
-      if (newErrors.name || newErrors.categoryId || newErrors.basePrice || newErrors.description) {
+      if (newErrors.name || newErrors.categoryId || newErrors.minPrice || newErrors.description) {
         setActiveTab("general");
       } else if (newErrors.thumbnail) {
         setActiveTab("media");
-      } else if (newErrors.seoTitle || newErrors.seoDescription) {
-        setActiveTab("settings");
       }
       return false;
     }
@@ -246,7 +211,6 @@ export default function ProductDetailPage() {
     return true;
   };
 
-  // Detect what changed to call the minimal API
   const detectChanges = () => {
     if (!originalData) return { type: "none" };
 
@@ -255,7 +219,7 @@ export default function ProductDetailPage() {
       generalInfo:
         productData.name !== originalData.name ||
         productData.description !== originalData.description ||
-        productData.basePrice !== originalData.basePrice ||
+        productData.minPrice !== originalData.minPrice ||
         productData.categoryId !== originalData.categoryId,
       media:
         JSON.stringify(productData.assets) !==
@@ -265,37 +229,17 @@ export default function ProductDetailPage() {
         JSON.stringify(originalData.variants),
     };
 
-    console.log("=== CHANGE DETECTION DEBUG ===");
-    console.log(
-      "Original status:",
-      originalData.productStatus,
-      typeof originalData.productStatus
-    );
-    console.log(
-      "Current status:",
-      productData.productStatus,
-      typeof productData.productStatus
-    );
-    console.log("Changes detected:", changes);
-    console.log("==============================");
-
-    // Priority: status > variants > media > generalInfo
-    if (
-      changes.status &&
-      !changes.generalInfo &&
-      !changes.media &&
-      !changes.variants
-    ) {
+    if (changes.status && !changes.generalInfo && !changes.media && !changes.variants) {
       return { type: "status" };
     }
     if (changes.variants) {
-      return { type: "full" }; // Variants changed = full update
+      return { type: "full" };
     }
     if (changes.media && !changes.generalInfo) {
-      return { type: "media" }; // Only images changed
+      return { type: "media" };
     }
     if (changes.generalInfo || changes.media) {
-      return { type: "generalInfo" }; // General info or combined with media
+      return { type: "generalInfo" };
     }
 
     return { type: "none" };
@@ -305,7 +249,7 @@ export default function ProductDetailPage() {
     if (!validateProductData()) return;
 
     setIsSaving(true);
-    setErrors({}); // Clear errors before save attempt
+    setErrors({});
     try {
       let response: any;
       const changeType = detectChanges();
@@ -316,423 +260,254 @@ export default function ProductDetailPage() {
         return;
       }
 
-      // 1. STATUS ONLY - Call PATCH /api/v1/products/{id}/status
       if (changeType.type === "status") {
-        console.log("📍 Calling STATUS update endpoint");
         response = await productApi.updateProductStatus(productId, {
-          productStatus: productData.productStatus.toUpperCase(), // Convert to DRAFT/ACTIVE/INACTIVE/ARCHIVED
+          productStatus: productData.productStatus.toUpperCase(),
         });
       }
-      // 2. VARIANTS CHANGED - Call PUT /api/v1/products/{id} (full update)
       else if (changeType.type === "full") {
-        console.log("📍 Calling FULL update endpoint (variants changed)");
-
-        // Transform assets to AssetRequest format
         const assetsToSend = (productData.assets || []).map((asset) => ({
           id: asset.id,
           url: asset.url,
-          publicId: asset.publicId || null,
           type: asset.type,
           isThumbnail: asset.isThumbnail,
           position: asset.position || 0,
           variantId: asset.variantId || null,
-          metaData: asset.metaData || null,
         }));
 
-        // Validate and filter variants to prevent duplicate attributes
-        // IMPORTANT: quantity is intentionally excluded for existing variants (id present)
-        // Quantity is only sent for NEW variants (id is null/undefined) for initial inventory setup
         const variantsToSend = (productData.variants || [])
           .map((variant: any) => {
             const variantPayload: any = {
               id: variant.id,
               attributes: variant.attributes || {},
-              priceOverride: variant.priceOverride || variant.price,
+              sellingPrice: variant.sellingPrice || variant.price,
+              originalPrice: variant.originalPrice || 0,
+              costPrice: variant.costPrice || 0,
               isActive: variant.isActive !== false,
             };
             
-            // Only include quantity for NEW variants (no id) - backend ignores it for existing variants anyway
-            if (!variant.id && variant.quantity !== undefined && variant.quantity !== null) {
+            if (!variant.id && (variant.quantity !== undefined && variant.quantity !== null)) {
               variantPayload.quantity = variant.quantity;
             }
-            // Note: For existing variants, quantity is intentionally omitted
-            // Users must use individual variant save button to update quantity
             
             return variantPayload;
-          })
-          .filter((variant: any) => {
-            // Filter out variants with empty attributes (unless they have an ID - existing variants)
-            const hasAttributes = Object.keys(variant.attributes).length > 0;
-            if (!hasAttributes && !variant.id) {
-              console.warn("Skipping variant with empty attributes:", variant);
-              return false;
-            }
-            return true;
           });
-
-        // Check for duplicate attribute combinations
-        const attributeSignatures = new Set<string>();
-        const uniqueVariants = variantsToSend.filter((variant: any) => {
-          const signature = JSON.stringify(
-            Object.entries(variant.attributes)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .reduce((acc, [key, val]) => ({ ...acc, [key]: val }), {})
-          );
-          if (attributeSignatures.has(signature)) {
-            console.warn(
-              "Skipping duplicate variant:",
-              variant,
-              "signature:",
-              signature
-            );
-            return false;
-          }
-          attributeSignatures.add(signature);
-          return true;
-        });
-
-        console.log("Original variants count:", productData.variants?.length);
-        console.log("After filtering:", uniqueVariants.length);
-        console.log("Filtered variants:", uniqueVariants);
 
         const updatePayload = {
           name: productData.name,
           description: productData.description,
-          basePrice: productData.basePrice,
+          minPrice: productData.minPrice,
           categoryId: productData.categoryId,
-          assets: assetsToSend, // Send AssetRequest array
+          assets: assetsToSend,
           isActive: productData.productStatus === "active",
-          variants: uniqueVariants,
-        } as any; // Suppress type error - backend handles variant updates without sku in payload
+          variants: variantsToSend,
+        };
 
-        response = await productApi.updateProduct(productId, updatePayload);
+        response = await productApi.updateProduct(productId, updatePayload as any);
       }
-      // 3. MEDIA ONLY or GENERAL INFO - Call PATCH /api/v1/products/{id}
-      else if (
-        changeType.type === "media" ||
-        changeType.type === "generalInfo"
-      ) {
-        console.log(
-          `📍 Calling GENERAL INFO update endpoint (${changeType.type})`
-        );
-
-        // Transform assets to AssetRequest format
+      else if (changeType.type === "media" || changeType.type === "generalInfo") {
         const assetsToSend = (productData.assets || []).map((asset) => ({
           id: asset.id,
           url: asset.url,
-          publicId: asset.publicId || null,
           type: asset.type,
           isThumbnail: asset.isThumbnail,
           position: asset.position || 0,
           variantId: asset.variantId || null,
-          metaData: asset.metaData || null,
         }));
 
         const generalInfoPayload = {
           name: productData.name,
           description: productData.description,
-          basePrice: productData.basePrice,
+          minPrice: productData.minPrice,
           categoryId: productData.categoryId,
-          assets: assetsToSend, // Send AssetRequest array
+          assets: assetsToSend,
         };
 
-        response = await productApi.updateProductInfo(
-          productId,
-          generalInfoPayload
-        );
+        response = await productApi.updateProductInfo(productId, generalInfoPayload);
       }
 
       if (response?.error) {
-        // Map backend errors if they exist in a structured way (details object)
-        if ((response.error as any).details) {
-          const details = (response.error as any).details;
-          const newErrors: Record<string, string> = {};
-          Object.keys(details).forEach((key) => {
-            newErrors[key] = details[key];
-          });
-          setErrors(newErrors);
-        }
-
         const errorMsg = response.error.message || t("admin.productDetail.saveProductError");
-        const traceId = (response.error as any).traceId;
-        console.error("Product save error:", {
-          productId,
-          error: response.error,
-          traceId,
-        });
         setPageError({
           title: "Save Operation Failed",
-          description: "Changes to this luxury piece could not be committed to the collection.",
-          items: [{ message: traceId ? `${errorMsg} (Trace: ${traceId})` : errorMsg }]
+          description: "Changes could not be committed to the collection.",
+          items: [{ message: errorMsg }]
        });
       } else {
-        const updateTypeKey = `admin.productDetail.updateType.${changeType.type}`;
-        const updateType = t(updateTypeKey);
-        toast.success(t("admin.productDetail.saveProductSuccess", { type: updateType }));
+        toast.success(t("admin.productDetail.saveProductSuccess", { type: t(`admin.productDetail.updateType.${changeType.type}`) }));
         setHasChanges(false);
 
-        // Refresh product data from backend
-        // response.data contains the backend response structure
-        const result = response.data as ApiResult<ProductResponse>;
+        const result = response?.data as ApiResult<ProductResponse>;
         const updatedProduct = result?.data;
 
         if (updatedProduct) {
-          // Convert backend assets to frontend format
           const assets: ProductAsset[] = updatedProduct.assets
             ? updatedProduct.assets.map((asset: any) => ({
                 id: asset.id?.toString(),
                 url: asset.url,
-                publicId: asset.publicId || null,
                 type: asset.type || "IMAGE",
                 isThumbnail: asset.isThumbnail || false,
                 position: asset.position || 0,
                 variantId: asset.variantId?.toString() || null,
-                metaData: asset.metaData || null,
               }))
             : [];
 
-          // Enrich variants with their images (for backward compatibility)
-          const enrichedVariants = (updatedProduct.variants || []).map(
-            (v: any) => {
-              const variantAsset = assets.find(
-                (a) => a.variantId === v.id?.toString() || a.variantId === v.sku
-              );
-              return {
-                ...v,
-                imageUrl: variantAsset?.url || null,
-              };
-            }
-          );
+          const enrichedVariants = (updatedProduct.variants || []).map((v: any) => {
+            const variantAsset = assets.find((a) => a.variantId === v.id?.toString() || a.variantId === v.sku);
+            return { ...v, imageUrl: variantAsset?.url || null };
+          });
 
-          const refreshedData = {
+          const refreshedData: ProductData = {
             id: updatedProduct.id,
             name: updatedProduct.name || "",
             description: updatedProduct.description || "",
             categoryId: updatedProduct.categoryId || "",
-            basePrice: updatedProduct.basePrice || 0,
+            minPrice: updatedProduct.minPrice || 0,
+            originalPrice: updatedProduct.originalPrice || 0,
+            costPrice: updatedProduct.costPrice || 0,
             assets: assets,
             variants: enrichedVariants,
             slug: updatedProduct.slug || "",
-            productStatus: (
-              (updatedProduct as any).status || "DRAFT"
-            ).toLowerCase() as "draft" | "active" | "inactive" | "archived",
+            productStatus: ((updatedProduct as any).status || (updatedProduct as any).productStatus || "DRAFT").toLowerCase() as any,
             seoTitle: "",
             seoDescription: "",
             seoKeywords: "",
           };
 
           setProductData(refreshedData);
-          setOriginalData(JSON.parse(JSON.stringify(refreshedData))); // Update baseline
+          setOriginalData(JSON.parse(JSON.stringify(refreshedData)));
         }
       }
-      } catch (error) {
-        console.error("Error saving product:", error);
-        const errorMsg = error instanceof Error ? error.message : "Unknown error";
-        toast.error(
-          `${t("admin.productDetail.saveProductError")}: ${errorMsg}`
-        );
+    } catch (error) {
+      console.error("Error saving product:", error);
+      toast.error(t("admin.productDetail.saveProductError"));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (hasChanges) {
-      if (
-        confirm(t("admin.productDetail.unsavedChangesConfirm"))
-      ) {
-        router.push("/admin/products");
-      }
-    } else {
-      router.push("/admin/products");
-    }
+    if (hasChanges && !confirm(t("admin.productDetail.unsavedChangesConfirm"))) return;
+    router.push("/admin/products");
   };
 
-  const updateProductData = (
-    updates: Partial<ProductData>,
-    skipChangeTracking: boolean = false
-  ) => {
-    console.log("=== UPDATE PRODUCT DATA ===");
-    console.log("Updates received:", updates);
-    console.log("Skip change tracking:", skipChangeTracking);
-    console.log("Current productData:", productData);
-    console.log("===========================");
+  const updateProductData = (updates: Partial<ProductData>, skipChangeTracking: boolean = false) => {
     setProductData((prev) => ({ ...prev, ...updates }));
-    if (!skipChangeTracking) {
-      setHasChanges(true);
-    }
+    if (!skipChangeTracking) setHasChanges(true);
   };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-gradient-to-br dark:from-slate-950 dark:to-slate-900">
-      {/* Loading State */}
       {isLoading ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="inline-block h-12 w-12 border-4 border-amber-200 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin" />
-            <p className="mt-4 text-sm text-gray-500 dark:text-amber-100/60">
-              {t("common.loading")}
-            </p>
+            <p className="mt-4 text-sm text-gray-500 dark:text-amber-100/60">{t("common.loading")}</p>
           </div>
         </div>
       ) : (
         <>
-          {/* Sticky Header Bar - Account for main navbar height */}
-          <div className="sticky top-0 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-amber-900/30 shadow-sm mx-auto">
-            <div className=" mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3 sm:py-0 sm:h-16">
-                {/* Left: Back Button & Title */}
-                <div className="flex items-center gap-2 sm:gap-4 flex-1 sm:flex-initial">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleCancel}
-                    className="text-gray-500 dark:text-amber-200/60 hover:text-gray-900 dark:hover:text-amber-200 h-8 w-8 sm:h-10 sm:w-10"
+          <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 lg:px-6">
+              {/* Top Bar: Back, Title, Actions */}
+              <div className="flex items-center justify-between gap-4 py-4">
+                {/* Left: Back + Title */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleCancel} 
+                    className="h-9 w-9 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white shrink-0"
                   >
-                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <ArrowLeft className="h-4 w-4" />
                   </Button>
-                  <div className="min-w-0 flex-1">
-                    <h1 className="text-base sm:text-lg md:text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-amber-200 dark:to-yellow-100 bg-clip-text text-transparent truncate">
+                  <div className="min-w-0">
+                    <h1 className="text-base font-bold text-slate-900 dark:text-white truncate">
                       {productData.name || t("admin.products.newProduct")}
                     </h1>
-                    <p className="text-xs text-gray-500 dark:text-amber-200/50 truncate">
-                      ID: {productId}
-                    </p>
+                    <p className="text-xs text-slate-400 font-mono truncate">ID: {productId}</p>
                   </div>
                   {hasChanges && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 whitespace-nowrap">
+                    <span className="ml-2 px-2.5 py-1 text-[10px] rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border border-orange-200 dark:border-orange-700/50 uppercase font-bold tracking-wider shrink-0">
                       {t("admin.productDetail.unsavedChanges")}
                     </span>
                   )}
                 </div>
 
-                {/* Help Text for Variants Tab */}
-                {activeTab === "variants" && (
-                  <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-800">
-                    <span className="text-blue-600 dark:text-blue-400">💡</span>
-                    <span>
-                      <strong>{t("admin.productDetail.individualSaves")}</strong> {t("admin.productDetail.clickSaveIcon")} | <strong>{t("admin.productDetail.bulkSave")}</strong> {t("admin.productDetail.clickSaveAll")}
-                    </span>
-                  </div>
-                )}
-
-                {/* Right: Action Buttons */}
-                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                  <Button
-                    variant="outline"
-                    onClick={handleCancel}
-                    disabled={isSaving}
-                    className="border border-gray-300 dark:border-amber-700/40 text-gray-700 dark:text-amber-200 hover:bg-gray-50 dark:hover:bg-amber-900/10 flex-1 sm:flex-initial h-9 sm:h-10"
+                {/* Right: Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancel} 
+                    disabled={isSaving} 
+                    className="h-9 px-4 text-sm font-medium border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
-                    <CloseIcon className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">{t("admin.productDetail.cancel")}</span>
+                    <CloseIcon className="h-4 w-4 mr-1.5" />
+                    {t("admin.productDetail.cancel")}
                   </Button>
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving || !hasChanges}
-                    className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 dark:from-amber-500 dark:to-yellow-500 dark:hover:from-amber-600 dark:hover:to-yellow-600 text-white shadow-lg shadow-amber-500/20 dark:shadow-amber-900/30 font-semibold flex-1 sm:flex-initial h-9 sm:h-10"
-                    title={
-                      activeTab === "variants"
-                        ? t("admin.productDetail.saveAllChanges")
-                        : t("admin.productDetail.saveChanges")
-                    }
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={isSaving || !hasChanges} 
+                    className="h-9 px-4 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-sm disabled:opacity-50"
                   >
-                    <Save className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">
-                      {isSaving
-                        ? t("admin.productDetail.saving")
-                        : activeTab === "variants"
-                        ? t("admin.productDetail.saveAllChanges")
-                        : t("admin.productDetail.saveChanges")}
-                    </span>
-                    <span className="sm:hidden">
-                      {isSaving ? "..." : t("admin.productDetail.save")}
-                    </span>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Save className="h-4 w-4 mr-1.5" />}
+                    {isSaving ? t("admin.productDetail.saving") : t("admin.productDetail.saveChanges")}
                   </Button>
                 </div>
               </div>
 
               {/* Tabs Navigation */}
-              <div className="flex gap-1 -mb-px overflow-x-auto scrollbar-hide">
+              <div className="flex gap-1 pb-0 -mb-px overflow-x-auto scrollbar-hide">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap group",
+                      "flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 transition-all duration-150 whitespace-nowrap outline-none",
                       activeTab === tab.id
-                        ? "border-amber-500 dark:border-amber-600 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/10"
-                        : "border-transparent text-gray-500 dark:text-amber-200/60 hover:text-gray-900 dark:hover:text-amber-200 hover:border-gray-300 dark:hover:border-amber-700/40 hover:bg-gray-50 dark:hover:bg-amber-900/5"
+                        ? "bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 border-slate-200 dark:border-slate-700"
+                        : "bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                     )}
                   >
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="text-sm sm:text-base">{tab.icon}</span>
-                      <span className="hidden sm:inline">{tab.label}</span>
-                      <span className="sm:hidden">
-                        {tab.label.split(" ")[0]}
-                      </span>
-                    </div>
+                    <span className="text-base">{tab.icon}</span>
+                    <span>{tab.label}</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Global Persistence Error Center */}
-          <AnimatePresence>
-            {pageError && (
-              <div className="max-w-7xl mx-auto px-1 sm:px-4 md:px-6 lg:px-8 pt-4">
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <AnimatePresence>
+              {pageError && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-6 overflow-hidden">
                   <AdminErrorDisplay
                     title={pageError.title}
                     description={pageError.description}
                     items={pageError.items}
                     onClose={() => setPageError(null)}
                     onRetry={handleSave}
-                    className="shadow-2xl shadow-red-500/10 border-red-200/50"
                   />
                 </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
 
-          {/* Tab Content */}
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 border border-gray-200 dark:border-amber-900/30 rounded-lg sm:rounded-xl shadow-xl dark:shadow-amber-950/30 p-4 sm:p-5 md:p-6 min-h-[400px] sm:min-h-[500px] md:min-h-[600px]">
-              {/* Warning Message for Variants Tab */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6 min-h-[600px]">
               {activeTab === "variants" && (
-                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-lg shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <span className="text-amber-600 dark:text-amber-400 text-lg sm:text-xl flex-shrink-0 mt-0.5">⚠️</span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200 mb-1.5">
-                        {t("admin.productDetail.quantityUpdatesNotice")}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 leading-relaxed">
-                        <Trans
-                          i18nKey="admin.productDetail.quantityUpdatesNoticeDescription"
-                          components={{
-                            strong: <strong />
-                          }}
-                        />
-                      </p>
-                    </div>
-                  </div>
+                <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-lg">
+                  <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">
+                    {t("admin.productDetail.quantityUpdatesNotice")}
+                  </h3>
+                  <p className="text-xs text-amber-800 dark:text-amber-300/90">
+                    <Trans i18nKey="admin.productDetail.quantityUpdatesNoticeDescription" components={{ strong: <strong /> }} />
+                  </p>
                 </div>
               )}
               
-              {activeTab === "general" && (
-                <GeneralTab data={productData} onChange={updateProductData} errors={errors} />
-              )}
-              {activeTab === "media" && (
-                <MediaTab data={productData} onChange={updateProductData} errors={errors} />
-              )}
-              {activeTab === "variants" && (
-                <VariantsTab data={productData} onChange={updateProductData} errors={errors} />
-              )}
-              {activeTab === "settings" && (
-                <SettingsTab data={productData} onChange={updateProductData} errors={errors} />
-              )}
+              {activeTab === "general" && <GeneralTab data={productData} onChange={updateProductData} errors={errors} />}
+              {activeTab === "media" && <MediaTab data={productData} onChange={updateProductData} />}
+              {activeTab === "variants" && <VariantsTab data={productData as any} onChange={updateProductData} errors={errors} />}
+              {activeTab === "settings" && <SettingsTab data={productData as any} onChange={updateProductData} errors={errors} />}
             </div>
           </div>
         </>

@@ -1,23 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { Plus, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
-import apiClient, { clientApi } from "@/lib/api-client";
+import { clientApi } from "@/lib/api-client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+
+interface Variant {
+  id?: string | null;
+  sku?: string;
+  imageUrl?: string;
+  attributes?: Record<string, string>;
+  sellingPrice?: number;
+  originalPrice?: number;
+  costPrice?: number;
+  isActive?: boolean;
+}
 
 interface VariantsTabProps {
   data: {
     id: string;
-    basePrice: number;
-    variants?: any[];
+    minPrice: number;
+    sku?: string;
+    variants?: Variant[];
   };
-  onChange: (updates: any, skipChangeTracking?: boolean) => void;
+  onChange: (updates: { variants?: Variant[]; minPrice?: number; sku?: string }, skipChangeTracking?: boolean) => void;
   errors?: Record<string, string>;
 }
 
@@ -28,7 +40,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
   const [hasVariants, setHasVariants] = useState(
     (data.variants?.length || 0) > 0
   );
-  const [variants, setVariants] = useState(data.variants || []);
+  const [variants, setVariants] = useState<Variant[]>(data.variants || []);
   const [isSaving, setIsSaving] = useState(false);
 
 
@@ -43,10 +55,12 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
     } else {
       // Switching to product with variants
       setHasVariants(true);
-      const defaultVariant = {
-        id: null, // New variant, no ID yet
+      const defaultVariant: Variant = {
+        id: null,
         attributes: { size: "M", color: "Black" },
-        priceOverride: 0,
+        sellingPrice: 0,
+        originalPrice: 0,
+        costPrice: 0,
         isActive: true,
       };
       setVariants([defaultVariant]);
@@ -55,10 +69,12 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
   };
 
   const addVariant = () => {
-    const newVariant = {
-      id: null, // New variant, no ID yet
+    const newVariant: Variant = {
+      id: null,
       attributes: { size: "", color: "" },
-      priceOverride: 0,
+      sellingPrice: 0,
+      originalPrice: 0,
+      costPrice: 0,
       isActive: true,
     };
     const updated = [...variants, newVariant];
@@ -69,7 +85,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
   const updateVariant = (
     index: number,
     field: string,
-    value: any,
+    value: string | number | boolean,
     skipChangeTracking: boolean = false
   ) => {
     const updated = [...variants];
@@ -77,10 +93,16 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
       const attrKey = field.split(".")[1];
       updated[index].attributes = {
         ...updated[index].attributes,
-        [attrKey]: value,
+        [attrKey]: String(value), // Ensure attribute values are strings
       };
-    } else {
-      updated[index][field] = value;
+    } else if (field === "sellingPrice") {
+      updated[index].sellingPrice = Number(value);
+    } else if (field === "originalPrice") {
+      updated[index].originalPrice = Number(value);
+    } else if (field === "costPrice") {
+      updated[index].costPrice = Number(value);
+    } else if (field === "isActive") {
+      updated[index].isActive = Boolean(value);
     }
     setVariants(updated);
     onChange({ variants: updated }, skipChangeTracking);
@@ -92,14 +114,17 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
 
     try {
       // Check if variant has an ID (existing variant) or is new
-      const isExisting = Boolean(variant.id);
+      const variantId = variant.id;
+      const isExisting = Boolean(variantId) && typeof variantId === 'string';
 
-      if (isExisting) {
+      if (isExisting && variantId) {
         // Update existing variant
-        console.log("Updating existing variant:", variant.id);
+        console.log("Updating existing variant:", variantId);
 
-        const variantResponse = await clientApi.updateVariant(variant.id, {
-          priceOverride: variant.priceOverride,
+        const variantResponse = await clientApi.updateVariant(variantId, {
+          sellingPrice: variant.sellingPrice,
+          originalPrice: variant.originalPrice,
+          costPrice: variant.costPrice,
           // ❌ Quantity removed - managed in Inventory tab
         });
 
@@ -114,7 +139,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
         toast.success(t("admin.productDetail.messages.variantUpdateSuccess"));
 
         // Update local state with backend response
-        const result = variantResponse.data as any;
+        const result = variantResponse.data as { data?: Variant };
         const updatedVariant = result?.data;
         if (updatedVariant) {
           const updated = [...variants];
@@ -125,8 +150,11 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
         // Create new variant
         console.log("Creating new variant for product:", data.id);
         const response = await clientApi.createVariant(data.id, {
-          priceOverride: variant.priceOverride || null,
-          attributes: variant.attributes,
+          sellingPrice: variant.sellingPrice || 0,
+          originalPrice: variant.originalPrice || 0,
+          costPrice: variant.costPrice || 0,
+          attributes: variant.attributes || {},
+          quantity: 0,
           // ❌ Quantity removed - initial stock is 0
         });
 
@@ -134,7 +162,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
           toast.error(response.error.message || t("admin.productDetail.messages.variantCreateFail"));
         } else {
           toast.success(t("admin.productDetail.messages.variantCreateSuccess"));
-          const result = response.data as any;
+          const result = response.data as { data?: Variant };
           const newVariant = result?.data;
           console.log("Created variant data:", newVariant);
           if (newVariant) {
@@ -144,8 +172,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
           }
         }
       }
-    } catch (error) {
-      console.error("Error saving variant:", error);
+    } catch {
       toast.error(t("admin.productDetail.messages.variantSaveError"));
     } finally {
       setIsSaving(false);
@@ -172,7 +199,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
         }
 
         toast.success(t("admin.productDetail.messages.variantDeleteSuccess"));
-      } catch (error) {
+      } catch {
         toast.error(t("admin.productDetail.messages.variantDeleteError"));
         setIsSaving(false);
         return;
@@ -211,7 +238,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
         updateVariant(index, "isActive", newStatus, true); // Skip change tracking - already saved
         toast.success(t(`admin.productDetail.messages.variant${newStatus ? "Activated" : "Deactivated"}`));
       }
-    } catch (error) {
+    } catch {
       toast.error(t("admin.productDetail.messages.variantUpdateStatusError"));
     } finally {
       setIsSaving(false);
@@ -264,15 +291,15 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
             <FormField
               label={t("admin.productDetail.retailPrice")}
               required
-              error={errors.basePrice}
+              error={errors.minPrice}
               className="md:col-span-6"
             >
               <div className="relative">
                 <CurrencyInput
-                  id="basePrice"
-                  value={data.basePrice}
-                  onChange={(value) => onChange({ basePrice: value })}
-                  error={!!errors.basePrice}
+                  id="minPrice"
+                  value={data.minPrice}
+                  onChange={(value) => onChange({ minPrice: value })}
+                  error={!!errors.minPrice}
                   className={cn(
                     "h-11 pl-4 pr-12 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base font-mono",
                     errors.basePrice && "border-rose-500 focus:ring-rose-500/20"
@@ -288,7 +315,7 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
             >
               <Input
                 id="sku"
-                value={(data as any).sku || ""}
+                value={data.sku || ""}
                 onChange={(e) => onChange({ sku: e.target.value })}
                 placeholder="PROD-LXX-001"
                 className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base font-mono"
@@ -320,7 +347,9 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.image")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.attributeSize")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("admin.productDetail.attributeColor")}</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.priceOverride")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.products.sellingPrice")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.products.originalPrice")}</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.products.costPrice")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t("admin.productDetail.tableStatus")}</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">{t("admin.productDetail.tableActions")}</th>
                     </tr>
@@ -331,7 +360,9 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
                         <td className="px-6 py-4">
                           <div className="w-12 h-12 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden group-hover:border-[#D4AF37]/50 transition-colors">
                             {variant.imageUrl ? (
-                              <img src={variant.imageUrl} alt="Variant" className="w-full h-full object-cover" />
+                              <div className="relative w-full h-full">
+                                <Image src={variant.imageUrl} alt="Variant" fill className="object-cover" />
+                              </div>
                             ) : (
                               <div className="w-full h-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
                                 <span className="text-[10px] text-slate-300 font-bold">{t("admin.productDetail.notAvailable")}</span>
@@ -358,20 +389,25 @@ export function VariantsTab({ data, onChange, errors = {} }: VariantsTabProps) {
                           />
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div className="flex flex-col items-end gap-1">
-                            <CurrencyInput
-                              value={variant.priceOverride || 0}
-                              onChange={(value) => updateVariant(index, "priceOverride", value || 0)}
-                              error={!!errors[`variant_${index}_price`]}
-                              className={cn(
-                                "h-9 w-32 ml-auto bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-mono font-bold text-slate-900 dark:text-slate-100",
-                                errors[`variant_${index}_price`] && "border-rose-500 bg-rose-50 dark:bg-rose-500/10"
-                              )}
-                            />
-                            {errors[`variant_${index}_price`] && (
-                              <span className="text-[9px] text-rose-500 font-bold">{errors[`variant_${index}_price`]}</span>
-                            )}
-                          </div>
+                          <CurrencyInput
+                            value={variant.sellingPrice || 0}
+                            onChange={(value) => updateVariant(index, "sellingPrice", value || 0)}
+                            className="h-9 w-24 ml-auto bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-mono font-bold text-slate-900 dark:text-slate-100"
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <CurrencyInput
+                            value={variant.originalPrice || 0}
+                            onChange={(value) => updateVariant(index, "originalPrice", value || 0)}
+                            className="h-9 w-24 ml-auto bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-mono font-bold text-slate-900 dark:text-slate-100"
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <CurrencyInput
+                            value={variant.costPrice || 0}
+                            onChange={(value) => updateVariant(index, "costPrice", value || 0)}
+                            className="h-9 w-24 ml-auto bg-transparent border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-[#D4AF37] transition-all text-right font-mono font-bold text-slate-900 dark:text-slate-100"
+                          />
                         </td>
                         <td className="px-6 py-4 text-center">
                           <button

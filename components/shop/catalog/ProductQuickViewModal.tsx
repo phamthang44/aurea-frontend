@@ -59,7 +59,7 @@ export function ProductQuickViewModal({
   useEffect(() => {
     if (open && product) {
       // If product is already ProductResponse with variants, use it directly
-      if ("basePrice" in product && "variants" in product && (product as ProductResponse).variants) {
+      if ("minPrice" in product && "variants" in product && (product as ProductResponse).variants) {
         const productResponse = product as ProductResponse;
         setFullProduct(productResponse);
         
@@ -228,7 +228,7 @@ export function ProductQuickViewModal({
   const displayProduct: ProductResponse = fullProduct;
   const variants = displayProduct.variants || [];
   const hasVariants = variants.length > 0;
-  const basePrice = displayProduct.basePrice || 0;
+  const minPrice = displayProduct.minPrice || 0;
   
   // Get thumbnail from ProductResponse assets
   // Try: 1) thumbnail asset, 2) deprecated thumbnail field, 3) first asset, 4) fallback to ProductListingDto thumbnail
@@ -297,7 +297,7 @@ export function ProductQuickViewModal({
               {hasVariants ? (
                 <VariantSelector
                   variants={variants}
-                  basePrice={basePrice || 0}
+                  minPrice={minPrice || 0}
                   onVariantSelect={setSelectedVariant}
                   selectedVariant={selectedVariant}
                 />
@@ -306,13 +306,13 @@ export function ProductQuickViewModal({
                   <div className="flex items-baseline justify-between pt-2 border-t border-border">
                     <span className="text-sm text-muted-foreground">Price:</span>
                     <span className="text-lg font-semibold text-[#D4AF37]">
-                      {basePrice && !isNaN(basePrice) ? formatVND(basePrice) : "Price unavailable"}
+                      {minPrice && !isNaN(minPrice) ? formatVND(minPrice) : "Price unavailable"}
                     </span>
                   </div>
                   {/* Debug info in development */}
                   {process.env.NODE_ENV === 'development' && (
                     <div className="text-xs text-amber-600 dark:text-amber-400">
-                      [Dev] basePrice: {basePrice}, type: {typeof basePrice}, isNaN: {String(isNaN(basePrice))}
+                      [Dev] minPrice: {minPrice}, type: {typeof minPrice}, isNaN: {String(isNaN(minPrice))}
                     </div>
                   )}
                   {/* For products without variants, check stock from ProductListingDto */}

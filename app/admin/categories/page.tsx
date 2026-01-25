@@ -39,9 +39,9 @@ export default function CategoriesPage() {
       {/* Usage Policies / Guidance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          {[
-           { title: "Hierarchical Integrity", desc: "Circular parent relations are blocked by design. A category cannot become its own descendant." },
-           { title: "Leaf-Only Inventory", desc: "Products are only permitted in leaf categories. Non-leaf nodes serve as structural curators." },
-           { title: "Root Preservation", desc: "The foundational architectural root is protected from accidental deconstruction." }
+           { title: t('admin.categories.policies.integrity.title'), desc: t('admin.categories.policies.integrity.desc') },
+           { title: t('admin.categories.policies.leaf.title'), desc: t('admin.categories.policies.leaf.desc') },
+           { title: t('admin.categories.policies.root.title'), desc: t('admin.categories.policies.root.desc') }
          ].map((pol, idx) => (
            <div key={idx} className="p-6 bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-3xl">
               <h3 className="text-xs font-bold uppercase tracking-widest text-[#D4AF37] mb-2">{pol.title}</h3>

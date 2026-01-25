@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ProductResponse } from "@/lib/types/product";
 import { Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface ProductTableProps {
   products: ProductResponse[];
@@ -70,10 +71,10 @@ export function ProductTable({
               {t("admin.products.category")}
             </TableHead>
             <TableHead className="text-right font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              {t("admin.products.price")}
+              {t("admin.products.minPrice")}
             </TableHead>
-            <TableHead className="font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
-              {t("admin.products.variants")}
+            <TableHead className="font-semibold text-gray-700 dark:text-amber-200 tracking-wide text-center">
+              {t("admin.products.status")}
             </TableHead>
             <TableHead className="text-right w-[120px] font-semibold text-gray-700 dark:text-amber-200 tracking-wide">
               {t("admin.products.actions")}
@@ -98,46 +99,19 @@ export function ProductTable({
                 {product.categoryName || t("admin.products.uncategorized")}
               </TableCell>
               <TableCell className="text-right font-bold text-gray-900 dark:text-amber-300">
-                {formatPrice(product.basePrice)}
+                {formatPrice(product.minPrice)}
               </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1.5">
-                  {product.variants && product.variants.length > 0 ? (
-                    product.variants.slice(0, 3).map((variant, idx) => {
-                      const color =
-                        variant.attributes?.color || variant.attributes?.Color;
-                      const size =
-                        variant.attributes?.size || variant.attributes?.Size;
-
-                      return (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border border-amber-200 dark:border-amber-700/40 text-xs shadow-sm"
-                        >
-                          {color && (
-                            <div
-                              className="h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-700 shadow-md"
-                              style={{ backgroundColor: color }}
-                              title={color}
-                            />
-                          )}
-                          <span className="text-amber-800 dark:text-amber-200 font-semibold">
-                            {size || color || "Default"}
-                          </span>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <span className="text-xs text-gray-400 dark:text-amber-400/60 italic">
-                      No variants
-                    </span>
-                  )}
-                  {product.variants && product.variants.length > 3 && (
-                    <span className="text-xs text-amber-700 dark:text-amber-300 px-2 py-1 font-medium">
-                      +{product.variants.length - 3} more
-                    </span>
-                  )}
-                </div>
+              <TableCell className="text-center">
+                <span className={cn(
+                  "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+                  product.status === "ACTIVE" 
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
+                    : product.status === "DRAFT"
+                    ? "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
+                    : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                )}>
+                  {product.status ? t(`admin.products.${product.status.toLowerCase()}`) : t("admin.products.draft")}
+                </span>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">

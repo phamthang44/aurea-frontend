@@ -101,12 +101,18 @@ export const createVariantSchema = z.object({
     (attrs) => Object.keys(attrs).length > 0,
     "At least one attribute is required (e.g., color, size)"
   ),
-  priceOverride: z
+  sellingPrice: z
     .number()
-    .min(0, "Price cannot be negative")
-    .max(999999.99, "Price is too large")
-    .nullable()
-    .optional(),
+    .min(0, "Selling price cannot be negative")
+    .max(999999999, "Selling price is too large"),
+  originalPrice: z
+    .number()
+    .min(0, "Original price cannot be negative")
+    .max(999999999, "Original price is too large"),
+  costPrice: z
+    .number()
+    .min(0, "Cost price cannot be negative")
+    .max(999999999, "Cost price is too large"),
   quantity: z
     .number()
     .int("Quantity must be a whole number")
@@ -127,11 +133,20 @@ export const updateVariantSchema = z.object({
     (attrs) => Object.keys(attrs).length > 0,
     "At least one attribute is required"
   ),
-  priceOverride: z
+  sellingPrice: z
     .number()
-    .min(0, "Price cannot be negative")
-    .max(999999.99, "Price is too large")
-    .nullable()
+    .min(0, "Selling price cannot be negative")
+    .max(999999999, "Selling price is too large")
+    .optional(),
+  originalPrice: z
+    .number()
+    .min(0, "Original price cannot be negative")
+    .max(999999999, "Original price is too large")
+    .optional(),
+  costPrice: z
+    .number()
+    .min(0, "Cost price cannot be negative")
+    .max(999999999, "Cost price is too large")
     .optional(),
   isActive: z.boolean().optional(),
   // Note: sku and quantity are NOT included - sku is immutable, quantity is ignored
@@ -145,11 +160,20 @@ export type UpdateVariantFormData = z.infer<typeof updateVariantSchema>;
  */
 export const updateVariantInfoSchema = z.object({
   attributes: variantAttributesSchema,
-  priceOverride: z
+  sellingPrice: z
     .number()
-    .min(0, "Price cannot be negative")
-    .max(999999.99, "Price is too large")
-    .nullable()
+    .min(0, "Selling price cannot be negative")
+    .max(999999999, "Selling price is too large")
+    .optional(),
+  originalPrice: z
+    .number()
+    .min(0, "Original price cannot be negative")
+    .max(999999999, "Original price is too large")
+    .optional(),
+  costPrice: z
+    .number()
+    .min(0, "Cost price cannot be negative")
+    .max(999999999, "Cost price is too large")
     .optional(),
 });
 
@@ -222,10 +246,10 @@ export const createProductSchema = z.object({
     .min(1, "Description is required")
     .max(5000, "Description must not exceed 5000 characters")
     .trim(),
-  basePrice: z
+  minPrice: z
     .number()
-    .min(0, "Base price cannot be negative")
-    .max(999999.99, "Base price is too large"),
+    .min(0, "Min price cannot be negative")
+    .max(999999999, "Min price is too large"),
   categoryId: z.string().min(1, "Category is required"),
   assets: z
     .array(assetRequestSchema)
@@ -269,10 +293,10 @@ export const createDraftProductSchema = z.object({
     .max(5000, "Description must not exceed 5000 characters")
     .optional()
     .or(z.literal("")),
-  basePrice: z
+  minPrice: z
     .number()
-    .min(0, "Base price cannot be negative")
-    .max(999999.99, "Base price is too large"),
+    .min(0, "Min price cannot be negative")
+    .max(999999999, "Min price is too large"),
   categoryId: z.string().min(1, "Category is required"),
   assets: z.array(assetRequestSchema).max(50, "Maximum 50 assets allowed").optional(),
 });
@@ -296,10 +320,10 @@ export const updateProductSchema = z.object({
     .min(1, "Description is required")
     .max(5000, "Description must not exceed 5000 characters")
     .trim(),
-  basePrice: z
+  minPrice: z
     .number()
-    .min(0, "Base price cannot be negative")
-    .max(999999.99, "Base price is too large"),
+    .min(0, "Min price cannot be negative")
+    .max(999999999, "Min price is too large"),
   categoryId: z.string().min(1, "Category is required"),
   assets: z
     .array(assetRequestSchema)
@@ -342,10 +366,10 @@ export const updateProductInfoSchema = z.object({
     .max(5000, "Description must not exceed 5000 characters")
     .trim()
     .optional(),
-  basePrice: z
+  minPrice: z
     .number()
-    .min(0, "Base price cannot be negative")
-    .max(999999.99, "Base price is too large")
+    .min(0, "Min price cannot be negative")
+    .max(999999999, "Min price is too large")
     .optional(),
   categoryId: z.string().min(1, "Category is required").optional(),
   assets: z

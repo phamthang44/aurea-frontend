@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 
 interface VariantSelectorProps {
   variants: VariantResponse[];
-  basePrice: number;
+  minPrice: number;
   onVariantSelect: (variant: VariantResponse | null) => void;
   selectedVariant?: VariantResponse | null;
 }
@@ -52,7 +52,7 @@ function findMatchingVariant(
 
 export function VariantSelector({
   variants,
-  basePrice,
+  minPrice,
   onVariantSelect,
   selectedVariant,
 }: VariantSelectorProps) {
@@ -88,8 +88,8 @@ export function VariantSelector({
 
   // Calculate display price
   const displayPrice = currentVariant
-    ? currentVariant.priceOverride || basePrice
-    : basePrice;
+    ? currentVariant.sellingPrice || minPrice
+    : minPrice;
 
   // Check if variant is available
   const isAvailable = currentVariant

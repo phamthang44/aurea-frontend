@@ -101,7 +101,7 @@ export async function getProductBySlug(
  *   name: 'Premium Cotton T-Shirt',
  *   slug: 'premium-cotton-tshirt',
  *   description: 'High quality cotton t-shirt',
- *   basePrice: 29.99,
+ *   minPrice: 29.99,
  *   categoryId: '201',
  *   images: ['https://example.com/image1.jpg'],
  *   isActive: true,
@@ -109,7 +109,7 @@ export async function getProductBySlug(
  *     {
  *       sku: 'TSHIRT-RED-M',
  *       attributes: { color: 'Red', size: 'M' },
- *       priceOverride: 29.99,
+ *       sellingPrice: 29.99,
  *       quantity: 100,
  *       isActive: true
  *     }
@@ -136,7 +136,7 @@ export async function createProduct(
  *   slug: 'new-product-draft',
  *   description: 'To be completed later',
  *   categoryId: '201',
- *   basePrice: 49.99
+ *   minPrice: 49.99
  * });
  * ```
  */
@@ -164,7 +164,7 @@ export async function createDraftProduct(
  * const result = await productApi.updateProduct('1000', {
  *   name: 'Updated Product Name',
  *   description: 'Updated description',
- *   basePrice: 34.99,
+ *   minPrice: 34.99,
  *   categoryId: '201',
  *   images: ['https://example.com/new-image.jpg'],
  *   isActive: true,
@@ -173,7 +173,7 @@ export async function createDraftProduct(
  *       id: '2001',
  *       sku: 'TSHIRT-RED-M',
  *       attributes: { color: 'Dark Red', size: 'M' },
- *       priceOverride: 34.99,
+ *       sellingPrice: 34.99,
  *       isActive: true
  *     }
  *   ]
@@ -197,7 +197,7 @@ export async function updateProduct(
  * ```ts
  * const result = await productApi.updateProductInfo('1000', {
  *   name: 'Updated Name',
- *   basePrice: 39.99,
+ *   minPrice: 39.99,
  *   images: ['https://example.com/new-image.jpg']
  * });
  * ```
@@ -264,7 +264,7 @@ export async function deleteProduct(id: string): Promise<ApiResult<void>> {
  * const result = await productApi.addVariant('1000', {
  *   sku: 'TSHIRT-YELLOW-M',
  *   attributes: { color: 'Yellow', size: 'M' },
- *   priceOverride: 32.99,
+ *   sellingPrice: 32.99,
  *   quantity: 50,
  *   isActive: true
  * });
@@ -294,7 +294,7 @@ export async function addVariant(
  * ```ts
  * const result = await productApi.updateVariant('2004', {
  *   attributes: { color: 'Bright Yellow', size: 'M' },
- *   priceOverride: 37.99,
+ *   sellingPrice: 37.99,
  *   isActive: true
  * });
  * ```

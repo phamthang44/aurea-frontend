@@ -138,8 +138,9 @@ export function CategoryDialog({
       }
       onSuccess();
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || 'Operation failed');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(error?.response?.data?.message || error?.message || 'Operation failed');
     } finally {
       setIsSubmitting(false);
     }

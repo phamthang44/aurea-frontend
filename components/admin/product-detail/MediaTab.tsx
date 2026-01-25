@@ -1,30 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Upload, X, ImageIcon, Star, Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import Image from "next/image";
+import { Upload, X, Star, Plus } from "lucide-react";
 import { toast } from "sonner";
 import apiClient from "@/lib/api-client";
 import { ProductAsset } from "@/lib/types/product";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
+interface Variant {
+  id?: string;
+  sku?: string;
+  attributes?: Record<string, string>;
+}
+
 interface MediaTabProps {
   data: {
     assets?: ProductAsset[];
-    variants?: any[]; // To populate variant dropdown
+    variants?: Variant[];
   };
-  onChange: (updates: any, skipChangeTracking?: boolean) => void;
-  errors?: Record<string, string>;
+  onChange: (updates: { assets?: ProductAsset[] }, skipChangeTracking?: boolean) => void;
 }
 
-export function MediaTab({ data, onChange, errors = {} }: MediaTabProps) {
+export function MediaTab({ data, onChange }: MediaTabProps) {
   const { t } = useTranslation();
-  const [assets, setAssets] = useState<ProductAsset[]>(data.assets || []);
-
-  // Sync local state when props change (after save/refresh)
-  useEffect(() => {
-    setAssets(data.assets || []);
+  
+  // Use useMemo to derive assets from props to avoid unnecessary re-renders
+  const initialAssets = useMemo(() => data.assets || [], [data.assets]);
+  const [assets, setAssets] = useState<ProductAsset[]>(initialAssets);
+  
+  // Sync state when data.assets changes (from external updates)
+  useMemo(() => {
+    if (JSON.stringify(data.assets) !== JSON.stringify(assets)) {
+      setAssets(data.assets || []);
+    }
   }, [data.assets]);
 
   // Helper to create a new asset from uploaded URL
@@ -197,18 +207,6 @@ export function MediaTab({ data, onChange, errors = {} }: MediaTabProps) {
     onChange({ assets: updatedAssets });
   };
 
-  const updateAssetPosition = (index: number, newPosition: number) => {
-    const updatedAssets = [...assets];
-    updatedAssets[index] = {
-      ...updatedAssets[index],
-      position: newPosition,
-    };
-    // Sort by position
-    updatedAssets.sort((a, b) => (a.position || 0) - (b.position || 0));
-    setAssets(updatedAssets);
-    onChange({ assets: updatedAssets });
-  };
-
   // Get thumbnail asset
   const thumbnailAsset = assets.find((a) => a.isThumbnail && a.type === "IMAGE");
   // Get general product images (not variant-specific)
@@ -244,10 +242,11 @@ export function MediaTab({ data, onChange, errors = {} }: MediaTabProps) {
             <div className="flex-1">
               {thumbnailAsset ? (
                 <div className="group relative aspect-[4/3] max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-white dark:border-slate-700 bg-white dark:bg-slate-950">
-                  <img
+                  <Image
                     src={thumbnailAsset.url}
                     alt="Primary product"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                   
@@ -316,7 +315,7 @@ export function MediaTab({ data, onChange, errors = {} }: MediaTabProps) {
               const assetIndex = assets.indexOf(asset);
               return (
                 <div key={assetIndex} className="group relative aspect-square rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 shadow-sm hover:shadow-xl hover:border-[#D4AF37]/50 transition-all duration-300">
-                  <img src={asset.url} alt={`Gallery ${index}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <Image src={asset.url} alt={`Gallery ${index}`} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
                   
                   {/* Quick Removal */}
                   <button
@@ -402,7 +401,7 @@ export function MediaTab({ data, onChange, errors = {} }: MediaTabProps) {
                 );
                 return (
                   <div key={assetIndex} className="group relative aspect-square rounded-2xl border border-blue-100 dark:border-blue-900 overflow-hidden bg-white dark:bg-slate-950 shadow-sm hover:shadow-xl transition-all duration-300">
-                    <img src={asset.url} alt={`Variant ${index}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <Image src={asset.url} alt={`Variant ${index}`} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
                     
                     <div className="absolute top-2 left-2 bg-blue-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-sm">
                       {t("admin.productDetail.media.variantSpecific")}

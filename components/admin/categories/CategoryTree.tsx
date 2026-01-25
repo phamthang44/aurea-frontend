@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Plus, 
@@ -19,8 +19,11 @@ import { CategoryResponse } from '@/lib/types/product';
 import { categoryApi } from '@/lib/api/category';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+interface CategoryApiResponse {
+  data?: CategoryResponse[];
+}
 
 export default function CategoryTree() {
   const { t } = useTranslation();
@@ -38,26 +41,26 @@ export default function CategoryTree() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryResponse | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
       const result = await categoryApi.getAllCategories();
-      const rawData = result.data as any;
+      const rawData = result.data as CategoryResponse[] | CategoryApiResponse;
       if (rawData) {
         // Handle both direct array or wrapped data: { data: [...] }
-        const dataArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
+        const dataArray = Array.isArray(rawData) ? rawData : ((rawData as CategoryApiResponse).data || []);
         setCategories(dataArray);
       }
-    } catch (error) {
+    } catch {
       toast.error(t('common.error'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const toggleExpand = (idOrSet: string | Set<string>) => {
     if (idOrSet instanceof Set) {
@@ -133,8 +136,9 @@ export default function CategoryTree() {
       
       toast.success(t('common.success'));
       fetchCategories();
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error?.message || t('common.error'));
     } finally {
       setCategoryToDelete(null);
     }
@@ -147,8 +151,9 @@ export default function CategoryTree() {
       
       toast.success(t('common.success'));
       fetchCategories();
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error?.message || t('common.error'));
     }
   };
 
@@ -211,11 +216,11 @@ export default function CategoryTree() {
           </Button>
           <Button variant="outline" onClick={expandAll} className="rounded-xl border-slate-200 dark:border-white/10 gap-2 h-12">
             <Maximize2 className="h-4 w-4 text-slate-400" />
-            <span className="hidden sm:inline">Expand</span>
+            <span className="hidden sm:inline">{t('admin.categories.expandAll')}</span>
           </Button>
           <Button variant="outline" onClick={collapseAll} className="rounded-xl border-slate-200 dark:border-white/10 gap-2 h-12">
             <Minimize2 className="h-4 w-4 text-slate-400" />
-            <span className="hidden sm:inline">Collapse</span>
+            <span className="hidden sm:inline">{t('admin.categories.collapseAll')}</span>
           </Button>
           <div className="w-px h-8 bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
           <Button onClick={handleAddRoot} className="rounded-xl bg-slate-900 dark:bg-[#D4AF37] text-white gap-2 px-6 h-12 shadow-lg hover:opacity-90 transition-all">

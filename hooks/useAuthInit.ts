@@ -88,7 +88,7 @@ export function useAuthInit() {
               // Don't clear auth state - let the user continue, profile will be created automatically
             }
           } else {
-            console.log("[Auth Init] User data already exists:", user);
+            // console.log("[Auth Init] User data already exists:", user);
           }
         } else {
           console.log("[Auth Init] No token found. User is not authenticated.");

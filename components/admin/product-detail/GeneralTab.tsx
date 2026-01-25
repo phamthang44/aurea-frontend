@@ -2,7 +2,6 @@
 
 import { useCategories } from "@/lib/hooks/useAdminData";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -12,10 +11,10 @@ interface GeneralTabProps {
     name: string;
     description: string;
     categoryId: string;
-    basePrice: number;
+    minPrice: number;
     slug?: string;
   };
-  onChange: (updates: any, skipChangeTracking?: boolean) => void;
+  onChange: (updates: Partial<GeneralTabProps['data']>, skipChangeTracking?: boolean) => void;
   errors?: Record<string, string>;
 }
 
@@ -60,20 +59,20 @@ export function GeneralTab({ data, onChange, errors = {} }: GeneralTabProps) {
           <FormField
             label={t("admin.productDetail.generalTab.basePrice")}
             required
-            error={errors.basePrice}
+            error={errors.minPrice}
             hint={t("admin.productDetail.generalTab.basePriceHint")}
             className="md:col-span-4"
           >
             <div className="relative">
               <Input
-                id="basePrice"
+                id="minPrice"
                 type="number"
-                value={data.basePrice || 0}
-                onChange={(e) => onChange({ basePrice: Number(e.target.value) })}
-                aria-invalid={!!errors.basePrice}
+                value={data.minPrice || 0}
+                onChange={(e) => onChange({ minPrice: Number(e.target.value) })}
+                aria-invalid={!!errors.minPrice}
                 className={cn(
                   "h-11 pl-4 pr-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-base font-mono",
-                  errors.basePrice && "border-rose-500 focus:ring-rose-500/20"
+                  errors.minPrice && "border-rose-500 focus:ring-rose-500/20"
                 )}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">VND</span>

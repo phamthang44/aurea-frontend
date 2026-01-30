@@ -92,7 +92,7 @@ export function NavBar() {
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <Link href="/account" className="no-underline">
+                <Link href="/account/profile" className="no-underline">
                   <Button
                     variant="ghost"
                     size="icon"

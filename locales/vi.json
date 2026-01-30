@@ -42,7 +42,9 @@
     "passwordUppercase": "Mật khẩu phải chứa ít nhất một chữ hoa",
     "passwordNumber": "Mật khẩu phải chứa ít nhất một số",
     "passwordSpecialChar": "Mật khẩu phải chứa ít nhất một ký tự đặc biệt",
-    "passwordsDoNotMatch": "Mật khẩu không khớp"
+    "passwordsDoNotMatch": "Mật khẩu không khớp",
+    "fullNameMin": "Tên phải có ít nhất 2 ký tự",
+    "phoneInvalid": "Số điện thoại không hợp lệ"
   },
   "error": {
     "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
@@ -251,6 +253,34 @@
     "filtersClearAll": "Xóa tất cả bộ lọc",
     "filtersClearAllDescription": "Xóa tất cả bộ lọc và trở về trang sản phẩm mặc định",
     "filtersClearAllButton": "Xóa tất cả bộ lọc"
+  },
+  "product": {
+    "selectVariant": "Vui lòng chọn kích thước và màu sắc",
+    "addedToCart": "Đã thêm vào giỏ hàng!",
+    "addToCartError": "Không thể thêm vào giỏ hàng",
+    "soldOut": "Hết hàng",
+    "color": "Màu sắc",
+    "size": "Kích thước",
+    "sizeGuide": "Hướng dẫn chọn size",
+    "inStock": "Còn hàng",
+    "onlyLeft": "Chỉ còn {{count}} sản phẩm",
+    "outOfStock": "Hết hàng",
+    "quantity": "Số lượng",
+    "addToCart": "Thêm vào giỏ hàng",
+    "buyNow": "Mua ngay",
+    "addToWishlist": "Thêm vào danh sách yêu thích",
+    "share": "Chia sẻ",
+    "linkCopied": "Đã sao chép liên kết!",
+    "freeShipping": "Giao hàng miễn phí",
+    "easyReturns": "Đổi trả trong 30 ngày",
+    "securePayment": "Thanh toán an toàn",
+    "description": "Mô tả sản phẩm",
+    "noDescription": "Không có mô tả sản phẩm.",
+    "sizeGuideComingSoon": "Hướng dẫn chọn size sẽ sớm ra mắt...",
+    "reviews": "Đánh giá",
+    "noReviewsYet": "Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!",
+    "youMayAlsoLike": "Có thể bạn cũng thích",
+    "relatedComingSoon": "Sản phẩm liên quan sẽ sớm ra mắt..."
   },
   "auth": {
     "mode": {
@@ -883,20 +913,20 @@
           "slugRequired": "Định danh SEO là bắt buộc",
           "circularRef": "Vi phạm kiến trúc: Phát hiện hệ thống phân cấp đệ quy.",
           "leafProductWarn": "Cảnh báo Toàn vẹn: Danh mục này chứa sản phẩm và không thể làm danh mục cha."
+        }
+      },
+      "policies": {
+        "integrity": {
+          "title": "Toàn vẹn Phân cấp",
+          "desc": "Các quan hệ cha con đệ quy bị chặn theo thiết kế. Một danh mục không thể trở thành con của chính nó."
         },
-        "policies": {
-          "integrity": {
-            "title": "Toàn vẹn Phân cấp",
-            "desc": "Các quan hệ cha con đệ quy bị chặn theo thiết kế. Một danh mục không thể trở thành con của chính nó."
-          },
-          "leaf": {
-            "title": "Tồn kho tại Lá",
-            "desc": "Sản phẩm chỉ được phép nằm trong các danh mục lá. Các nút không phải lá đóng vai trò là kiến trúc điều phối."
-          },
-          "root": {
-            "title": "Bảo tồn Gốc",
-            "desc": "Gốc kiến trúc nền tảng được bảo vệ khỏi việc gỡ bỏ ngẫu nhiên."
-          }
+        "leaf": {
+          "title": "Tồn kho tại Lá",
+          "desc": "Sản phẩm chỉ được phép nằm trong các danh mục lá. Các nút không phải lá đóng vai trò là kiến trúc điều phối."
+        },
+        "root": {
+          "title": "Bảo tồn Gốc",
+          "desc": "Gốc kiến trúc nền tảng được bảo vệ khỏi việc gỡ bỏ ngẫu nhiên."
         }
       },
       "moveModal": {
@@ -1358,6 +1388,89 @@
       "cancelledDesc": "Đơn hàng này đã bị hủy.",
       "returnedDesc": "Đơn hàng này đã được trả lại.",
       "reorderComingSoon": "Tính năng đặt lại đơn sẽ sớm ra mắt!"
+    }
+  },
+  "profile": {
+    "title": "Tài khoản của tôi",
+    "subtitle": "Quản lý hồ sơ và cài đặt bảo mật",
+    "updateSuccess": "Cập nhật hồ sơ thành công",
+    "avatarUpdated": "Đã cập nhật ảnh đại diện",
+    "info": {
+      "title": "Thông tin cá nhân",
+      "clickToChange": "Nhấp để thay đổi ảnh",
+      "fullName": "Họ và tên",
+      "email": "Địa chỉ Email",
+      "phone": "Số điện thoại",
+      "verified": "Đã xác thực",
+      "birthDate": "Ngày sinh",
+      "gender": "Giới tính",
+      "notSet": "Chưa thiết lập",
+      "addBirthday": "Thêm ngày sinh để nhận quà 🎁"
+    },
+    "edit": {
+      "title": "Chỉnh sửa hồ sơ",
+      "avatarHint": "Chạm để cập nhật ảnh đại diện",
+      "emailLocked": "Email không thể thay đổi",
+      "birthDateLocked": "Ngày sinh chỉ được cập nhật 1 lần",
+      "contactSupport": "Liên hệ CSKH để thay đổi ngày sinh",
+      "birthDateBonus": "Thêm ngày sinh của bạn để nhận quà đặc biệt 🎁"
+    },
+    "addresses": {
+      "title": "Sổ địa chỉ",
+      "addNew": "Thêm địa chỉ mới",
+      "editAddress": "Chỉnh sửa địa chỉ",
+      "home": "Nhà riêng",
+      "office": "Văn phòng",
+      "other": "Khác",
+      "default": "Mặc định",
+      "type": "Loại địa chỉ",
+      "label": "Nhãn (Tùy chọn)",
+      "labelPlaceholder": "v.d., Nhà bố mẹ",
+      "recipientName": "Tên người nhận",
+      "phone": "Số điện thoại",
+      "addressLine1": "Địa chỉ dòng 1",
+      "addressPlaceholder": "Số nhà, tên đường...",
+      "addressLine2": "Địa chỉ dòng 2 (Tùy chọn)",
+      "addressLine2Placeholder": "Căn hộ, tòa nhà, tầng...",
+      "ward": "Phường/Xã (Tùy chọn)",
+      "district": "Quận/Huyện",
+      "city": "Thành phố/Tỉnh",
+      "postalCode": "Mã bưu chính",
+      "setAsDefault": "Đặt làm địa chỉ giao hàng mặc định",
+      "setDefault": "Đặt làm mặc định",
+      "updated": "Đã cập nhật địa chỉ",
+      "added": "Đã thêm địa chỉ",
+      "deleted": "Đã xóa địa chỉ",
+      "defaultSet": "Đã đặt địa chỉ mặc định",
+      "noAddresses": "Chưa có địa chỉ giao hàng",
+      "addFirst": "Thêm địa chỉ đầu tiên của bạn"
+    },
+    "security": {
+      "title": "Bảo mật & Riêng tư",
+      "changePassword": "Đổi mật khẩu",
+      "lastChanged": "Thay đổi lần cuối",
+      "currentPassword": "Mật khẩu hiện tại",
+      "newPassword": "Mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu mới",
+      "passwordChanged": "Đổi mật khẩu thành công!",
+      "updatePassword": "Cập nhật mật khẩu",
+      "twoFactor": "Xác thực hai yếu tố (2FA)",
+      "twoFactorDesc": "Thêm một lớp bảo mật cho tài khoản của bạn",
+      "accountRecovery": "Tùy chọn khôi phục tài khoản",
+      "accountRecoveryDesc": "Thiết lập các tùy chọn để khôi phục tài khoản",
+      "2faEnabled": "Đã bật xác thực hai yếu tố",
+      "2faDisabled": "Đã tắt xác thực hai yếu tố"
+    },
+    "aurea": {
+      "title": "Ưu đãi & Lịch sử",
+      "myVouchers": "Voucher của tôi",
+      "available": "khả dụng",
+      "validUntil": "Hết hạn ngày",
+      "viewAll": "Xem tất cả voucher",
+      "noVouchers": "Không có voucher nào",
+      "noVouchersDesc": "Hãy quay lại sau để nhận ưu đãi đặc biệt!",
+      "viewHistory": "Xem lịch sử giao dịch",
+      "viewHistoryDesc": "Xem sổ cái đơn hàng và kho hàng"
     }
   }
 }

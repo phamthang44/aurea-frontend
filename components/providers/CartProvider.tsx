@@ -46,7 +46,7 @@ interface CartContextType extends CartState {
     productId: number | string;
     productVariantId: number | string;
     quantity: number;
-  }) => Promise<void>;
+  }) => Promise<CartResponse | null>;
   updateCartItem: (cartItemId: number, quantity: number) => Promise<void>;
   removeCartItem: (cartItemId: number) => Promise<void>;
   removeAllCartItems: () => Promise<void>;
@@ -199,7 +199,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             loading: false,
             error: response.error?.message || "Failed to add item to cart",
           }));
-          return;
+          return null;
         }
 
         if (response.data) {
@@ -210,7 +210,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               loading: false,
               error: "Invalid cart response format",
             }));
-            return;
+            return null;
           }
 
           // Use backend-provided values (all calculations done by backend)
@@ -234,13 +234,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             userId: cart.userId || null,
             sessionId: cart.sessionId || null,
           }));
+
+          return cart;
         }
+
+        return null;
       } catch (error: any) {
         setState((prev) => ({
           ...prev,
           loading: false,
           error: error.message || "Failed to add item to cart",
         }));
+        return null;
       }
     },
     []

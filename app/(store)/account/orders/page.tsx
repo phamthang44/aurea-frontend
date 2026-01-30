@@ -257,8 +257,6 @@ export default function MyOrdersPage() {
           </motion.div>
         </div>
       </main>
-
-      <StorefrontFooter />
     </div>
   );
 }

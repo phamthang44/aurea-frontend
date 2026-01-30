@@ -106,7 +106,7 @@ export function ProductCardListing({
         <div className="relative block aspect-[3/4] overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-sm">
           {/* Link for navigation - covers the image */}
           <Link
-            href={`/product/${product.slug}`}
+            href={`/product/${product.slug}-i.${product.id}`}
             className="absolute inset-0 z-10"
             aria-label={`View ${product.name}`}
           >
@@ -198,7 +198,7 @@ export function ProductCardListing({
                 </p>
               )}
               <h3 className="text-sm font-light text-zinc-900 dark:text-zinc-100 hover:text-[#D4AF37] transition-colors leading-snug">
-                <Link href={`/product/${product.slug}`}>{product.name}</Link>
+                <Link href={`/product/${product.slug}-i.${product.id}`}>{product.name}</Link>
               </h3>
             </div>
             <div className="text-right">

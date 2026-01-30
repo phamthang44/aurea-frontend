@@ -9,31 +9,28 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Generate dynamic metadata for SEO
+// Regex to extract ID from slug formatted as "name-i.12345"
+const ID_REGEX = /-i\.(\d+)$/;
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   
   try {
-    // Step 1: Resolve slug to productId
-    const resolved = await resolveProductSlug(slug);
-    
-    if (!resolved) {
-      return {
-        title: 'Product Not Found | AUREA',
-        description: 'The product you are looking for could not be found.',
-      };
+    // Optimization: Try to extract ID from slug directly (e.g., "ao-thun-i.12345")
+    const match = slug.match(ID_REGEX);
+    let productId = match ? match[1] : null;
+
+    // Fallback: If no ID in slug, resolve via API (legacy support)
+    if (!productId) {
+      const resolved = await resolveProductSlug(slug);
+      if (!resolved) return notFoundMetadata();
+      productId = resolved.productId;
     }
 
-    // Step 2: Get full product by ID
-    const result = await getProductDetailByIdServer(resolved.productId);
+    const result = await getProductDetailByIdServer(productId);
     const product = result.data;
     
-    if (!product) {
-      return {
-        title: 'Product Not Found | AUREA',
-        description: 'The product you are looking for could not be found.',
-      };
-    }
+    if (!product) return notFoundMetadata();
 
     const thumbnailImage = product.assets?.find(a => a.isThumbnail)?.url || product.thumbnail;
 
@@ -51,27 +48,36 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         canonical: `/product/${slug}`,
       },
     };
-  } catch {
-    return {
-      title: 'Product Not Found | AUREA',
-      description: 'The product you are looking for could not be found.',
-    };
+  } catch (error) {
+    console.error('Metadata generation error:', error);
+    return notFoundMetadata();
   }
+}
+
+function notFoundMetadata(): Metadata {
+  return {
+    title: 'Product Not Found | AUREA',
+    description: 'The product you are looking for could not be found.',
+  };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   
   try {
-    // Step 1: Resolve slug to productId
-    const resolved = await resolveProductSlug(slug);
-    
-    if (!resolved) {
-      notFound();
+    // Optimization: Try to extract ID from slug directly
+    const match = slug.match(ID_REGEX);
+    let productId = match ? match[1] : null;
+
+    // Fallback: resolve via API (legacy or URL mismatch)
+    if (!productId) {
+      const resolved = await resolveProductSlug(slug);
+      if (!resolved) notFound();
+      productId = resolved.productId;
     }
 
-    // Step 2: Get full product details by ID
-    const result = await getProductDetailByIdServer(resolved.productId);
+    // Call only one detail API
+    const result = await getProductDetailByIdServer(productId);
     const product = result.data;
 
     if (!product) {

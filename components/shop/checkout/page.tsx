@@ -223,7 +223,7 @@ export default function CheckoutPage() {
         note: data.note || undefined,
       };
 
-      // Call API to create order
+      // Call API to create order (backend endpoint is /api/v1/me/orders)
       const result = await orderApi.createOrder(payload);
 
       if (result.error) {
@@ -265,13 +265,13 @@ export default function CheckoutPage() {
         // TODO: Replace with API call to GET /orders/{orderId} when backend endpoint is available
         if (typeof window !== "undefined") {
           sessionStorage.setItem(
-            `order_${orderData.orderId}`,
+            `order_${orderData.orderCode}`,
             JSON.stringify(orderData)
           );
         }
 
-        // Redirect to order success page with order ID
-        router.push(`/orders/${orderData.orderId}/success`);
+        // Redirect to order success page with order code
+        router.push(`/orders/${orderData.orderCode}/success`);
       } else {
         toast.error(t("checkout.errors.createOrderFailed"));
         setIsSubmitting(false);

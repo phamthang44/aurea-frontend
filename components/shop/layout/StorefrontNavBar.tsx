@@ -199,6 +199,12 @@ export function StorefrontNavBar() {
                   
                   {/* Menu Items */}
                   <div className="space-y-0.5">
+                    <Link href="/account/profile" className="no-underline">
+                      <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-left">
+                        <User className="w-4 h-4" />
+                        {t('profile.title', { defaultValue: 'My Profile' })}
+                      </button>
+                    </Link>
                     <Link href="/account/orders" className="no-underline">
                       <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-left">
                         <ShoppingBag className="w-4 h-4" />

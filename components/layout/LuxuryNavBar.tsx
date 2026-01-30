@@ -136,11 +136,11 @@ export function LuxuryNavBar() {
           {/* User / Settings Section */}
           <div className="hidden md:flex items-center gap-3 ml-2 border-l border-[#D4AF37]/20 pl-6 h-8">
              {isAuthenticated ? (
-                <Link href="/account" className="flex items-center gap-3 group no-underline">
+                <Link href="/account/profile" className="flex items-center gap-3 group no-underline">
                   <div className="w-8 h-8 rounded-full border border-[#D4AF37]/30 p-0.5 group-hover:border-[#D4AF37] transition-colors duration-300 overflow-hidden bg-white dark:bg-zinc-800">
                     {user?.avatarUrl ? (
                         <div className="relative w-full h-full rounded-full overflow-hidden">
-                          <Image src={user.avatarUrl} alt="User" fill className="object-cover" />
+                          <Image src={user.avatarUrl} alt="User" fill className="object-cover" unoptimized />
                         </div>
                     ) : (
                         <User className="w-full h-full text-[#D4AF37] p-1" />

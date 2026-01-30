@@ -18,8 +18,10 @@ import {
   RotateCcw,
   Shield,
   ChevronLeft as ChevronLeftIcon,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ProductResponse, VariantResponse, ProductAsset } from '@/lib/types/product';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
@@ -62,11 +64,11 @@ function findVariant(
   selectedColor: string | null, 
   selectedSize: string | null
 ): VariantResponse | null {
-  return variants.find(v => 
-    v.attributes?.color === selectedColor && 
-    v.attributes?.size === selectedSize &&
-    v.isActive
-  ) || null;
+  return variants.find(v => {
+    const colorMatch = (v.attributes?.color || null) === selectedColor;
+    const sizeMatch = (v.attributes?.size || null) === selectedSize;
+    return colorMatch && sizeMatch && v.isActive;
+  }) || null;
 }
 
 // Check if a size is available for a given color
@@ -101,6 +103,22 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   
   // Wishlist State (local for now)
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
+  
+  const router = useRouter();
+
+  // Handle auto-selection for simple products (1 variant, no attributes)
+  useMemo(() => {
+    if (product.variants?.length === 1) {
+      const v = product.variants[0];
+      if (!v.attributes?.color && !v.attributes?.size) {
+        if (!selectedColor && !selectedSize) {
+          // Both are already null, match will work due to findVariant update
+        }
+      }
+    }
+  }, [product.variants]);
 
   // Luxury placeholder for missing/failed images
   const LuxuryPlaceholder = ({ isThumbnail = false }: { isThumbnail?: boolean }) => (
@@ -184,6 +202,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         priority={priority}
         sizes={sizes}
         quality={isThumbnail ? 60 : 100}
+        unoptimized
         onError={() => {
           setLocalError(true);
           onImageError?.();
@@ -235,40 +254,59 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   
   const handleAddToCart = async () => {
     if (!selectedVariant) {
-      toast.error(t('product.selectVariant', { defaultValue: 'Please select size and color' }));
+      toast.error(t('product.selectVariant'));
       return;
     }
     
+    setIsAddingToCart(true);
     try {
-      await addItemToCart({
+      const cart = await addItemToCart({
         productId: product.id,
         productVariantId: selectedVariant.id,
         quantity,
       });
-      toast.success(t('product.addedToCart', { defaultValue: 'Added to cart!' }), {
-        description: `${product.name} - ${selectedColor}, ${selectedSize} x ${quantity}`,
-      });
-    } catch (error) {
-      toast.error(t('product.addToCartError', { defaultValue: 'Failed to add to cart' }));
+
+      if (cart) {
+        toast.success(t('product.addedToCart'), {
+          description: `${product.name} - ${selectedColor}, ${selectedSize} x ${quantity}`,
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || t('product.addToCartError'));
+    } finally {
+      setIsAddingToCart(false);
     }
   };
   
   const handleBuyNow = async () => {
     if (!selectedVariant) {
-      toast.error(t('product.selectVariant', { defaultValue: 'Please select size and color' }));
+      toast.error(t('product.selectVariant'));
       return;
     }
     
+    setIsBuyingNow(true);
     try {
-      await addItemToCart({
+      const cart = await addItemToCart({
         productId: product.id,
         productVariantId: selectedVariant.id,
         quantity,
       });
-      // Navigate to checkout
-      window.location.href = '/checkout';
-    } catch (error) {
-      toast.error(t('product.addToCartError', { defaultValue: 'Failed to add to cart' }));
+
+      if (cart) {
+        // Find the added item's ID in the cart
+        const addedItem = cart.items.find(
+          item => String(item.productVariantId) === String(selectedVariant.id)
+        );
+        
+        const itemIds = addedItem ? [addedItem.id] : [];
+        
+        // Redirect to checkout with the selected item(s)
+        router.push(`/checkout?selected_items=${JSON.stringify(itemIds)}`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || t('product.addToCartError'));
+    } finally {
+      setIsBuyingNow(false);
     }
   };
   
@@ -280,7 +318,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     setZoomPosition({ x, y });
   };
   
-  const canAddToCart = selectedColor && selectedSize && selectedVariant && selectedVariant.quantity > 0;
+  // Button is enabled if generally in stock and not loading
+  const isGenerallyInStock = (product.variants || []).some(v => v.quantity > 0 && v.isActive);
+  const isButtonDisabled = !isGenerallyInStock || isAddingToCart || isBuyingNow;
 
   return (
     <>
@@ -337,11 +377,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-zinc-500 mb-8 overflow-x-auto">
           <Link href="/" className="hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-            {t('nav.home', { defaultValue: 'Home' })}
+            {t('navbar.home')}
           </Link>
           <ChevronRight className="h-3 w-3 flex-shrink-0" />
           <Link href="/shop" className="hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-            {t('nav.shop', { defaultValue: 'Shop' })}
+            {t('navbar.shop')}
           </Link>
           {product.categoryName && (
             <>
@@ -393,7 +433,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               {!isInStock && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                   <span className="text-white text-lg font-bold uppercase tracking-widest px-6 py-3 border-2 border-white">
-                    {t('product.soldOut', { defaultValue: 'Sold Out' })}
+                    {t('product.soldOut')}
                   </span>
                 </div>
               )}
@@ -486,7 +526,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    {t('product.color', { defaultValue: 'Color' })}
+                    {t('product.color')}
                   </span>
                   {selectedColor && (
                     <span className="text-sm text-zinc-500">{selectedColor}</span>
@@ -519,10 +559,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    {t('product.size', { defaultValue: 'Size' })}
+                    {t('product.size')}
                   </span>
                   <button className="text-xs text-[#D4AF37] hover:underline">
-                    {t('product.sizeGuide', { defaultValue: 'Size Guide' })}
+                    {t('product.sizeGuide')}
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -558,15 +598,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   <>
                     <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                     <span className="text-emerald-600 dark:text-emerald-400">
-                      {t('product.inStock', { defaultValue: 'In Stock' })} 
-                      {selectedVariant.quantity <= 5 && ` - ${t('product.onlyLeft', { count: selectedVariant.quantity, defaultValue: `Only ${selectedVariant.quantity} left` })}`}
+                      {t('product.inStock')} 
+                      {selectedVariant.quantity <= 5 && ` - ${t('product.onlyLeft', { count: selectedVariant.quantity })}`}
                     </span>
                   </>
                 ) : (
                   <>
                     <div className="w-2 h-2 bg-red-500 rounded-full" />
                     <span className="text-red-600 dark:text-red-400">
-                      {t('product.outOfStock', { defaultValue: 'Out of Stock' })}
+                      {t('product.outOfStock')}
                     </span>
                   </>
                 )}
@@ -576,7 +616,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             {/* Quantity Selector */}
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {t('product.quantity', { defaultValue: 'Quantity' })}
+                {t('product.quantity')}
               </span>
               <div className="flex items-center border border-zinc-200 dark:border-zinc-700 rounded-md">
                 <button 
@@ -601,19 +641,26 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
                 onClick={handleAddToCart}
-                disabled={!canAddToCart || cartLoading}
+                disabled={isButtonDisabled}
                 className="flex-1 h-14 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 rounded-none text-sm font-medium uppercase tracking-widest disabled:opacity-50"
               >
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                {t('product.addToCart', { defaultValue: 'Add to Cart' })}
+                {isAddingToCart ? (
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                ) : (
+                  <ShoppingBag className="h-5 w-5 mr-2" />
+                )}
+                {t('product.addToCart')}
               </Button>
               
               <Button
                 onClick={handleBuyNow}
-                disabled={!canAddToCart || cartLoading}
+                disabled={isButtonDisabled}
                 className="flex-1 h-14 bg-[#D4AF37] text-white hover:bg-[#B8962E] rounded-none text-sm font-medium uppercase tracking-widest disabled:opacity-50"
               >
-                {t('product.buyNow', { defaultValue: 'Buy Now' })}
+                {isBuyingNow ? (
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                ) : null}
+                {t('product.buyNow')}
               </Button>
             </div>
             
@@ -624,17 +671,17 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-[#D4AF37] transition-colors"
               >
                 <Heart className={cn("h-5 w-5", isWishlisted && "fill-[#D4AF37] text-[#D4AF37]")} />
-                {t('product.addToWishlist', { defaultValue: 'Add to Wishlist' })}
+                {t('product.addToWishlist')}
               </button>
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  toast.success(t('product.linkCopied', { defaultValue: 'Link copied!' }));
+                  toast.success(t('product.linkCopied'));
                 }}
                 className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-[#D4AF37] transition-colors"
               >
                 <Share2 className="h-5 w-5" />
-                {t('product.share', { defaultValue: 'Share' })}
+                {t('product.share')}
               </button>
             </div>
             
@@ -643,19 +690,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <div className="flex flex-col items-center text-center gap-2">
                 <Truck className="h-6 w-6 text-[#D4AF37]" />
                 <span className="text-[10px] text-zinc-500 uppercase tracking-wide">
-                  {t('product.freeShipping', { defaultValue: 'Free Shipping' })}
+                  {t('product.freeShipping')}
                 </span>
               </div>
               <div className="flex flex-col items-center text-center gap-2">
                 <RotateCcw className="h-6 w-6 text-[#D4AF37]" />
                 <span className="text-[10px] text-zinc-500 uppercase tracking-wide">
-                  {t('product.easyReturns', { defaultValue: '30-Day Returns' })}
+                  {t('product.easyReturns')}
                 </span>
               </div>
               <div className="flex flex-col items-center text-center gap-2">
                 <Shield className="h-6 w-6 text-[#D4AF37]" />
                 <span className="text-[10px] text-zinc-500 uppercase tracking-wide">
-                  {t('product.securePayment', { defaultValue: 'Secure Payment' })}
+                  {t('product.securePayment')}
                 </span>
               </div>
             </div>
@@ -667,11 +714,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Full Description */}
           <section>
             <h2 className="text-xl font-light text-zinc-900 dark:text-zinc-100 mb-6 uppercase tracking-widest">
-              {t('product.description', { defaultValue: 'Description' })}
+              {t('product.description')}
             </h2>
             <div className="prose prose-zinc dark:prose-invert max-w-none">
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">
-                {product.description || t('product.noDescription', { defaultValue: 'No description available.' })}
+                {product.description || t('product.noDescription')}
               </p>
             </div>
           </section>
@@ -679,11 +726,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Size Guide - Placeholder */}
           <section>
             <h2 className="text-xl font-light text-zinc-900 dark:text-zinc-100 mb-6 uppercase tracking-widest">
-              {t('product.sizeGuide', { defaultValue: 'Size Guide' })}
+              {t('product.sizeGuide')}
             </h2>
             <div className="bg-zinc-50 dark:bg-zinc-900 p-8 rounded-lg">
               <p className="text-zinc-500 text-center">
-                {t('product.sizeGuideComingSoon', { defaultValue: 'Size guide coming soon...' })}
+                {t('product.sizeGuideComingSoon')}
               </p>
             </div>
           </section>
@@ -691,12 +738,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Reviews - Placeholder with API Feedback */}
           <section>
             <h2 className="text-xl font-light text-zinc-900 dark:text-zinc-100 mb-6 uppercase tracking-widest">
-              {t('product.reviews', { defaultValue: 'Reviews' })}
+              {t('product.reviews')}
             </h2>
             <div className="bg-zinc-50 dark:bg-zinc-900 p-8 rounded-lg text-center">
               <Star className="h-12 w-12 text-zinc-300 mx-auto mb-4" />
               <p className="text-zinc-500">
-                {t('product.noReviewsYet', { defaultValue: 'No reviews yet. Be the first to review this product!' })}
+                {t('product.noReviewsYet')}
               </p>
               {/* API FEEDBACK: Need ReviewController for GET /api/v1/products/{id}/reviews */}
             </div>
@@ -705,11 +752,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Related Products - Placeholder with API Feedback */}
           <section>
             <h2 className="text-xl font-light text-zinc-900 dark:text-zinc-100 mb-6 uppercase tracking-widest">
-              {t('product.youMayAlsoLike', { defaultValue: 'You May Also Like' })}
+              {t('product.youMayAlsoLike')}
             </h2>
             <div className="bg-zinc-50 dark:bg-zinc-900 p-8 rounded-lg text-center">
               <p className="text-zinc-500">
-                {t('product.relatedComingSoon', { defaultValue: 'Related products coming soon...' })}
+                {t('product.relatedComingSoon')}
               </p>
               {/* API FEEDBACK: Need GET /api/v1/products/{id}/related or category-based filtering */}
             </div>

@@ -199,7 +199,7 @@ export function SettingsButton() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Link href="/account" className="no-underline" onClick={() => setOpen(false)}>
+                  <Link href="/account/profile" className="no-underline" onClick={() => setOpen(false)}>
                     <Button variant="outline" className="w-full justify-start gap-2 h-11 rounded-xl border-gray-200 dark:border-white/10 hover:bg-[#D4AF37]/5 hover:text-[#D4AF37] hover:border-[#D4AF37]/30">
                       <User className="h-4 w-4" />
                       <span className="text-xs">{t("settings.myAccount", { defaultValue: "My Account" })}</span>

@@ -42,7 +42,9 @@
     "passwordUppercase": "Password must contain at least one uppercase letter",
     "passwordNumber": "Password must contain at least one number",
     "passwordSpecialChar": "Password must contain at least one special character",
-    "passwordsDoNotMatch": "Passwords do not match"
+    "passwordsDoNotMatch": "Passwords do not match",
+    "fullNameMin": "Name must be at least 2 characters",
+    "phoneInvalid": "Invalid phone number"
   },
   "error": {
     "unexpectedError": "An unexpected error occurred. Please try again.",
@@ -253,6 +255,34 @@
     "pageInfo": "Page {{current}} of {{total}}",
     "previous": "Previous",
     "next": "Next"
+  },
+  "product": {
+    "selectVariant": "Please select size and color",
+    "addedToCart": "Added to cart!",
+    "addToCartError": "Failed to add to cart",
+    "soldOut": "Sold Out",
+    "color": "Color",
+    "size": "Size",
+    "sizeGuide": "Size Guide",
+    "inStock": "In Stock",
+    "onlyLeft": "Only {{count}} left",
+    "outOfStock": "Out of Stock",
+    "quantity": "Quantity",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "addToWishlist": "Add to Wishlist",
+    "share": "Share",
+    "linkCopied": "Link copied!",
+    "freeShipping": "Free Shipping",
+    "easyReturns": "30-Day Returns",
+    "securePayment": "Secure Payment",
+    "description": "Description",
+    "noDescription": "No description available.",
+    "sizeGuideComingSoon": "Size guide coming soon...",
+    "reviews": "Reviews",
+    "noReviewsYet": "No reviews yet. Be the first to review this product!",
+    "youMayAlsoLike": "You May Also Like",
+    "relatedComingSoon": "Related products coming soon..."
   },
   "auth": {
     "mode": {
@@ -890,20 +920,20 @@
           "slugRequired": "SEO identifier is mandatory",
           "circularRef": "Architectural violation: Recursive hierarchy detected.",
           "leafProductWarn": "Integrity Alert: This category contains items and cannot serve as a parent."
+        }
+      },
+      "policies": {
+        "integrity": {
+          "title": "Hierarchical Integrity",
+          "desc": "Circular parent relations are blocked by design. A category cannot become its own descendant."
         },
-        "policies": {
-          "integrity": {
-            "title": "Hierarchical Integrity",
-            "desc": "Circular parent relations are blocked by design. A category cannot become its own descendant."
-          },
-          "leaf": {
-            "title": "Leaf-Only Inventory",
-            "desc": "Products are only permitted in leaf categories. Non-leaf nodes serve as structural curators."
-          },
-          "root": {
-            "title": "Root Preservation",
-            "desc": "The foundational architectural root is protected from accidental deconstruction."
-          }
+        "leaf": {
+          "title": "Leaf-Only Inventory",
+          "desc": "Products are only permitted in leaf categories. Non-leaf nodes serve as structural curators."
+        },
+        "root": {
+          "title": "Root Preservation",
+          "desc": "The foundational architectural root is protected from accidental deconstruction."
         }
       },
       "moveModal": {
@@ -1406,6 +1436,89 @@
       "cancelledDesc": "This order has been cancelled.",
       "returnedDesc": "This order has been returned.",
       "reorderComingSoon": "Re-order feature coming soon!"
+    }
+  },
+  "profile": {
+    "title": "My Account",
+    "subtitle": "Manage your profile and security settings",
+    "updateSuccess": "Profile updated successfully",
+    "avatarUpdated": "Avatar updated",
+    "info": {
+      "title": "Profile Information",
+      "clickToChange": "Click to change photo",
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "verified": "Verified",
+      "birthDate": "Birthday",
+      "gender": "Gender",
+      "notSet": "Not set",
+      "addBirthday": "Add birthday for gifts 🎁"
+    },
+    "edit": {
+      "title": "Edit Profile",
+      "avatarHint": "Tap to update your profile photo",
+      "emailLocked": "Email cannot be changed",
+      "birthDateLocked": "Birthdate can only be updated once",
+      "contactSupport": "Contact support to change your birthdate",
+      "birthDateBonus": "Add your birthday to receive special gifts 🎁"
+    },
+    "addresses": {
+      "title": "Delivery Addresses",
+      "addNew": "Add New Address",
+      "editAddress": "Edit Address",
+      "home": "Home",
+      "office": "Office",
+      "other": "Other",
+      "default": "Default",
+      "type": "Address Type",
+      "label": "Label (Optional)",
+      "labelPlaceholder": "e.g., Parents' House",
+      "recipientName": "Recipient Name",
+      "phone": "Phone Number",
+      "addressLine1": "Address Line 1",
+      "addressPlaceholder": "Street address, P.O. box",
+      "addressLine2": "Address Line 2 (Optional)",
+      "addressLine2Placeholder": "Apartment, suite, unit, building, floor",
+      "ward": "Ward (Optional)",
+      "district": "District",
+      "city": "City",
+      "postalCode": "Postal Code",
+      "setAsDefault": "Set as default delivery address",
+      "setDefault": "Set as Default",
+      "updated": "Address updated",
+      "added": "Address added",
+      "deleted": "Address deleted",
+      "defaultSet": "Default address set",
+      "noAddresses": "No delivery addresses yet",
+      "addFirst": "Add your first address"
+    },
+    "security": {
+      "title": "Security & Privacy",
+      "changePassword": "Change Password",
+      "lastChanged": "Last changed",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "passwordChanged": "Password changed successfully!",
+      "updatePassword": "Update Password",
+      "twoFactor": "Two-Factor Authentication",
+      "twoFactorDesc": "Add an extra layer of security to your account",
+      "accountRecovery": "Account Recovery Options",
+      "accountRecoveryDesc": "Set up recovery options for your account",
+      "2faEnabled": "Two-factor authentication enabled",
+      "2faDisabled": "Two-factor authentication disabled"
+    },
+    "aurea": {
+      "title": "Rewards & History",
+      "myVouchers": "My Vouchers",
+      "available": "available",
+      "validUntil": "Valid until",
+      "viewAll": "View all vouchers",
+      "noVouchers": "No vouchers available",
+      "noVouchersDesc": "Check back later for special offers!",
+      "viewHistory": "View Transaction History",
+      "viewHistoryDesc": "View your order and inventory ledger"
     }
   }
 }

@@ -193,7 +193,7 @@ export function ProductCard({
         <div className="relative w-full aspect-[3/4] overflow-hidden bg-muted/30 rounded-lg border border-border/50 group-hover:border-primary/50 transition-all duration-300">
           {/* Link wraps only the image area for navigation */}
           <Link
-            href={`/product/${product.slug}`}
+            href={`/product/${product.slug}-i.${product.id}`}
             className="absolute inset-0 z-10"
             aria-label={`View ${product.name}`}
           >
@@ -211,6 +211,7 @@ export function ProductCard({
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   priority={false}
+                  unoptimized
                   onError={() => setImageError(true)}
                 />
               </div>
@@ -229,6 +230,7 @@ export function ProductCard({
                     isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  unoptimized
                 />
               </div>
             )}
@@ -277,7 +279,7 @@ export function ProductCard({
 
         {/* Product Info - Link wraps this for SEO */}
         <Link
-          href={`/product/${product.slug}`}
+          href={`/product/${product.slug}-i.${product.id}`}
           className="block no-underline mt-3"
         >
           <div className="flex flex-col space-y-1.5">

@@ -8,7 +8,7 @@ import { CheckCircle2, Package, CreditCard, Clock, ArrowLeft, AlertCircle } from
 import { StorefrontNavBar } from "@/components/shop/layout/StorefrontNavBar";
 import { StorefrontFooter } from "@/components/shop/layout/StorefrontFooter";
 import { useTranslation } from "react-i18next";
-import { OrderCreationResponse } from "@/lib/api/order";
+import { OrderCreationResponse, orderApi } from "@/lib/api/order";
 import Image from "next/image";
 
 /**
@@ -36,20 +36,45 @@ function OrderSuccessContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load order data from sessionStorage
-    // TODO: Replace with API call to GET /orders/{orderId} when backend endpoint is available
-    if (orderId && typeof window !== "undefined") {
+    const fetchOrder = async () => {
+      if (!orderId || typeof window === "undefined") return;
+
+      // 1. Try session storage first
       const stored = sessionStorage.getItem(`order_${orderId}`);
       if (stored) {
         try {
           const data = JSON.parse(stored) as OrderCreationResponse;
           setOrderData(data);
+          setIsLoading(false);
+          return;
         } catch (error) {
           console.error("Failed to parse order data:", error);
         }
       }
-      setIsLoading(false);
-    }
+
+      // 2. Fallback to API if not in storage
+      try {
+        const result = await orderApi.getOrderDetails(orderId);
+        if (result.data) {
+          // Convert DetailResponse to CreationResponse structure as needed by existing UI
+          const detail = result.data;
+          setOrderData({
+            orderId: String(detail.id),
+            orderCode: detail.orderCode,
+            status: detail.status,
+            totalAmount: detail.finalAmount,
+            itemSummary: detail.items?.[0]?.productName || "Your Order",
+            paymentInfo: detail.paymentInfo
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch order details:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrder();
   }, [orderId]);
 
   if (isLoading) {

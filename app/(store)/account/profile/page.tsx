@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { RefreshCw, Plus, User as UserIcon } from "lucide-react";
+import { RefreshCw, Plus, MapPin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,18 +13,14 @@ import {
   ProfileInfoCard,
   AddressCard,
   AddressDialog,
-  SecurityCard,
   AureaFeaturesCard,
 } from "@/components/shop/account";
 
-import {
-  profileApi,
-} from "@/lib/api/profile";
+import { profileApi } from "@/lib/api/profile";
 import type {
   UserProfile,
   UserAddress,
   AddressRequest,
-  SecuritySettings,
   UserVoucher,
 } from "@/lib/types/profile";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
@@ -38,7 +34,6 @@ export default function ProfilePage() {
   // Data states
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
-  const [securitySettings, setSecuritySettings] = useState<SecuritySettings | null>(null);
   const [vouchers, setVouchers] = useState<UserVoucher[]>([]);
 
   // Loading states
@@ -47,112 +42,118 @@ export default function ProfilePage() {
 
   // Dialog states
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
+  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
+    null,
+  );
 
-  // Initialize profile from global state if available to improve perceived performance
+  // Initialize profile from global state if available
   useEffect(() => {
-    // Debug log for global user state
-    console.log("[ProfilePage] Global user changed:", globalUser);
-    
     if (globalUser && !profile) {
-      console.log("[ProfilePage] Initializing profile from global user:", globalUser);
       setProfile({
         id: (globalUser as any).userId,
         email: globalUser.email || "",
         fullName: globalUser.fullName || "",
         avatarUrl: globalUser.avatarUrl,
-        // Fill properly when API loads or use global state if available
         phoneNumber: globalUser.phoneNumber || "",
-        createdAt: "", 
+        createdAt: "",
         updatedAt: "",
       });
-      // Don't set isLoading to false here, referencing full data fetch is still needed for addresses/phone
     }
   }, [globalUser, profile]);
 
   // Fetch all profile data
-  const fetchProfileData = useCallback(async (showLoading = true) => {
-    // If we have global user, we can skip the big loading skeleton for the top part
-    // but we still need addresses etc.
-    if (showLoading && !globalUser) {
-      setIsLoading(true);
-    } else {
-      setIsRefreshing(true);
-    }
+  const fetchProfileData = useCallback(
+    async (showLoading = true) => {
+      if (showLoading && !globalUser) {
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
 
-    try {
-      const [profileRes, addressesRes, securityRes, vouchersRes] = await Promise.all([
-        profileApi.getProfile(),
-        profileApi.getAddresses(),
-        profileApi.getSecuritySettings(),
-        profileApi.getUserVouchers(),
-      ]);
+      try {
+        const [profileRes, addressesRes, vouchersRes] = await Promise.all([
+          profileApi.getProfile(),
+          profileApi.getAddresses(),
+          profileApi.getUserVouchers(),
+        ]);
 
-      if (profileRes.data) {
-        console.log("[ProfilePage] Profile API Response:", profileRes.data);
-        setProfile(profileRes.data);
-        // Sync back to global state if needed
-        if (globalUser) {
-           console.log("[ProfilePage] Syncing back to global store:", {
-             fullName: profileRes.data.fullName,
-             avatarUrl: profileRes.data.avatarUrl,
-             phoneNumber: profileRes.data.phoneNumber
-           });
-           dispatch(setUser({
-             ...globalUser,
-             fullName: profileRes.data.fullName,
-             avatarUrl: profileRes.data.avatarUrl,
-             phoneNumber: profileRes.data.phoneNumber
-           }));
+        if (profileRes.data) {
+          setProfile(profileRes.data);
+          if (globalUser) {
+            dispatch(
+              setUser({
+                ...globalUser,
+                fullName: profileRes.data.fullName,
+                avatarUrl: profileRes.data.avatarUrl,
+                phoneNumber: profileRes.data.phoneNumber,
+              }),
+            );
+          }
         }
-      }
-      if (addressesRes.data) setAddresses(addressesRes.data);
-      if (securityRes.data) setSecuritySettings(securityRes.data);
-      if (vouchersRes.data) setVouchers(vouchersRes.data);
+        if (addressesRes.data) setAddresses(addressesRes.data);
+        if (vouchersRes.data) setVouchers(vouchersRes.data);
 
-      // Check for errors
-      const errors = [profileRes, addressesRes, securityRes, vouchersRes]
-        .filter((r) => r.error)
-        .map((r) => r.error?.message);
+        const errors = [profileRes, addressesRes, vouchersRes]
+          .filter((r) => r.error)
+          .map((r) => r.error?.message);
 
-      if (errors.length > 0) {
-        toast.error(errors[0] || t("error.fetchFailed", { defaultValue: "Failed to load data" }));
+        if (errors.length > 0) {
+          toast.error(
+            errors[0] ||
+              t("error.fetchFailed", { defaultValue: "Failed to load data" }),
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+        toast.error(
+          t("error.unexpectedError", {
+            defaultValue: "An unexpected error occurred",
+          }),
+        );
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-    } catch (error) {
-      console.error("Error fetching profile data:", error);
-      toast.error(t("error.unexpectedError", { defaultValue: "An unexpected error occurred" }));
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [t, globalUser, dispatch]);
+    },
+    [t, globalUser, dispatch],
+  );
 
   useEffect(() => {
-    // If we already have a profile from global state, we might not want to show the full loader
     if (!profile) {
       setIsLoading(true);
     }
-    fetchProfileData(false); 
-  }, []); // Run once on mount
+    fetchProfileData(false);
+  }, []);
 
   // Profile handlers
-  const handleProfileUpdate = async (data: { fullName?: string; phoneNumber?: string }) => {
+  const handleProfileUpdate = async (data: {
+    fullName?: string;
+    phoneNumber?: string;
+  }) => {
     const result = await profileApi.updateProfile(data);
     if (result.data) {
       setProfile(result.data);
-      
-      // Update global store to sync with Navbar
+
       if (globalUser) {
-        dispatch(setUser({
-          ...globalUser,
-          fullName: result.data.fullName,
-          phoneNumber: result.data.phoneNumber,
-        }));
+        dispatch(
+          setUser({
+            ...globalUser,
+            fullName: result.data.fullName,
+            phoneNumber: result.data.phoneNumber,
+          }),
+        );
       }
 
-      toast.success(t("profile.updateSuccess", { defaultValue: "Profile updated successfully" }));
+      toast.success(
+        t("profile.updateSuccess", {
+          defaultValue: "Profile updated successfully",
+        }),
+      );
     } else if (result.error) {
-      toast.error(result.error.message || t("error.updateFailed", { defaultValue: "Failed to update profile" }));
+      toast.error(
+        result.error.message ||
+          t("error.updateFailed", { defaultValue: "Failed to update profile" }),
+      );
     }
   };
 
@@ -160,18 +161,24 @@ export default function ProfilePage() {
     const result = await profileApi.uploadAvatar(file);
     if (result.data && profile) {
       setProfile({ ...profile, avatarUrl: result.data.avatarUrl });
-      
-      // Update global store to sync with Navbar
+
       if (globalUser) {
-        dispatch(setUser({
-          ...globalUser,
-          avatarUrl: result.data.avatarUrl,
-        }));
+        dispatch(
+          setUser({
+            ...globalUser,
+            avatarUrl: result.data.avatarUrl,
+          }),
+        );
       }
 
-      toast.success(t("profile.avatarUpdated", { defaultValue: "Avatar updated" }));
+      toast.success(
+        t("profile.avatarUpdated", { defaultValue: "Avatar updated" }),
+      );
     } else if (result.error) {
-      toast.error(result.error.message || t("error.uploadFailed", { defaultValue: "Failed to upload avatar" }));
+      toast.error(
+        result.error.message ||
+          t("error.uploadFailed", { defaultValue: "Failed to upload avatar" }),
+      );
     }
   };
 
@@ -195,15 +202,17 @@ export default function ProfilePage() {
     }
 
     if (result.data) {
-      // Refresh only addresses logic could be better but fetching all ensures consistency
       await fetchProfileData(false);
       toast.success(
         editingAddress
           ? t("profile.addresses.updated", { defaultValue: "Address updated" })
-          : t("profile.addresses.added", { defaultValue: "Address added" })
+          : t("profile.addresses.added", { defaultValue: "Address added" }),
       );
     } else if (result.error) {
-      toast.error(result.error.message || t("error.saveFailed", { defaultValue: "Failed to save address" }));
+      toast.error(
+        result.error.message ||
+          t("error.saveFailed", { defaultValue: "Failed to save address" }),
+      );
       throw new Error(result.error.message);
     }
   };
@@ -212,9 +221,14 @@ export default function ProfilePage() {
     const result = await profileApi.deleteAddress(id);
     if (!result.error) {
       setAddresses((prev) => prev.filter((a) => a.id !== id));
-      toast.success(t("profile.addresses.deleted", { defaultValue: "Address deleted" }));
+      toast.success(
+        t("profile.addresses.deleted", { defaultValue: "Address deleted" }),
+      );
     } else {
-      toast.error(result.error.message || t("error.deleteFailed", { defaultValue: "Failed to delete address" }));
+      toast.error(
+        result.error.message ||
+          t("error.deleteFailed", { defaultValue: "Failed to delete address" }),
+      );
     }
   };
 
@@ -225,163 +239,199 @@ export default function ProfilePage() {
         prev.map((a) => ({
           ...a,
           isDefault: a.id === id,
-        }))
+        })),
       );
-      toast.success(t("profile.addresses.defaultSet", { defaultValue: "Default address set" }));
-    } else if (result.error) {
-      toast.error(result.error.message || t("error.updateFailed", { defaultValue: "Failed to update" }));
-    }
-  };
-
-  // Security handlers
-  const handleChangePassword = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
-    const result = await profileApi.changePassword(data);
-    if (!result.error) {
-      return { success: true };
-    }
-    return { success: false, error: result.error.message };
-  };
-
-  const handleToggle2FA = async (enabled: boolean) => {
-    const result = await profileApi.toggleTwoFactor(enabled);
-    if (result.data) {
-      setSecuritySettings(result.data);
       toast.success(
-        enabled
-          ? t("profile.security.2faEnabled", { defaultValue: "Two-factor authentication enabled" })
-          : t("profile.security.2faDisabled", { defaultValue: "Two-factor authentication disabled" })
+        t("profile.addresses.defaultSet", {
+          defaultValue: "Default address set",
+        }),
       );
     } else if (result.error) {
-      toast.error(result.error.message || t("error.updateFailed", { defaultValue: "Failed to update" }));
+      toast.error(
+        result.error.message ||
+          t("error.updateFailed", { defaultValue: "Failed to update" }),
+      );
     }
   };
 
-  // Loading skeleton
+  // Luxury Loading skeleton
   if (isLoading && !profile) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-8 w-8" />
+      <div className="space-y-16">
+        {/* Header skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-px w-12 bg-accent/30" />
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
         </div>
-        <Skeleton className="h-64 w-full rounded-xl" />
-        <Skeleton className="h-48 w-full rounded-xl" />
-        <Skeleton className="h-56 w-full rounded-xl" />
+
+        {/* Profile section skeleton */}
+        <div className="grid lg:grid-cols-[1fr,2fr] gap-16">
+          <div className="flex flex-col items-center space-y-6">
+            <Skeleton className="w-36 h-36 rounded-full" />
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="space-y-8">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </div>
+
+        {/* Addresses skeleton */}
+        <div className="space-y-8">
+          <Skeleton className="h-6 w-48" />
+          <div className="grid md:grid-cols-2 gap-6">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Page Header */}
-      <div className="flex items-center justify-between pb-6 border-b border-black/5 dark:border-white/10">
-        <div>
-          <h1
-            className="text-2xl md:text-3xl font-light tracking-wide text-foreground"
-            style={{ fontFamily: "var(--font-poppins), sans-serif" }}
-          >
-            {t("profile.title", { defaultValue: "My Account" })}
-          </h1>
-          <p
-            className="text-muted-foreground font-light text-sm mt-1"
-            style={{ fontFamily: "var(--font-be-vietnam-pro), sans-serif" }}
-          >
-            {t("profile.subtitle", { defaultValue: "Manage your profile and security settings" })}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => fetchProfileData(false)}
-          disabled={isRefreshing}
-          className="rounded-full hover:bg-accent/10 hover:text-accent border-black/5 dark:border-white/10"
-        >
-          <RefreshCw
-            className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-        </Button>
-      </div>
+    <div className="space-y-20">
+      {/* Luxury Page Header */}
+      <motion.header
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="relative"
+      >
+        {/* Decorative line */}
+        <div className="w-12 h-px bg-accent/60 mb-6" />
 
-      <div className="space-y-8">
-        {/* Profile Information */}
-        {profile && (
-          <section>
-            <ProfileInfoCard
-              profile={profile}
-              isLoading={isLoading}
-              onUpdate={handleProfileUpdate}
-            />
-          </section>
-        )}
-        
-        {/* Aurea Features */}
-        <section>
-          <AureaFeaturesCard vouchers={vouchers} />
-        </section>
-
-        {/* Addresses Section */}
-        <section className="bg-card/40 backdrop-blur-md border border-black/5 dark:border-white/5 rounded-2xl p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all duration-500">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-light tracking-wide text-foreground">
-                {t("profile.addresses.title", { defaultValue: "Delivery Addresses" })}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-1">
-                Manage your shipping destinations
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddAddress}
-              className="gap-2 hover:bg-accent/10 hover:text-accent border-accent/20"
+        <div className="flex items-end justify-between">
+          <div className="space-y-3">
+            <h1
+              className="text-3xl md:text-4xl font-light tracking-[0.02em] text-foreground"
+              style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
             >
-              <Plus className="w-4 h-4" />
-              {t("profile.addresses.addNew", { defaultValue: "Add New" })}
-            </Button>
+              {t("profile.title", { defaultValue: "My Account" })}
+            </h1>
+            <p
+              className="text-sm tracking-[0.1em] uppercase text-muted-foreground/70 font-light"
+              style={{ fontFamily: "var(--font-sans), sans-serif" }}
+            >
+              {t("profile.subtitle", {
+                defaultValue: "Personal details & preferences",
+              })}
+            </p>
           </div>
 
-          {addresses.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-              {addresses.map((address, index) => (
-                <AddressCard
-                  key={address.id}
-                  address={address}
-                  index={index}
-                  onEdit={handleEditAddress}
-                  onDelete={handleDeleteAddress}
-                  onSetDefault={handleSetDefaultAddress}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 rounded-xl border border-dashed border-black/5 dark:border-white/10 bg-black/5 dark:bg-white/5">
-              <UserIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p className="text-sm text-muted-foreground">
-                {t("profile.addresses.noAddresses", { defaultValue: "No delivery addresses yet" })}
-              </p>
-              <Button
-                variant="link"
-                onClick={handleAddAddress}
-                className="mt-2 text-accent"
-              >
-                {t("profile.addresses.addFirst", { defaultValue: "Add your first address" })}
-              </Button>
-            </div>
-          )}
-        </section>
-
-        {/* Security Settings */}
-        {securitySettings && (
-          <section>
-            <SecurityCard
-              settings={securitySettings}
-              onChangePassword={handleChangePassword}
-              onToggle2FA={handleToggle2FA}
+          <button
+            onClick={() => fetchProfileData(false)}
+            disabled={isRefreshing}
+            className="group p-3 -m-3 text-muted-foreground/50 hover:text-accent transition-colors duration-500"
+            aria-label="Refresh"
+          >
+            <RefreshCw
+              className={`w-4 h-4 transition-transform duration-700 ${
+                isRefreshing ? "animate-spin" : "group-hover:rotate-180"
+              }`}
             />
-          </section>
+          </button>
+        </div>
+      </motion.header>
+
+      {/* Profile Information Section */}
+      {profile && (
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <ProfileInfoCard
+            profile={profile}
+            isLoading={isLoading}
+            onUpdate={handleProfileUpdate}
+          />
+        </motion.section>
+      )}
+
+      {/* Rewards & Benefits Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <AureaFeaturesCard vouchers={vouchers} />
+      </motion.section>
+
+      {/* Delivery Addresses Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="space-y-10"
+      >
+        {/* Section Header */}
+        <div className="flex items-end justify-between">
+          <div className="space-y-2">
+            <p
+              className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground/60"
+              style={{ fontFamily: "var(--font-sans), sans-serif" }}
+            >
+              Shipping
+            </p>
+            <h2
+              className="text-xl md:text-2xl font-light tracking-wide text-foreground"
+              style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
+            >
+              {t("profile.addresses.title", {
+                defaultValue: "Delivery Addresses",
+              })}
+            </h2>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAddAddress}
+            className="group gap-2.5 text-xs tracking-[0.15em] uppercase font-normal text-muted-foreground hover:text-foreground hover:bg-transparent transition-colors duration-500"
+          >
+            <Plus className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-90" />
+            {t("profile.addresses.addNew", { defaultValue: "Add New" })}
+          </Button>
+        </div>
+
+        {/* Addresses Grid */}
+        {addresses.length > 0 ? (
+          <div className="grid md:grid-cols-2 gap-6">
+            {addresses.map((address, index) => (
+              <AddressCard
+                key={address.id}
+                address={address}
+                index={index}
+                onEdit={handleEditAddress}
+                onDelete={handleDeleteAddress}
+                onSetDefault={handleSetDefaultAddress}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center border border-dashed border-border/50">
+            <MapPin className="w-8 h-8 mx-auto mb-4 text-muted-foreground/30 stroke-[1.5]" />
+            <p
+              className="text-sm text-muted-foreground/60 tracking-wide mb-6"
+              style={{ fontFamily: "var(--font-sans), sans-serif" }}
+            >
+              {t("profile.addresses.noAddresses", {
+                defaultValue: "No delivery addresses saved",
+              })}
+            </p>
+            <button
+              onClick={handleAddAddress}
+              className="text-xs tracking-[0.2em] uppercase text-accent hover:text-accent/80 transition-colors duration-300 underline underline-offset-4 decoration-accent/30 hover:decoration-accent/60"
+            >
+              {t("profile.addresses.addFirst", {
+                defaultValue: "Add your first address",
+              })}
+            </button>
+          </div>
         )}
-      </div>
+      </motion.section>
 
       {/* Address Dialog */}
       <AddressDialog

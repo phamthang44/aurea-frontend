@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
 import { StorefrontNavBar } from "@/components/shop/layout/StorefrontNavBar";
-import { StorefrontFooter } from "@/components/shop/layout/StorefrontFooter";
 import { Button } from "@/components/ui/button";
 import {
   OrderCard,
@@ -21,6 +20,7 @@ import {
   OrderSummary,
   OrderStatus,
   MyOrderSearchParams,
+  ApiResult,
 } from "@/lib/api/my-orders";
 
 const PAGE_SIZE = 10;
@@ -47,44 +47,38 @@ export default function MyOrdersPage() {
       }
 
       try {
-        const result = await myOrdersApi.getMyOrders(params);
+        const result: ApiResult<OrderSummary[]> =
+          await myOrdersApi.getMyOrders(params);
 
         if (result.error) {
           toast.error(
             result.error.message ||
-              t("orders.errors.fetchFailed", { defaultValue: "Failed to fetch orders" })
+              t("orders.errors.fetchFailed", {
+                defaultValue: "Failed to fetch orders",
+              }),
           );
           return;
         }
 
-        // Handle API response structure
-        const responseData = (result.data as any)?.data;
-        const meta = (result.data as any)?.meta;
-
-        if (Array.isArray(responseData)) {
-          setOrders(responseData);
-          setTotalPages(meta?.totalPages || 1);
-          setTotalElements(meta?.totalElements || responseData.length);
-        } else if (result.data?.data) {
-          setOrders(result.data.data);
-          setTotalPages(result.data.meta?.totalPages || 1);
-          setTotalElements(result.data.meta?.totalElements || 0);
-        } else {
-          setOrders([]);
-          setTotalPages(0);
-          setTotalElements(0);
-        }
+        // Clean ApiResult format: { data: [...], meta: {...} }
+        setOrders(result.data || []);
+        setTotalPages(result.meta?.totalPages || 1);
+        setTotalElements(
+          result.meta?.totalElements || result.data?.length || 0,
+        );
       } catch (error) {
         console.error("Error fetching orders:", error);
         toast.error(
-          t("orders.errors.fetchFailed", { defaultValue: "Failed to fetch orders" })
+          t("orders.errors.fetchFailed", {
+            defaultValue: "Failed to fetch orders",
+          }),
         );
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [t]
+    [t],
   );
 
   // Initial fetch and when filters change
@@ -112,7 +106,7 @@ export default function MyOrdersPage() {
         status: activeStatus,
         sort: "newest",
       },
-      false
+      false,
     );
   };
 

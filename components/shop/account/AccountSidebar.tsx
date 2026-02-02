@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { User, ShoppingBag, Heart, LogOut } from "lucide-react";
+import { User, ShoppingBag, Heart, LogOut, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { clearAuth } from "@/lib/store/authSlice";
@@ -21,16 +21,19 @@ export function AccountSidebar() {
     {
       href: "/account/profile",
       label: "profile.title",
+      defaultLabel: "Profile",
       icon: User,
     },
     {
       href: "/account/orders",
       label: "navbar.myOrders",
+      defaultLabel: "Orders",
       icon: ShoppingBag,
     },
     {
       href: "/wishlist",
       label: "navbar.wishlist",
+      defaultLabel: "Wishlist",
       icon: Heart,
     },
   ];
@@ -47,13 +50,19 @@ export function AccountSidebar() {
   };
 
   return (
-    <aside className="w-full lg:w-64 shrink-0 space-y-8">
-      {/* Menu Groups */}
-      <div className="space-y-1">
-        <p className="px-4 py-2 text-xs font-light tracking-widest uppercase text-muted-foreground">
-          {t("profile.title", { defaultValue: "My Account" })}
+    <aside className="w-full lg:w-56 shrink-0">
+      {/* Navigation */}
+      <nav className="space-y-1">
+        {/* Section Label */}
+        <p
+          className="px-4 py-3 text-[10px] tracking-[0.3em] uppercase text-muted-foreground/50"
+          style={{ fontFamily: "var(--font-sans), sans-serif" }}
+        >
+          {t("profile.title", { defaultValue: "Account" })}
         </p>
-        <div className="space-y-1">
+
+        {/* Menu Items */}
+        <div className="space-y-0.5">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -62,35 +71,66 @@ export function AccountSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 text-sm transition-all duration-300 rounded-lg group",
+                  "group relative flex items-center gap-3 px-4 py-3.5 text-sm transition-all duration-500",
+                  "tracking-wide",
                   isActive
-                    ? "bg-accent/5 text-accent font-medium border-l-2 border-accent rounded-l-none"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? "text-foreground"
+                    : "text-muted-foreground/60 hover:text-foreground",
                 )}
               >
-                <Icon
+                {/* Active indicator - vertical line */}
+                <div
                   className={cn(
-                    "w-4 h-4 transition-colors",
-                    isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
+                    "absolute left-0 top-1/2 -translate-y-1/2 w-px transition-all duration-500",
+                    isActive
+                      ? "h-6 bg-accent"
+                      : "h-0 bg-accent/50 group-hover:h-4",
                   )}
                 />
-                {t(item.label)}
+
+                <Icon
+                  className={cn(
+                    "w-4 h-4 transition-colors duration-300 stroke-[1.5]",
+                    isActive
+                      ? "text-accent"
+                      : "text-muted-foreground/40 group-hover:text-muted-foreground/70",
+                  )}
+                />
+
+                <span
+                  className="flex-1"
+                  style={{ fontFamily: "var(--font-sans), sans-serif" }}
+                >
+                  {t(item.label, { defaultValue: item.defaultLabel })}
+                </span>
+
+                <ChevronRight
+                  className={cn(
+                    "w-3.5 h-3.5 transition-all duration-300 stroke-[1.5]",
+                    isActive
+                      ? "opacity-100 text-accent"
+                      : "opacity-0 -translate-x-2 group-hover:opacity-50 group-hover:translate-x-0",
+                  )}
+                />
               </Link>
             );
           })}
         </div>
-      </div>
+      </nav>
+
+      {/* Divider */}
+      <div className="my-6 mx-4 h-px bg-border/30" />
 
       {/* Logout */}
-      <div className="pt-4 border-t border-black/5 dark:border-white/10">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-all duration-300 group"
-        >
-          <LogOut className="w-4 h-4 group-hover:text-destructive" />
-          {t("navbar.logout", { defaultValue: "Logout" })}
-        </button>
-      </div>
+      <button
+        onClick={handleLogout}
+        className="group relative w-full flex items-center gap-3 px-4 py-3.5 text-sm tracking-wide text-muted-foreground/50 hover:text-foreground transition-all duration-500"
+      >
+        <LogOut className="w-4 h-4 stroke-[1.5] transition-colors duration-300 group-hover:text-destructive/70" />
+        <span style={{ fontFamily: "var(--font-sans), sans-serif" }}>
+          {t("navbar.logout", { defaultValue: "Sign Out" })}
+        </span>
+      </button>
     </aside>
   );
 }

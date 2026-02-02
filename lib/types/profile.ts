@@ -63,18 +63,7 @@ export interface AddressRequest {
   isDefault?: boolean;
 }
 
-// Security settings
-export interface SecuritySettings {
-  twoFactorEnabled: boolean;
-  lastPasswordChange?: string;
-}
 
-// Change password request
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
 
 // User voucher (from staff promotions)
 export interface UserVoucher {

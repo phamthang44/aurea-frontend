@@ -1,10 +1,10 @@
 /**
  * Import API Service
  * Based on import-api-guide.md
- * Uses the existing Axios client from lib/api-client.ts
+ * Uses the native fetch client from lib/fetch-client.ts
  */
 
-import apiClient from "../api-client";
+import fetchClient from "../fetch-client";
 import type {
   ImportJob,
   ImportJobListParams,
@@ -34,14 +34,17 @@ import type {
  * ```
  */
 export async function uploadProductCSV(
-  file: File
-): Promise<{ data?: ImportApiResponse<number>; error?: { message?: string; code?: string } }> {
+  file: File,
+): Promise<{
+  data?: ImportApiResponse<number>;
+  error?: { message?: string; code?: string };
+}> {
   const formData = new FormData();
   formData.append("file", file);
 
-  return apiClient.post<ImportApiResponse<number>>(
+  return fetchClient.post<ImportApiResponse<number>>(
     "imports/internal/products",
-    formData
+    formData,
   );
 }
 
@@ -59,9 +62,12 @@ export async function uploadProductCSV(
  * ```
  */
 export async function getImportJob(
-  jobId: number
-): Promise<{ data?: ImportApiResponse<ImportJob>; error?: { message?: string; code?: string } }> {
-  return apiClient.get<ImportApiResponse<ImportJob>>(`imports/${jobId}`);
+  jobId: number,
+): Promise<{
+  data?: ImportApiResponse<ImportJob>;
+  error?: { message?: string; code?: string };
+}> {
+  return fetchClient.get<ImportApiResponse<ImportJob>>(`imports/${jobId}`);
 }
 
 /**
@@ -69,9 +75,14 @@ export async function getImportJob(
  * GET /api/v1/imports/{jobId}/status
  */
 export async function getImportJobStatus(
-  jobId: number
-): Promise<{ data?: ImportApiResponse<ImportJob>; error?: { message?: string; code?: string } }> {
-  return apiClient.get<ImportApiResponse<ImportJob>>(`imports/${jobId}/status`);
+  jobId: number,
+): Promise<{
+  data?: ImportApiResponse<ImportJob>;
+  error?: { message?: string; code?: string };
+}> {
+  return fetchClient.get<ImportApiResponse<ImportJob>>(
+    `imports/${jobId}/status`,
+  );
 }
 
 /**
@@ -93,19 +104,21 @@ export async function getImportJobStatus(
  * ```
  */
 export async function listImportJobs(
-  params?: ImportJobListParams
-): Promise<{ data?: ImportApiResponse<PagedImportJobs>; error?: { message?: string; code?: string } }> {
-  const queryParams = new URLSearchParams();
-  if (params?.status) queryParams.append("status", params.status);
-  if (params?.page !== undefined) queryParams.append("page", params.page.toString());
-  if (params?.size) queryParams.append("size", params.size.toString());
-  // Always include sort parameter with default if not provided
-  queryParams.append("sort", params?.sort || "createdAt,desc");
+  params?: ImportJobListParams,
+): Promise<{
+  data?: ImportApiResponse<PagedImportJobs>;
+  error?: { message?: string; code?: string };
+}> {
+  const queryParams: Record<string, string | number | undefined> = {
+    sort: params?.sort || "createdAt,desc",
+  };
+  if (params?.status) queryParams.status = params.status;
+  if (params?.page !== undefined) queryParams.page = params.page;
+  if (params?.size) queryParams.size = params.size;
 
-  const query = queryParams.toString();
-  return apiClient.get<ImportApiResponse<PagedImportJobs>>(
-    `imports${query ? `?${query}` : ""}`
-  );
+  return fetchClient.get<ImportApiResponse<PagedImportJobs>>("imports", {
+    params: queryParams,
+  });
 }
 
 /**
@@ -121,9 +134,12 @@ export async function listImportJobs(
  * ```
  */
 export async function cancelImportJob(
-  jobId: number
-): Promise<{ data?: ImportApiResponse<null>; error?: { message?: string; code?: string } }> {
-  return apiClient.delete<ImportApiResponse<null>>(`imports/${jobId}`);
+  jobId: number,
+): Promise<{
+  data?: ImportApiResponse<null>;
+  error?: { message?: string; code?: string };
+}> {
+  return fetchClient.delete<ImportApiResponse<null>>(`imports/${jobId}`);
 }
 
 // ============================================================================
@@ -142,13 +158,13 @@ export async function cancelImportJob(
  */
 export async function waitForJobCompletion(
   jobId: number,
-  pollInterval: number = 2000
+  pollInterval: number = 2000,
 ): Promise<ImportJob> {
   return new Promise((resolve, reject) => {
     const interval = setInterval(async () => {
       try {
         const result = await getImportJob(jobId);
-        
+
         if (result.error) {
           clearInterval(interval);
           reject(new Error(result.error.message || "Failed to get job status"));
@@ -187,4 +203,3 @@ export const importApi = {
 };
 
 export default importApi;
-

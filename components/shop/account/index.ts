@@ -2,5 +2,5 @@
 export { ProfileInfoCard } from "./ProfileInfoCard";
 export { AddressCard } from "./AddressCard";
 export { AddressDialog } from "./AddressDialog";
-export { SecurityCard } from "./SecurityCard";
+
 export { AureaFeaturesCard } from "./AureaFeaturesCard";

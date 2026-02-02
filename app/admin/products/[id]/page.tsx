@@ -25,8 +25,6 @@ interface ProductData {
   description: string;
   categoryId: string;
   minPrice: number;
-  originalPrice: number;
-  costPrice: number;
   assets?: ProductAsset[];
   variants?: any[];
   slug?: string;
@@ -63,8 +61,6 @@ export default function ProductDetailPage() {
     description: "",
     categoryId: "",
     minPrice: 0,
-    originalPrice: 0,
-    costPrice: 0,
     assets: [],
     variants: [],
     slug: "",
@@ -121,8 +117,6 @@ export default function ProductDetailPage() {
               description: product.description || "",
               categoryId: product.categoryId || "",
               minPrice: product.minPrice || 0,
-              originalPrice: product.originalPrice || 0,
-              costPrice: product.costPrice || 0,
               assets: assets,
               variants: enrichedVariants,
               slug: product.slug || "",
@@ -363,8 +357,6 @@ export default function ProductDetailPage() {
             description: updatedProduct.description || "",
             categoryId: updatedProduct.categoryId || "",
             minPrice: updatedProduct.minPrice || 0,
-            originalPrice: updatedProduct.originalPrice || 0,
-            costPrice: updatedProduct.costPrice || 0,
             assets: assets,
             variants: enrichedVariants,
             slug: updatedProduct.slug || "",

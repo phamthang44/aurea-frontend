@@ -227,32 +227,52 @@
   body {
     @apply bg-background text-foreground;
     /* Default: Poppins */
-    font-family: var(--font-poppins), "Poppins", -apple-system,
-      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family:
+      var(--font-poppins),
+      "Poppins",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif !important;
     font-weight: 300 !important;
     letter-spacing: 0.01em;
   }
 
   /* Vietnamese: Be Vietnam Pro */
   html[lang="vi"] body {
-    font-family: var(--font-be-vietnam), "Be Vietnam Pro", -apple-system,
-      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family:
+      var(--font-be-vietnam),
+      "Be Vietnam Pro",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif !important;
   }
 
   /* Apply default font to all text elements */
   body *,
   body *::before,
   body *::after {
-    font-family: var(--font-poppins), "Poppins", -apple-system,
-      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family:
+      var(--font-poppins),
+      "Poppins",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif !important;
   }
 
   /* Apply Be Vietnam Pro for Vietnamese */
   html[lang="vi"] body *,
   html[lang="vi"] body *::before,
   html[lang="vi"] body *::after {
-    font-family: var(--font-be-vietnam), "Be Vietnam Pro", -apple-system,
-      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family:
+      var(--font-be-vietnam),
+      "Be Vietnam Pro",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif !important;
   }
 
   /* Default font-weight for all text (light) - but allow overrides */
@@ -441,4 +461,217 @@
 
 .scrollbar-luxury::-webkit-scrollbar-thumb:hover {
   background: rgba(212, 175, 55, 0.5);
+}
+
+/* ============================================
+   LUXURY DESIGN SYSTEM UTILITIES
+   Inspired by Dior, Chanel, Louis Vuitton
+   ============================================ */
+
+/* Typography - Luxury Headings */
+.luxury-heading {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+.luxury-subheading {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.625rem; /* 10px */
+}
+
+/* Luxury Label - Small caps style */
+.luxury-label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.625rem; /* 10px */
+}
+
+/* Body text for luxury feel */
+.luxury-body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+}
+
+/* Decorative Elements */
+.luxury-divider {
+  @apply h-px w-12 bg-accent/60;
+}
+
+.luxury-divider-full {
+  @apply h-px w-full bg-border/30;
+}
+
+/* Luxury Border Accents */
+.luxury-border-accent {
+  position: relative;
+}
+
+.luxury-border-accent::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3rem;
+  height: 1px;
+  background: hsl(var(--accent) / 0.6);
+}
+
+.luxury-border-accent::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 3rem;
+  background: hsl(var(--accent) / 0.6);
+}
+
+/* Hover line effect for luxury cards */
+.luxury-hover-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.luxury-hover-line::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: hsl(var(--accent) / 0.4);
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.luxury-hover-line:hover::after {
+  width: 100%;
+}
+
+/* Luxury Button Styles */
+.luxury-btn-primary {
+  @apply relative px-8 py-3 text-xs tracking-[0.2em] uppercase;
+  @apply bg-foreground text-background;
+  @apply border border-foreground;
+  @apply transition-all duration-500;
+  @apply hover:bg-transparent hover:text-foreground;
+}
+
+.luxury-btn-secondary {
+  @apply relative px-8 py-3 text-xs tracking-[0.2em] uppercase;
+  @apply bg-transparent text-foreground;
+  @apply border border-border/50;
+  @apply transition-all duration-500;
+  @apply hover:border-accent/50 hover:text-accent;
+}
+
+.luxury-btn-ghost {
+  @apply text-xs tracking-[0.15em] uppercase;
+  @apply text-muted-foreground hover:text-foreground;
+  @apply transition-colors duration-500;
+  @apply underline underline-offset-4 decoration-border/30;
+  @apply hover:decoration-accent/50;
+}
+
+/* Luxury Input Styles */
+.luxury-input {
+  @apply w-full px-0 py-3 text-sm;
+  @apply bg-transparent border-0 border-b border-border/30;
+  @apply focus:border-accent/50 focus:ring-0 focus:outline-none;
+  @apply transition-colors duration-500;
+  @apply placeholder:text-muted-foreground/40;
+}
+
+/* Luxury Card - Minimal */
+.luxury-card {
+  @apply relative p-6 border border-border/40;
+  @apply bg-transparent;
+  @apply transition-all duration-500;
+  @apply hover:border-border/80;
+}
+
+.luxury-card-elevated {
+  @apply relative p-8 border border-border/30;
+  @apply bg-card/30 backdrop-blur-sm;
+  @apply shadow-[0_4px_20px_-8px_rgba(0,0,0,0.04)];
+  @apply transition-all duration-500;
+  @apply hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)];
+}
+
+/* Animation Utilities */
+.luxury-fade-in {
+  animation: luxury-fade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.luxury-slide-up {
+  animation: luxury-slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes luxury-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes luxury-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animation delays */
+.luxury-stagger-1 {
+  animation-delay: 0.1s;
+}
+.luxury-stagger-2 {
+  animation-delay: 0.2s;
+}
+.luxury-stagger-3 {
+  animation-delay: 0.3s;
+}
+.luxury-stagger-4 {
+  animation-delay: 0.4s;
+}
+.luxury-stagger-5 {
+  animation-delay: 0.5s;
+}
+
+/* Smooth image hover for luxury feel */
+.luxury-image-hover {
+  @apply overflow-hidden;
+}
+
+.luxury-image-hover img {
+  @apply transition-transform duration-700 ease-out;
+}
+
+.luxury-image-hover:hover img {
+  @apply scale-105;
+}
+
+/* Text selection - gold accent */
+::selection {
+  background: hsl(var(--accent) / 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background: hsl(var(--accent) / 0.2);
+  color: inherit;
 }

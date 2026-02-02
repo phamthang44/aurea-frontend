@@ -3,7 +3,7 @@
  * Handles Province and Ward data fetching for address forms
  */
 
-import apiClient from "../api-client";
+import fetchClient from "../fetch-client";
 
 // ============================================================================
 // Types
@@ -53,7 +53,7 @@ export interface ApiResult<T> {
 export async function getAllProvinces(): Promise<
   ApiResult<ProvinceResponse[]>
 > {
-  return apiClient.get<ProvinceResponse[]>("locations/provinces");
+  return fetchClient.get<ProvinceResponse[]>("locations/provinces");
 }
 
 /**
@@ -69,11 +69,11 @@ export async function getAllProvinces(): Promise<
  * ```
  */
 export async function getWardsByProvince(
-  provinceCode: string
+  provinceCode: string,
 ): Promise<ApiResult<WardResponse[]>> {
-  return apiClient.get<WardResponse[]>(
-    `locations/wards?provinceCode=${encodeURIComponent(provinceCode)}`
-  );
+  return fetchClient.get<WardResponse[]>("locations/wards", {
+    params: { provinceCode },
+  });
 }
 
 // ============================================================================
@@ -86,4 +86,3 @@ export const locationApi = {
 };
 
 export default locationApi;
-

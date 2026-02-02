@@ -3,32 +3,32 @@
  * Handles fetching customer order history and details
  */
 
-import apiClient from "@/lib/api-client";
+import fetchClient from "@/lib/fetch-client";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type OrderStatus = 
-  | "PENDING" 
-  | "CONFIRMED" 
-  | "SHIPPING" 
-  | "COMPLETED" 
-  | "CANCELLED" 
+export type OrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "SHIPPING"
+  | "COMPLETED"
+  | "CANCELLED"
   | "RETURNED";
 
-export type PaymentStatus = 
-  | "UNPAID" 
-  | "PENDING" 
-  | "PAID" 
-  | "FAILED" 
+export type PaymentStatus =
+  | "UNPAID"
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
   | "REFUNDED";
 
-export type PaymentMethod = 
-  | "COD" 
-  | "BANK_TRANSFER" 
-  | "VN_PAY" 
-  | "MOMO" 
+export type PaymentMethod =
+  | "COD"
+  | "BANK_TRANSFER"
+  | "VN_PAY"
+  | "MOMO"
   | "E_WALLET";
 
 export interface OrderSummary {
@@ -58,11 +58,14 @@ export interface OrderItem {
   productSlug?: string;
   variantId: string;
   variantName?: string;
-  size?: string;
-  color?: string;
+  variantAttributes?: {
+    size?: string;
+    color?: string;
+  };
   thumbnail?: string;
   quantity: number;
-  unitPrice: number;
+  subtotal: number;
+  sellingPrice: number;
   totalPrice: number;
 }
 
@@ -91,18 +94,16 @@ export interface MyOrderSearchParams {
   sort?: string;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    page: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
-  };
+export interface PaginationMeta {
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 export interface ApiResult<T> {
   data?: T;
+  meta?: PaginationMeta;
   error?: {
     message?: string;
     code?: string;
@@ -118,41 +119,19 @@ export interface ApiResult<T> {
  * GET /api/v1/me/orders
  */
 export async function getMyOrders(
-  params: MyOrderSearchParams = {}
-): Promise<ApiResult<PaginatedResponse<OrderSummary>>> {
-  try {
-    const queryParams = new URLSearchParams();
-    
-    if (params.page !== undefined) {
-      queryParams.append("page", params.page.toString());
-    }
-    if (params.size !== undefined) {
-      queryParams.append("size", params.size.toString());
-    }
-    // Backend expects UPPERCASE enum constant names for query params: PENDING, CONFIRMED, SHIPPING, etc.
-    // Note: Spring binds query params to enum constant names, not @JsonValue
-    if (params.status && params.status !== "ALL") {
-      queryParams.append("status", params.status);
-    }
-    // Backend expects sort values: newest, oldest, total_asc, total_desc, last_updated, status
-    if (params.sort) {
-      queryParams.append("sort", params.sort);
-    }
+  params: MyOrderSearchParams = {},
+): Promise<ApiResult<OrderSummary[]>> {
+  const queryParams: Record<string, string | number | undefined> = {};
 
-    const query = queryParams.toString();
-    const response = await apiClient.get<PaginatedResponse<OrderSummary>>(
-      `me/orders${query ? `?${query}` : ""}`
-    );
+  if (params.page !== undefined) queryParams.page = params.page;
+  if (params.size !== undefined) queryParams.size = params.size;
+  if (params.status && params.status !== "ALL")
+    queryParams.status = params.status;
+  if (params.sort) queryParams.sort = params.sort;
 
-    return response;
-  } catch (error: any) {
-    return {
-      error: {
-        message: error.response?.data?.error?.message || "Failed to fetch orders",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.get<OrderSummary[]>("me/orders", {
+    params: queryParams,
+  });
 }
 
 /**
@@ -160,19 +139,9 @@ export async function getMyOrders(
  * GET /api/v1/me/orders/{orderCode}
  */
 export async function getMyOrderDetail(
-  orderCode: string
+  orderCode: string,
 ): Promise<ApiResult<OrderDetail>> {
-  try {
-    const response = await apiClient.get<OrderDetail>(`me/orders/${orderCode}`);
-    return response;
-  } catch (error: any) {
-    return {
-      error: {
-        message: error.response?.data?.error?.message || "Failed to fetch order detail",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.get<OrderDetail>(`me/orders/${orderCode}`);
 }
 
 /**
@@ -180,21 +149,11 @@ export async function getMyOrderDetail(
  * POST /api/v1/me/orders/{orderCode}/cancel
  */
 export async function cancelOrder(
-  orderCode: string
+  orderCode: string,
 ): Promise<ApiResult<{ success: boolean }>> {
-  try {
-    const response = await apiClient.post<{ success: boolean }>(
-      `me/orders/${orderCode}/cancel`
-    );
-    return response;
-  } catch (error: any) {
-    return {
-      error: {
-        message: error.response?.data?.error?.message || "Failed to cancel order",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.post<{ success: boolean }>(
+    `me/orders/${orderCode}/cancel`,
+  );
 }
 
 // ============================================================================

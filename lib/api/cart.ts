@@ -1,9 +1,9 @@
 ﻿/**
  * Cart API - Unified cart operations for both User and Guest
- * All endpoints automatically handle X-Guest-ID and Authorization headers via axios interceptors
+ * All endpoints automatically handle X-Guest-ID and Authorization headers via fetch client
  */
 
-import apiClient from "@/lib/api-client";
+import fetchClient from "@/lib/fetch-client";
 
 /**
  * Cart Item Response from backend
@@ -80,16 +80,7 @@ export interface UpdateCartItemRequest {
  * @returns Cart response with enriched product details
  */
 export async function getMyCart(): Promise<ApiResponse<CartResponse>> {
-  try {
-    return await apiClient.get<CartResponse>("carts");
-  } catch (error: any) {
-    return {
-      error: {
-        message: error.response?.data?.error?.message || "Failed to fetch cart",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.get<CartResponse>("carts");
 }
 
 /**
@@ -99,19 +90,9 @@ export async function getMyCart(): Promise<ApiResponse<CartResponse>> {
  * @returns Updated cart response
  */
 export async function addToCart(
-  data: AddToCartRequest
+  data: AddToCartRequest,
 ): Promise<ApiResponse<CartResponse>> {
-  try {
-    return await apiClient.post<CartResponse>("carts/items", data);
-  } catch (error: any) {
-    return {
-      error: {
-        message:
-          error.response?.data?.error?.message || "Failed to add item to cart",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.post<CartResponse>("carts/items", data);
 }
 
 /**
@@ -122,22 +103,9 @@ export async function addToCart(
  */
 export async function updateItem(
   id: number,
-  quantity: number
+  quantity: number,
 ): Promise<ApiResponse<CartResponse>> {
-  try {
-    return await apiClient.put<CartResponse>(`carts/items/${id}`, {
-      quantity,
-    });
-  } catch (error: any) {
-    return {
-      error: {
-        message:
-          error.response?.data?.error?.message ||
-          "Failed to update cart item",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.put<CartResponse>(`carts/items/${id}`, { quantity });
 }
 
 /**
@@ -146,20 +114,9 @@ export async function updateItem(
  * @returns Updated cart response
  */
 export async function removeItem(
-  id: number
+  id: number,
 ): Promise<ApiResponse<CartResponse>> {
-  try {
-    return await apiClient.delete<CartResponse>(`carts/items/${id}`);
-  } catch (error: any) {
-    return {
-      error: {
-        message:
-          error.response?.data?.error?.message ||
-          "Failed to remove item from cart",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.delete<CartResponse>(`carts/items/${id}`);
 }
 
 /**
@@ -168,18 +125,7 @@ export async function removeItem(
  * @returns Updated cart response (empty cart)
  */
 export async function removeAllItems(): Promise<ApiResponse<CartResponse>> {
-  try {
-    return await apiClient.delete<CartResponse>("carts/items");
-  } catch (error: any) {
-    return {
-      error: {
-        message:
-          error.response?.data?.error?.message ||
-          "Failed to remove all items from cart",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.delete<CartResponse>("carts/items");
 }
 
 /**
@@ -189,24 +135,7 @@ export async function removeAllItems(): Promise<ApiResponse<CartResponse>> {
  * @returns Updated cart response with applied promotion
  */
 export async function applyPromotionCode(
-  promotionCode: string
+  promotionCode: string,
 ): Promise<ApiResponse<CartResponse>> {
-  try {
-    return await apiClient.put<CartResponse>("carts/promotion", {
-      promotionCode,
-    });
-  } catch (error: any) {
-    return {
-      error: {
-        message:
-          error.response?.data?.error?.message ||
-          "Failed to apply promotion code",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.put<CartResponse>("carts/promotion", { promotionCode });
 }
-
-
-
-

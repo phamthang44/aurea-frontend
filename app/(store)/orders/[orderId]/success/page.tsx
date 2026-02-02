@@ -4,7 +4,14 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckCircle2, Package, CreditCard, Clock, ArrowLeft, AlertCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Package,
+  CreditCard,
+  Clock,
+  ArrowLeft,
+  AlertCircle,
+} from "lucide-react";
 import { StorefrontNavBar } from "@/components/shop/layout/StorefrontNavBar";
 import { StorefrontFooter } from "@/components/shop/layout/StorefrontFooter";
 import { useTranslation } from "react-i18next";
@@ -31,8 +38,10 @@ function OrderSuccessContent() {
   const router = useRouter();
   const params = useParams();
   const orderId = params?.orderId as string;
-  
-  const [orderData, setOrderData] = useState<OrderCreationResponse | null>(null);
+
+  const [orderData, setOrderData] = useState<OrderCreationResponse | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -64,7 +73,7 @@ function OrderSuccessContent() {
             status: detail.status,
             totalAmount: detail.finalAmount,
             itemSummary: detail.items?.[0]?.productName || "Your Order",
-            paymentInfo: detail.paymentInfo
+            paymentInfo: detail.paymentInfo,
           });
         }
       } catch (error) {
@@ -114,7 +123,14 @@ function OrderSuccessContent() {
     );
   }
 
-  const { orderId: id, orderCode, status, totalAmount, itemSummary, paymentInfo } = orderData;
+  const {
+    orderId: id,
+    orderCode,
+    status,
+    totalAmount,
+    itemSummary,
+    paymentInfo,
+  } = orderData;
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#09090b] text-gray-900 dark:text-white relative overflow-hidden transition-colors duration-300">
@@ -156,7 +172,8 @@ function OrderSuccessContent() {
               style={{ fontFamily: "var(--font-be-vietnam-pro), sans-serif" }}
             >
               {t("checkout.orderConfirmationDescription", {
-                defaultValue: "Your order has been placed successfully. We will process it shortly.",
+                defaultValue:
+                  "Your order has been placed successfully. We will process it shortly.",
               })}
             </p>
           </motion.div>
@@ -178,7 +195,9 @@ function OrderSuccessContent() {
                       fontFamily: "var(--font-be-vietnam-pro), sans-serif",
                     }}
                   >
-                    {t("checkout.orderNumber", { defaultValue: "Order Number" })}
+                    {t("checkout.orderNumber", {
+                      defaultValue: "Order Number",
+                    })}
                   </p>
                   <p
                     className="text-xl font-bold text-gray-900 dark:text-white"
@@ -198,7 +217,9 @@ function OrderSuccessContent() {
                   </p>
                   <span
                     className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium"
-                    style={{ fontFamily: "var(--font-be-vietnam-pro), sans-serif" }}
+                    style={{
+                      fontFamily: "var(--font-be-vietnam-pro), sans-serif",
+                    }}
                   >
                     {status}
                   </span>
@@ -279,8 +300,8 @@ function OrderSuccessContent() {
                     {paymentInfo.paymentMethod === "COD"
                       ? t("checkout.cashOnDelivery")
                       : paymentInfo.paymentMethod === "BANK_TRANSFER"
-                      ? t("checkout.bankingTransfer")
-                      : paymentInfo.paymentMethod}
+                        ? t("checkout.bankingTransfer")
+                        : paymentInfo.paymentMethod}
                   </p>
                 </div>
 
@@ -300,8 +321,8 @@ function OrderSuccessContent() {
                       paymentInfo.paymentStatus === "PAID"
                         ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
                         : paymentInfo.paymentStatus === "PENDING"
-                        ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                     }`}
                     style={{
                       fontFamily: "var(--font-be-vietnam-pro), sans-serif",
@@ -374,7 +395,7 @@ function OrderSuccessContent() {
               {t("shop.backToHome") || "Continue Shopping"}
             </Link>
             <Link
-              href={`/account/orders/${id}`}
+              href={`/account/orders/${orderCode}`}
               className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-[#181818] dark:bg-white text-white dark:text-black hover:scale-105 transition-all duration-300 rounded-lg font-medium"
               style={{ fontFamily: "var(--font-poppins), sans-serif" }}
             >
@@ -408,4 +429,3 @@ export default function OrderSuccessPage() {
     </Suspense>
   );
 }
-

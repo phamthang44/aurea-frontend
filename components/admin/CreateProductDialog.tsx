@@ -49,7 +49,7 @@ export function CreateProductDialog({
     defaultValues: {
       name: "",
       categoryId: "",
-      basePrice: undefined as number | undefined,
+      minPrice: undefined as number | undefined,
       description: "",
     },
   });
@@ -69,7 +69,9 @@ export function CreateProductDialog({
       const response = await clientApi.getCategories();
 
       if (response.error) {
-        toast.error(response.error.message || t("admin.products.fetchCategoriesError"));
+        toast.error(
+          response.error.message || t("admin.products.fetchCategoriesError"),
+        );
         setCategories([]);
       } else {
         const result = response.data as ApiResult<CategoryResponse[]>;
@@ -92,7 +94,7 @@ export function CreateProductDialog({
         name: data.name.trim(),
         categoryId: data.categoryId,
         description: data.description.trim(),
-        basePrice: data.basePrice,
+        minPrice: data.minPrice,
       };
 
       const response = await clientApi.createDraftProduct(draftProduct);
@@ -105,8 +107,10 @@ export function CreateProductDialog({
             setError(key as any, { type: "manual", message: details[key] });
           });
         }
-        
-        toast.error(response.error.message || t("admin.products.saveProductError"));
+
+        toast.error(
+          response.error.message || t("admin.products.saveProductError"),
+        );
         setIsSubmitting(false);
         return;
       }
@@ -157,21 +161,29 @@ export function CreateProductDialog({
           >
             <Input
               {...register("name", {
-                required: t("admin.productDetail.createDialog.validation.nameRequired"),
+                required: t(
+                  "admin.productDetail.createDialog.validation.nameRequired",
+                ),
                 minLength: {
                   value: 3,
-                  message: t("admin.productDetail.createDialog.validation.nameTooShort"),
+                  message: t(
+                    "admin.productDetail.createDialog.validation.nameTooShort",
+                  ),
                 },
                 maxLength: {
                   value: 255,
-                  message: t("admin.productDetail.createDialog.validation.nameTooLong"),
+                  message: t(
+                    "admin.productDetail.createDialog.validation.nameTooLong",
+                  ),
                 },
               })}
-              placeholder={t("admin.productDetail.createDialog.productNamePlaceholder")}
+              placeholder={t(
+                "admin.productDetail.createDialog.productNamePlaceholder",
+              )}
               aria-invalid={!!errors.name}
               className={cn(
                 errors.name && "border-rose-500 focus-visible:ring-rose-500/20",
-                "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 text-lg focus:border-amber-500 dark:focus:border-amber-500"
+                "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 text-lg focus:border-amber-500 dark:focus:border-amber-500",
               )}
               autoFocus
             />
@@ -186,13 +198,15 @@ export function CreateProductDialog({
             >
               <select
                 {...register("categoryId", {
-                  required: t("admin.productDetail.createDialog.validation.categoryRequired"),
+                  required: t(
+                    "admin.productDetail.createDialog.validation.categoryRequired",
+                  ),
                 })}
                 aria-invalid={!!errors.categoryId}
                 disabled={isLoadingCategories}
                 className={cn(
                   errors.categoryId && "border-rose-500 focus:ring-rose-500/20",
-                  "flex h-10 w-full rounded-md border border-gray-300 dark:border-amber-700/40 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  "flex h-10 w-full rounded-md border border-gray-300 dark:border-amber-700/40 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 disabled:cursor-not-allowed disabled:opacity-50",
                 )}
               >
                 <option value="">
@@ -212,16 +226,20 @@ export function CreateProductDialog({
             <FormField
               label={t("admin.productDetail.createDialog.basePrice")}
               required
-              error={errors.basePrice?.message as string}
+              error={errors.minPrice?.message as string}
             >
               <Controller
-                name="basePrice"
+                name="minPrice"
                 control={control}
                 rules={{
-                  required: t("admin.productDetail.createDialog.validation.priceRequired"),
+                  required: t(
+                    "admin.productDetail.createDialog.validation.priceRequired",
+                  ),
                   min: {
                     value: 1000,
-                    message: t("admin.productDetail.createDialog.validation.pricePositive"),
+                    message: t(
+                      "admin.productDetail.createDialog.validation.pricePositive",
+                    ),
                   },
                 }}
                 render={({ field: { onChange, value, onBlur, name } }) => (
@@ -230,8 +248,10 @@ export function CreateProductDialog({
                     value={value}
                     onChange={onChange}
                     onBlur={onBlur}
-                    placeholder={t("admin.productDetail.createDialog.basePricePlaceholder")}
-                    error={!!errors.basePrice}
+                    placeholder={t(
+                      "admin.productDetail.createDialog.basePricePlaceholder",
+                    )}
+                    error={!!errors.minPrice}
                   />
                 )}
               />
@@ -247,18 +267,25 @@ export function CreateProductDialog({
           >
             <Textarea
               {...register("description", {
-                required: t("admin.productDetail.createDialog.validation.descriptionRequired"),
+                required: t(
+                  "admin.productDetail.createDialog.validation.descriptionRequired",
+                ),
                 minLength: {
                   value: 20,
-                  message: t("admin.productDetail.createDialog.validation.descriptionTooShort"),
+                  message: t(
+                    "admin.productDetail.createDialog.validation.descriptionTooShort",
+                  ),
                 },
               })}
-              placeholder={t("admin.productDetail.createDialog.descriptionPlaceholder")}
+              placeholder={t(
+                "admin.productDetail.createDialog.descriptionPlaceholder",
+              )}
               rows={6}
               aria-invalid={!!errors.description}
               className={cn(
-                errors.description && "border-rose-500 focus-visible:ring-rose-500/20",
-                "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 resize-none focus:border-amber-500 dark:focus:border-amber-500"
+                errors.description &&
+                  "border-rose-500 focus-visible:ring-rose-500/20",
+                "bg-white dark:bg-slate-800 text-gray-900 dark:text-amber-100 border-gray-300 dark:border-amber-700/40 resize-none focus:border-amber-500 dark:focus:border-amber-500",
               )}
             />
           </FormField>

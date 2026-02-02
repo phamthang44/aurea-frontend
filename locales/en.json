@@ -792,7 +792,7 @@
     },
     "imports": {
       "title": "Product Import",
-      "description" : "Luxury store management requires precision. Bulk import your product collections with our verified curation pipeline.",
+      "description": "Luxury store management requires precision. Bulk import your product collections with our verified curation pipeline.",
       "subtitle": "Upload CSV files to bulk import products",
       "uploadCsv": "Upload CSV File",
       "chooseFile": "Choose File",
@@ -1184,14 +1184,38 @@
         "rsvShort": "Rsv:",
         "avlShort": "Avl:",
         "types": {
-          "IMPORT": { "label": "Import", "description": "Stock imported from supplier" },
-          "ADJUST": { "label": "Adjust", "description": "Manual stock adjustment" },
-          "RESERVE": { "label": "Reserve", "description": "Stock reserved for order" },
-          "CONFIRM": { "label": "Confirm", "description": "Reserved stock shipped" },
-          "RELEASE": { "label": "Release", "description": "Reserved stock released" },
-          "DAMAGED": { "label": "Damaged", "description": "Stock marked as damaged/lost" },
-          "RETURN": { "label": "Return", "description": "Customer returned goods" },
-          "OPENING_BALANCE": { "label": "Opening", "description": "Initial stock balance" }
+          "IMPORT": {
+            "label": "Import",
+            "description": "Stock imported from supplier"
+          },
+          "ADJUST": {
+            "label": "Adjust",
+            "description": "Manual stock adjustment"
+          },
+          "RESERVE": {
+            "label": "Reserve",
+            "description": "Stock reserved for order"
+          },
+          "CONFIRM": {
+            "label": "Confirm",
+            "description": "Reserved stock shipped"
+          },
+          "RELEASE": {
+            "label": "Release",
+            "description": "Reserved stock released"
+          },
+          "DAMAGED": {
+            "label": "Damaged",
+            "description": "Stock marked as damaged/lost"
+          },
+          "RETURN": {
+            "label": "Return",
+            "description": "Customer returned goods"
+          },
+          "OPENING_BALANCE": {
+            "label": "Opening",
+            "description": "Initial stock balance"
+          }
         }
       }
     }
@@ -1418,6 +1442,9 @@
     "cancelling": "Cancelling...",
     "confirmCancel": "Cancel this order?",
     "confirmCancelDesc": "This action cannot be undone. Your order will be cancelled and you will need to place a new order if you change your mind.",
+    "cancelReason": "Reason for cancellation",
+    "cancelReasonPlaceholder": "Please let us know why you're cancelling this order...",
+    "keepOrder": "Keep Order",
     "yesCancel": "Yes, Cancel Order",
     "reorder": "Order Again",
     "continueShopping": "Continue Shopping",

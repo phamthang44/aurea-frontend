@@ -3,17 +3,33 @@
  * Handles order creation and management
  */
 
-import apiClient from "@/lib/api-client";
+import fetchClient from "@/lib/fetch-client";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type PaymentMethod = "COD" | "BANK_TRANSFER" | "VN_PAY" | "MOMO" | "E_WALLET";
+export type PaymentMethod =
+  | "COD"
+  | "BANK_TRANSFER"
+  | "VN_PAY"
+  | "MOMO"
+  | "E_WALLET";
 
-export type OrderStatus = "PENDING" | "CONFIRMED" | "SHIPPING" | "COMPLETED" | "CANCELLED" | "RETURNED";
+export type OrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "SHIPPING"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "RETURNED";
 
-export type PaymentStatus = "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+export type PaymentStatus =
+  | "UNPAID"
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
+  | "REFUNDED";
 
 export interface AddressRequest {
   recipientName: string;
@@ -137,20 +153,9 @@ export interface ApiResult<T> {
  * @returns Order creation response with payment info
  */
 export async function createOrder(
-  request: OrderCreateRequest
+  request: OrderCreateRequest,
 ): Promise<ApiResult<OrderCreationResponse>> {
-  try {
-    // API updated to /me/orders based on MyOrderController.java
-    return await apiClient.post<OrderCreationResponse>("me/orders", request);
-  } catch (error: any) {
-    return {
-      error: {
-        message:
-          error.response?.data?.error?.message || "Failed to create order",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  return fetchClient.post<OrderCreationResponse>("me/orders", request);
 }
 
 /**
@@ -158,42 +163,27 @@ export async function createOrder(
  * GET /api/v1/me/orders
  */
 export async function getMyOrders(
-  params: MyOrderSearchRequest = {}
+  params: MyOrderSearchRequest = {},
 ): Promise<ApiResult<OrderSummaryResponse[]>> {
-  try {
-    const queryParams = new URLSearchParams();
-    if (params.status) queryParams.append("status", params.status);
-    if (params.sort) queryParams.append("sort", params.sort);
-    if (params.page !== undefined) queryParams.append("page", params.page.toString());
-    if (params.size !== undefined) queryParams.append("size", params.size.toString());
-
-    const query = queryParams.toString();
-    return await apiClient.get<OrderSummaryResponse[]>(`me/orders${query ? `?${query}` : ""}`);
-  } catch (error: any) {
-    return {
-      error: {
-        message: error.response?.data?.error?.message || "Failed to fetch orders",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+  const queryParams: Record<string, string | number | undefined> = {};
+  if (params.status) queryParams.status = params.status;
+  if (params.sort) queryParams.sort = params.sort;
+  if (params.page !== undefined) queryParams.page = params.page;
+  if (params.size !== undefined) queryParams.size = params.size;
+  
+  return fetchClient.get<OrderSummaryResponse[]>("me/orders", {
+    params: queryParams,
+  });
 }
 
 /**
  * Get order detail by code
  * GET /api/v1/me/orders/{orderCode}
  */
-export async function getOrderDetails(orderCode: string): Promise<ApiResult<OrderDetailResponse>> {
-  try {
-    return await apiClient.get<OrderDetailResponse>(`me/orders/${orderCode}`);
-  } catch (error: any) {
-    return {
-      error: {
-        message: error.response?.data?.error?.message || "Failed to fetch order details",
-        code: error.response?.data?.error?.code,
-      },
-    };
-  }
+export async function getOrderDetails(
+  orderCode: string,
+): Promise<ApiResult<OrderDetailResponse>> {
+  return fetchClient.get<OrderDetailResponse>(`me/orders/${orderCode}`);
 }
 
 // ============================================================================

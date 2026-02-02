@@ -109,13 +109,29 @@ export function InventoryTable() {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
+  // Debounced search term
+  const [debouncedTerm, setDebouncedTerm] = useState(searchTerm);
+
+  // Update debounced term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when search term changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [debouncedTerm]);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await clientApi.getInventories({ 
         page: currentPage,
         size: pageSize,
-        keyword: searchTerm 
+        keyword: debouncedTerm 
       });
 
       if (response.data) {
@@ -128,19 +144,9 @@ export function InventoryTable() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, pageSize, searchTerm]);
+  }, [currentPage, pageSize, debouncedTerm]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-        if (currentPage === 0) {
-            fetchData();
-        } else {
-            setCurrentPage(0);
-        }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchTerm, currentPage, fetchData]);
-
+  // Fetch when page or debounced term changes
   useEffect(() => {
       fetchData();
   }, [fetchData]);

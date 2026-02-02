@@ -34,7 +34,7 @@ export function ForbiddenPage() {
             })}
           </Link>
           <Link
-            href="/auth"
+            href="/login"
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-medium bg-[#D4AF37] text-white hover:bg-[#c29b2f] transition-colors no-underline"
           >
             {t("errorPages.forbidden.switchAccount", {

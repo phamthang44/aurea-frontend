@@ -238,7 +238,7 @@ export default function AdminProductsPage() {
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all"
+              className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 selection:bg-[#D4AF37] selection:text-white dark:selection:bg-[#D4AF37] dark:selection:text-slate-900 caret-[#D4AF37]"
             />
           </div>
 

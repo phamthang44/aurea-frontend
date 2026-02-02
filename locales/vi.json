@@ -784,7 +784,7 @@
     },
     "imports": {
       "title": "Nhập sản phẩm",
-      "description" : "Quản lý cửa hàng sang trọng đòi hỏi sự chính xác. Nhập khẩu số lượng lớn bộ sưu tập sản phẩm của bạn với quy trình chọn lọc đã được xác minh của chúng tôi.",
+      "description": "Quản lý cửa hàng sang trọng đòi hỏi sự chính xác. Nhập khẩu số lượng lớn bộ sưu tập sản phẩm của bạn với quy trình chọn lọc đã được xác minh của chúng tôi.",
       "subtitle": "Tải lên file CSV để nhập hàng loạt sản phẩm",
       "uploadCsv": "Tải lên file CSV",
       "chooseFile": "Chọn file",
@@ -1136,14 +1136,38 @@
         "rsvShort": "Tạm giữ:",
         "avlShort": "Sẵn có:",
         "types": {
-          "IMPORT": { "label": "Nhập kho", "description": "Nhập kho từ nhà cung cấp" },
-          "ADJUST": { "label": "Điều chỉnh", "description": "Điều chỉnh kho thủ công" },
-          "RESERVE": { "label": "Tạm giữ", "description": "Giữ hàng cho đơn hàng" },
-          "CONFIRM": { "label": "Xác nhận", "description": "Hàng trong kho đã được xuất đi" },
-          "RELEASE": { "label": "Giải phóng", "description": "Hoàn trả hàng đã tạm giữ về lại kho" },
-          "DAMAGED": { "label": "Hư hỏng", "description": "Ghi nhận hàng bị hư hỏng hoặc mất" },
-          "RETURN": { "label": "Hoàn trả", "description": "Khách hàng trả lại hàng" },
-          "OPENING_BALANCE": { "label": "Số dư đầu", "description": "Số dư tồn kho ban đầu" }
+          "IMPORT": {
+            "label": "Nhập kho",
+            "description": "Nhập kho từ nhà cung cấp"
+          },
+          "ADJUST": {
+            "label": "Điều chỉnh",
+            "description": "Điều chỉnh kho thủ công"
+          },
+          "RESERVE": {
+            "label": "Tạm giữ",
+            "description": "Giữ hàng cho đơn hàng"
+          },
+          "CONFIRM": {
+            "label": "Xác nhận",
+            "description": "Hàng trong kho đã được xuất đi"
+          },
+          "RELEASE": {
+            "label": "Giải phóng",
+            "description": "Hoàn trả hàng đã tạm giữ về lại kho"
+          },
+          "DAMAGED": {
+            "label": "Hư hỏng",
+            "description": "Ghi nhận hàng bị hư hỏng hoặc mất"
+          },
+          "RETURN": {
+            "label": "Hoàn trả",
+            "description": "Khách hàng trả lại hàng"
+          },
+          "OPENING_BALANCE": {
+            "label": "Số dư đầu",
+            "description": "Số dư tồn kho ban đầu"
+          }
         }
       }
     }
@@ -1370,6 +1394,9 @@
     "cancelling": "Đang hủy...",
     "confirmCancel": "Hủy đơn hàng này?",
     "confirmCancelDesc": "Hành động này không thể hoàn tác. Đơn hàng của bạn sẽ bị hủy và bạn cần đặt đơn hàng mới nếu thay đổi ý định.",
+    "cancelReason": "Lý do hủy đơn",
+    "cancelReasonPlaceholder": "Vui lòng cho chúng tôi biết lý do bạn hủy đơn hàng này...",
+    "keepOrder": "Giữ đơn hàng",
     "yesCancel": "Đồng ý, hủy đơn",
     "reorder": "Đặt lại đơn",
     "continueShopping": "Tiếp tục mua sắm",

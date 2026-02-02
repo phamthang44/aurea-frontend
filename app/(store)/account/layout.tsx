@@ -8,25 +8,26 @@ export default function AccountLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFCF8] dark:bg-[#09090b]">
-      {/* Background Ambience */}
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Subtle ambient gradients - luxury feel */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-accent/10 dark:from-accent/5 to-transparent rounded-full blur-3xl opacity-50" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-gradient-to-bl from-[#d4b483]/10 dark:from-[#d4b483]/5 to-transparent rounded-full blur-3xl opacity-50" />
+        <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-gradient-to-br from-accent/[0.03] to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-accent/[0.02] to-transparent rounded-full blur-3xl" />
       </div>
 
       <StorefrontNavBar />
 
       <main className="flex-1 mt-24 relative z-10">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 md:py-16">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
             {/* Sidebar Navigation */}
             <AccountSidebar />
 
+            {/* Vertical Divider - Desktop only */}
+            <div className="hidden lg:block w-px bg-border/20 self-stretch" />
+
             {/* Main Content Area */}
-            <div className="flex-1 min-w-0">
-              {children}
-            </div>
+            <div className="flex-1 min-w-0">{children}</div>
           </div>
         </div>
       </main>

@@ -1,10 +1,10 @@
 /**
  * Category API Service
  * Based on api-flows-for-frontend.md
- * Uses the existing Axios client from lib/api-client.ts
+ * Uses the native fetch client from lib/fetch-client.ts
  */
 
-import apiClient from "../api-client";
+import fetchClient from "../fetch-client";
 import type {
   CategoryResponse,
   CreateCategoryRequest,
@@ -35,7 +35,7 @@ import type {
 export async function getAllCategories(): Promise<
   ApiResult<CategoryResponse[]>
 > {
-  return apiClient.get<CategoryResponse[]>("categories");
+  return fetchClient.get<CategoryResponse[]>("categories");
 }
 
 /**
@@ -48,7 +48,7 @@ export async function getAllCategories(): Promise<
  * ```
  */
 export async function getCategoryById(
-  id: string
+  id: string,
 ): Promise<ApiResult<CategoryResponse>> {
   // Note: This endpoint is not in clientApi yet, need to add it
   // For now, we'll fetch all categories and find the one we need
@@ -66,7 +66,7 @@ export async function getCategoryById(
   // Recursively search for category by ID
   const findCategory = (
     categories: CategoryResponse[],
-    targetId: string
+    targetId: string,
   ): CategoryResponse | null => {
     for (const category of categories) {
       if (category.id === targetId) {
@@ -106,7 +106,7 @@ export async function getCategoryById(
  * ```
  */
 export async function getCategoryBySlug(
-  slug: string
+  slug: string,
 ): Promise<ApiResult<CategoryResponse>> {
   // Similar to getCategoryById, we need to implement this in clientApi
   const allCategoriesResult = await getAllCategories();
@@ -123,7 +123,7 @@ export async function getCategoryBySlug(
   // Recursively search for category by slug
   const findCategory = (
     categories: CategoryResponse[],
-    targetSlug: string
+    targetSlug: string,
   ): CategoryResponse | null => {
     for (const category of categories) {
       if (category.slug === targetSlug) {
@@ -179,9 +179,9 @@ export async function getCategoryBySlug(
  * ```
  */
 export async function createCategory(
-  data: CreateCategoryRequest
+  data: CreateCategoryRequest,
 ): Promise<ApiResult<CategoryResponse>> {
-  return apiClient.post<CategoryResponse>("categories", data);
+  return fetchClient.post<CategoryResponse>("categories", data);
 }
 
 /**
@@ -205,9 +205,9 @@ export async function createCategory(
  */
 export async function updateCategory(
   id: string,
-  data: UpdateCategoryRequest
+  data: UpdateCategoryRequest,
 ): Promise<ApiResult<CategoryResponse>> {
-  return apiClient.put<CategoryResponse>(`categories/${id}`, data);
+  return fetchClient.put<CategoryResponse>(`categories/${id}`, data);
 }
 
 /**
@@ -226,9 +226,9 @@ export async function updateCategory(
  */
 export async function updateCategoryStatus(
   id: string,
-  data: UpdateCategoryStatusRequest
+  data: UpdateCategoryStatusRequest,
 ): Promise<ApiResult<CategoryResponse>> {
-  return apiClient.patch<CategoryResponse>(`categories/${id}/status`, data);
+  return fetchClient.patch<CategoryResponse>(`categories/${id}/status`, data);
 }
 
 /**
@@ -247,7 +247,7 @@ export async function updateCategoryStatus(
  * ```
  */
 export async function deleteCategory(id: string): Promise<ApiResult<void>> {
-  return apiClient.delete<void>(`categories/${id}`);
+  return fetchClient.delete<void>(`categories/${id}`);
 }
 
 // ============================================================================
@@ -276,7 +276,7 @@ export async function getRootCategories(): Promise<
  * Get subcategories of a specific category
  */
 export async function getSubcategories(
-  parentId: string
+  parentId: string,
 ): Promise<ApiResult<CategoryResponse[]>> {
   const categoryResult = await getCategoryById(parentId);
 
@@ -297,7 +297,7 @@ export async function getSubcategories(
  */
 export function flattenCategories(
   categories: CategoryResponse[],
-  level: number = 0
+  level: number = 0,
 ): Array<CategoryResponse & { level: number }> {
   const result: Array<CategoryResponse & { level: number }> = [];
 
@@ -317,7 +317,7 @@ export function flattenCategories(
  * Returns array of categories from root to target category
  */
 export async function getCategoryBreadcrumb(
-  categoryId: string
+  categoryId: string,
 ): Promise<ApiResult<CategoryResponse[]>> {
   const allCategoriesResult = await getAllCategories();
 
@@ -331,7 +331,7 @@ export async function getCategoryBreadcrumb(
   const findPath = (
     categories: CategoryResponse[],
     targetId: string,
-    currentPath: CategoryResponse[] = []
+    currentPath: CategoryResponse[] = [],
   ): CategoryResponse[] | null => {
     for (const category of categories) {
       const newPath = [...currentPath, category];
@@ -391,7 +391,7 @@ export function countCategories(categories: CategoryResponse[]): number {
  */
 export function findCategory(
   categories: CategoryResponse[],
-  predicate: (category: CategoryResponse) => boolean
+  predicate: (category: CategoryResponse) => boolean,
 ): CategoryResponse | null {
   for (const category of categories) {
     if (predicate(category)) {
@@ -412,7 +412,7 @@ export function findCategory(
  */
 export function filterCategories(
   categories: CategoryResponse[],
-  predicate: (category: CategoryResponse) => boolean
+  predicate: (category: CategoryResponse) => boolean,
 ): CategoryResponse[] {
   const result: CategoryResponse[] = [];
 
@@ -433,7 +433,7 @@ export function filterCategories(
  * Get active categories only
  */
 export function getActiveCategories(
-  categories: CategoryResponse[]
+  categories: CategoryResponse[],
 ): CategoryResponse[] {
   return filterCategories(categories, (cat) => cat.isActive);
 }
@@ -442,7 +442,7 @@ export function getActiveCategories(
  * Sort categories by name
  */
 export function sortCategoriesByName(
-  categories: CategoryResponse[]
+  categories: CategoryResponse[],
 ): CategoryResponse[] {
   const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
 

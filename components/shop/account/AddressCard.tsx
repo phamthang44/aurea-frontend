@@ -2,13 +2,24 @@
 
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Home, Building2, MapPin, Phone, User, Star, Edit2, Trash2, MoreVertical } from "lucide-react";
+import {
+  Home,
+  Building2,
+  MapPin,
+  Phone,
+  User,
+  Edit2,
+  Trash2,
+  MoreHorizontal,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { UserAddress } from "@/lib/types/profile";
@@ -25,12 +36,6 @@ const addressTypeIcons = {
   HOME: Home,
   OFFICE: Building2,
   OTHER: MapPin,
-};
-
-const addressTypeColors = {
-  HOME: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  OFFICE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  OTHER: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 };
 
 export function AddressCard({
@@ -56,96 +61,134 @@ export function AddressCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      transition={{
+        duration: 0.5,
+        delay: index * 0.08,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       className={cn(
-        "relative p-4 rounded-lg border transition-all duration-300 cursor-pointer",
+        "group relative p-6 transition-all duration-500",
+        "border",
         address.isDefault
-          ? "border-accent/50 bg-accent/5"
-          : "border-border hover:border-accent/30 bg-card/50"
+          ? "border-accent/30 bg-accent/[0.02]"
+          : "border-border/40 hover:border-border/80 bg-transparent",
       )}
     >
-      {/* Header Row */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {/* Type Badge */}
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              addressTypeColors[address.type]
+      {/* Default Indicator - Elegant corner accent */}
+      {address.isDefault && (
+        <div className="absolute top-0 left-0 w-12 h-px bg-accent/60" />
+      )}
+      {address.isDefault && (
+        <div className="absolute top-0 left-0 w-px h-12 bg-accent/60" />
+      )}
+
+      {/* Header */}
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-3">
+          {/* Type Icon */}
+          <div className="p-2 border border-border/30 rounded-none bg-muted/20">
+            <Icon className="w-4 h-4 text-muted-foreground/60 stroke-[1.5]" />
+          </div>
+
+          {/* Type & Default Labels */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
+                {t(`profile.addresses.${address.type.toLowerCase()}`, {
+                  defaultValue: address.type,
+                })}
+              </span>
+              {address.label && (
+                <>
+                  <span className="text-muted-foreground/30">·</span>
+                  <span className="text-xs text-muted-foreground/50">
+                    {address.label}
+                  </span>
+                </>
+              )}
+            </div>
+            {address.isDefault && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase text-accent">
+                <Check className="w-3 h-3 stroke-[2]" />
+                {t("profile.addresses.default", { defaultValue: "Primary" })}
+              </span>
             )}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {t(`profile.addresses.${address.type.toLowerCase()}`, {
-              defaultValue: address.type,
-            })}
-          </span>
-
-          {/* Default Badge */}
-          {address.isDefault && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent">
-              <Star className="w-3 h-3 fill-current" />
-              {t("profile.addresses.default", { defaultValue: "Default" })}
-            </span>
-          )}
-
-          {/* Label */}
-          {address.label && (
-            <span className="text-xs text-muted-foreground">
-              ({address.label})
-            </span>
-          )}
+          </div>
         </div>
 
-        {/* Actions Menu */}
+        {/* Actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 text-muted-foreground/40 hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
-              <MoreVertical className="w-4 h-4" />
+              <MoreHorizontal className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(address)}>
-              <Edit2 className="w-4 h-4 mr-2" />
+          <DropdownMenuContent align="end" className="w-44 rounded-none">
+            <DropdownMenuItem
+              onClick={() => onEdit(address)}
+              className="text-xs tracking-wide"
+            >
+              <Edit2 className="w-3.5 h-3.5 mr-2 stroke-[1.5]" />
               {t("common.edit", { defaultValue: "Edit" })}
             </DropdownMenuItem>
             {!address.isDefault && (
-              <DropdownMenuItem onClick={() => onSetDefault(address.id)}>
-                <Star className="w-4 h-4 mr-2" />
-                {t("profile.addresses.setDefault", { defaultValue: "Set as Default" })}
+              <DropdownMenuItem
+                onClick={() => onSetDefault(address.id)}
+                className="text-xs tracking-wide"
+              >
+                <Check className="w-3.5 h-3.5 mr-2 stroke-[1.5]" />
+                {t("profile.addresses.setDefault", {
+                  defaultValue: "Set as primary",
+                })}
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(address.id)}
-              className="text-destructive focus:text-destructive"
+              className="text-xs tracking-wide text-destructive focus:text-destructive"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {t("common.delete", { defaultValue: "Delete" })}
+              <Trash2 className="w-3.5 h-3.5 mr-2 stroke-[1.5]" />
+              {t("common.delete", { defaultValue: "Remove" })}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {/* Recipient Info */}
-      <div className="space-y-1.5 text-sm">
-        <div className="flex items-center gap-2 text-foreground">
-          <User className="w-4 h-4 text-muted-foreground" />
-          <span className="font-medium">{address.recipientName}</span>
+      {/* Address Content */}
+      <div className="space-y-3">
+        {/* Recipient */}
+        <div className="flex items-center gap-2.5">
+          <User className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
+          <span className="text-sm font-medium text-foreground tracking-wide">
+            {address.recipientName}
+          </span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Phone className="w-4 h-4" />
-          <span>{address.phone}</span>
+
+        {/* Phone */}
+        <div className="flex items-center gap-2.5">
+          <Phone className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
+          <span className="text-sm text-muted-foreground/80 tracking-wide">
+            {address.phone}
+          </span>
         </div>
-        <div className="flex items-start gap-2 text-muted-foreground">
-          <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-          <span className="line-clamp-2">{fullAddress}</span>
+
+        {/* Address */}
+        <div className="flex items-start gap-2.5">
+          <MapPin className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5] mt-0.5 shrink-0" />
+          <span className="text-sm text-muted-foreground/70 leading-relaxed">
+            {fullAddress}
+          </span>
         </div>
       </div>
+
+      {/* Hover line effect */}
+      <div className="absolute bottom-0 left-0 w-0 h-px bg-accent/40 group-hover:w-full transition-all duration-700 ease-out" />
     </motion.div>
   );
 }

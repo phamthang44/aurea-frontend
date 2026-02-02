@@ -1,10 +1,10 @@
 ﻿/**
  * Product API Service
  * Based on api-flows-for-frontend.md
- * Uses the existing Axios client from lib/api-client.ts
+ * Uses the native fetch client from lib/fetch-client.ts
  */
 
-import apiClient from "@/lib/api-client";
+import fetchClient from "@/lib/fetch-client";
 import type {
   ProductResponse,
   CreateProductRequest,
@@ -41,22 +41,19 @@ import type {
  * ```
  */
 export async function getAllProducts(
-  params?: ProductFilter
+  params?: ProductFilter,
 ): Promise<ApiResult<ProductListResponse>> {
-  const queryParams = new URLSearchParams();
-  if (params?.keyword) queryParams.append("keyword", params.keyword);
-  if (params?.categoryId) queryParams.append("categoryId", params.categoryId);
-  if (params?.minPrice)
-    queryParams.append("minPrice", params.minPrice.toString());
-  if (params?.maxPrice)
-    queryParams.append("maxPrice", params.maxPrice.toString());
-  if (params?.page) queryParams.append("page", params.page.toString());
-  if (params?.size) queryParams.append("size", params.size.toString());
+  const queryParams: Record<string, string | number | undefined> = {};
+  if (params?.keyword) queryParams.keyword = params.keyword;
+  if (params?.categoryId) queryParams.categoryId = params.categoryId;
+  if (params?.minPrice) queryParams.minPrice = params.minPrice;
+  if (params?.maxPrice) queryParams.maxPrice = params.maxPrice;
+  if (params?.page) queryParams.page = params.page;
+  if (params?.size) queryParams.size = params.size;
 
-  const query = queryParams.toString();
-  return apiClient.get<ProductListResponse>(
-    `products${query ? `?${query}` : ""}`
-  );
+  return fetchClient.get<ProductListResponse>("products", {
+    params: queryParams,
+  });
 }
 
 /**
@@ -69,9 +66,9 @@ export async function getAllProducts(
  * ```
  */
 export async function getProductById(
-  id: string
+  id: string,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.get<ProductResponse>(`products/${id}`);
+  return fetchClient.get<ProductResponse>(`products/${id}`);
 }
 
 /**
@@ -84,9 +81,9 @@ export async function getProductById(
  * ```
  */
 export async function getProductBySlug(
-  slug: string
+  slug: string,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.get<ProductResponse>(`products/slug/${slug}`);
+  return fetchClient.get<ProductResponse>(`products/slug/${slug}`);
 }
 
 /**
@@ -118,9 +115,9 @@ export async function getProductBySlug(
  * ```
  */
 export async function createProduct(
-  data: CreateProductRequest
+  data: CreateProductRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.post<ProductResponse>("products", data);
+  return fetchClient.post<ProductResponse>("products", data);
 }
 
 /**
@@ -141,9 +138,9 @@ export async function createProduct(
  * ```
  */
 export async function createDraftProduct(
-  data: CreateDraftProductRequest
+  data: CreateDraftProductRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.post<ProductResponse>("products/draft", data);
+  return fetchClient.post<ProductResponse>("products/draft", data);
 }
 
 /**
@@ -182,9 +179,9 @@ export async function createDraftProduct(
  */
 export async function updateProduct(
   id: string,
-  data: UpdateProductRequest
+  data: UpdateProductRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.put<ProductResponse>(`products/${id}`, data);
+  return fetchClient.put<ProductResponse>(`products/${id}`, data);
 }
 
 /**
@@ -204,9 +201,9 @@ export async function updateProduct(
  */
 export async function updateProductInfo(
   id: string,
-  data: UpdateProductInfoRequest
+  data: UpdateProductInfoRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.patch<ProductResponse>(`products/${id}`, data);
+  return fetchClient.patch<ProductResponse>(`products/${id}`, data);
 }
 
 /**
@@ -224,9 +221,9 @@ export async function updateProductInfo(
  */
 export async function updateProductStatus(
   id: string,
-  data: { productStatus: string }
+  data: { productStatus: string },
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.patch<ProductResponse>(`products/${id}/status`, data);
+  return fetchClient.patch<ProductResponse>(`products/${id}/status`, data);
 }
 
 /**
@@ -241,7 +238,7 @@ export async function updateProductStatus(
  * ```
  */
 export async function deleteProduct(id: string): Promise<ApiResult<void>> {
-  return apiClient.delete<void>(`products/${id}`);
+  return fetchClient.delete<void>(`products/${id}`);
 }
 
 // ============================================================================
@@ -272,11 +269,11 @@ export async function deleteProduct(id: string): Promise<ApiResult<void>> {
  */
 export async function addVariant(
   productId: string,
-  data: CreateVariantRequest
+  data: CreateVariantRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.post<ProductResponse>(
+  return fetchClient.post<ProductResponse>(
     `products/${productId}/variants`,
-    data
+    data,
   );
 }
 
@@ -301,9 +298,12 @@ export async function addVariant(
  */
 export async function updateVariant(
   variantId: string,
-  data: UpdateVariantRequest
+  data: UpdateVariantRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.put<ProductResponse>(`products/variants/${variantId}`, data);
+  return fetchClient.put<ProductResponse>(
+    `products/variants/${variantId}`,
+    data,
+  );
 }
 
 /**
@@ -322,11 +322,11 @@ export async function updateVariant(
  */
 export async function updateVariantInfo(
   variantId: string,
-  data: UpdateVariantInfoRequest
+  data: UpdateVariantInfoRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.put<ProductResponse>(
+  return fetchClient.put<ProductResponse>(
     `products/variants/${variantId}/info`,
-    data
+    data,
   );
 }
 
@@ -345,11 +345,11 @@ export async function updateVariantInfo(
  */
 export async function updateVariantStatus(
   variantId: string,
-  data: UpdateVariantStatusRequest
+  data: UpdateVariantStatusRequest,
 ): Promise<ApiResult<ProductResponse>> {
-  return apiClient.put<ProductResponse>(
+  return fetchClient.put<ProductResponse>(
     `products/variants/${variantId}/status`,
-    data
+    data,
   );
 }
 
@@ -365,9 +365,9 @@ export async function updateVariantStatus(
  * ```
  */
 export async function deleteVariant(
-  variantId: string
+  variantId: string,
 ): Promise<ApiResult<void>> {
-  return apiClient.delete<void>(`products/variants/${variantId}`);
+  return fetchClient.delete<void>(`products/variants/${variantId}`);
 }
 
 // ============================================================================
@@ -381,7 +381,7 @@ export async function deleteVariant(
 export async function searchProducts(
   keyword: string,
   page: number = 1,
-  size: number = 20
+  size: number = 20,
 ): Promise<ApiResult<ProductListResponse>> {
   return getAllProducts({ keyword, page, size });
 }
@@ -393,7 +393,7 @@ export async function searchProducts(
 export async function getProductsByCategory(
   categoryId: string,
   page: number = 1,
-  size: number = 20
+  size: number = 20,
 ): Promise<ApiResult<ProductListResponse>> {
   return getAllProducts({ categoryId, page, size });
 }
@@ -406,7 +406,7 @@ export async function getProductsByPriceRange(
   minPrice: number,
   maxPrice: number,
   page: number = 1,
-  size: number = 20
+  size: number = 20,
 ): Promise<ApiResult<ProductListResponse>> {
   return getAllProducts({ minPrice, maxPrice, page, size });
 }
@@ -438,6 +438,3 @@ export const productApi = {
 };
 
 export default productApi;
-
-
-

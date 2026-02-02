@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { User, Lock, Phone } from "lucide-react";
+import { User, Lock, Mail, Phone, Calendar, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import type { UserProfile, UpdateProfileRequest } from "@/lib/types/profile";
 import { EditProfileDialog } from "./EditProfileDialog";
 
@@ -24,116 +23,175 @@ export function ProfileInfoCard({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="bg-card/80 backdrop-blur-sm border border-border rounded-xl p-6 shadow-sm"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-light tracking-wide text-foreground">
-          {t("profile.info.title", { defaultValue: "Profile Information" })}
-        </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsDialogOpen(true)}
-          className="text-accent hover:text-accent/80"
+    <div className="space-y-12">
+      {/* Section Label */}
+      <div className="space-y-2">
+        <p
+          className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground/60"
+          style={{ fontFamily: "var(--font-sans), sans-serif" }}
         >
-          {t("common.edit", { defaultValue: "Edit" })}
-        </Button>
-      </div>
-
-      {/* Avatar Section */}
-      <div className="flex flex-col items-center mb-8">
-        <div
-          className={cn(
-            "w-24 h-24 rounded-full overflow-hidden",
-            "bg-muted border-2 border-accent/30",
-            "flex items-center justify-center"
-          )}
-        >
-          {profile.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt={profile.fullName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <User className="w-10 h-10 text-muted-foreground" />
-          )}
-        </div>
-        <h3 className="mt-4 text-xl font-medium text-foreground">
-          {profile.fullName}
-        </h3>
-        <p className="text-sm text-muted-foreground font-light">
-          {profile.email}
+          Profile
         </p>
+        <h2
+          className="text-xl md:text-2xl font-light tracking-wide text-foreground"
+          style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
+        >
+          {t("profile.info.title", { defaultValue: "Personal Information" })}
+        </h2>
       </div>
 
-      {/* Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Email (Read-only display) */}
-        <div className="space-y-1">
-          <label className="text-xs font-light tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-            {t("profile.info.email", { defaultValue: "Email Address" })}
-          </label>
-          <div className="flex items-center gap-2 text-sm">
-             <span>{profile.email}</span>
-             <Lock className="w-3 h-3 text-muted-foreground/50" />
+      {/* Profile Content - Asymmetric Layout */}
+      <div className="grid lg:grid-cols-[280px,1fr] gap-16 items-start">
+        {/* Left Column - Avatar & Identity */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="flex flex-col items-center lg:items-start space-y-6"
+        >
+          {/* Avatar with elegant border */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-br from-accent/20 via-transparent to-accent/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div
+              className={cn(
+                "relative w-32 h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden",
+                "border border-border/50",
+                "flex items-center justify-center bg-muted/30",
+              )}
+            >
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.fullName}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <User className="w-12 h-12 text-muted-foreground/40 stroke-[1.5]" />
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Phone */}
-        <div className="space-y-1">
-          <label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-            {t("profile.info.phone", { defaultValue: "Phone Number" })}
-          </label>
-          <div className="text-sm">
-             {profile.phoneNumber || (
-               <span className="text-muted-foreground italic text-xs">
-                 {t("profile.info.notSet", { defaultValue: "Not set" })}
-               </span>
-             )}
+          {/* Name & Email */}
+          <div className="text-center lg:text-left space-y-2">
+            <h3
+              className="text-xl font-light tracking-wide text-foreground"
+              style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
+            >
+              {profile.fullName || "Guest"}
+            </h3>
+            <p className="text-sm text-muted-foreground/70 font-light tracking-wide">
+              {profile.email}
+            </p>
           </div>
-        </div>
 
-        {/* Gender */}
-         <div className="space-y-1">
-          <label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-            {t("profile.info.gender", { defaultValue: "Gender" })}
-          </label>
-          <div className="text-sm capitalize">
-             {profile.gender ? profile.gender.toLowerCase() : (
-               <span className="text-muted-foreground italic text-xs">
-                 {t("profile.info.notSet", { defaultValue: "Not set" })}
-               </span>
-             )}
-          </div>
-        </div>
+          {/* Edit Button - Minimal */}
+          <button
+            onClick={() => setIsDialogOpen(true)}
+            className="text-xs tracking-[0.2em] uppercase text-accent hover:text-accent/80 transition-colors duration-300 underline underline-offset-4 decoration-accent/30 hover:decoration-accent/60"
+          >
+            {t("common.edit", { defaultValue: "Edit Profile" })}
+          </button>
+        </motion.div>
 
-        {/* Birthdate */}
-        <div className="space-y-1">
-          <label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-            {t("profile.info.birthDate", { defaultValue: "Birthday" })}
-          </label>
-          <div className="text-sm">
-             {profile.birthDate ? new Date(profile.birthDate).toLocaleDateString() : (
-               <span className="text-muted-foreground italic text-xs">
-                 {t("profile.info.addBirthday", { defaultValue: "Add birthday for gifts 🎁" })}
-               </span>
-             )}
+        {/* Right Column - Details Grid */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="space-y-8"
+        >
+          {/* Info Items - Clean Layout */}
+          <div className="grid sm:grid-cols-2 gap-x-12 gap-y-8">
+            {/* Email */}
+            <div className="space-y-2 group">
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
+                <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60">
+                  {t("profile.info.email", { defaultValue: "Email" })}
+                </label>
+              </div>
+              <div className="flex items-center gap-2 pl-5.5">
+                <span className="text-sm text-foreground/90 tracking-wide">
+                  {profile.email}
+                </span>
+                <Lock className="w-3 h-3 text-muted-foreground/30" />
+              </div>
+              <div className="h-px bg-border/30 mt-3 group-hover:bg-accent/20 transition-colors duration-500" />
+            </div>
+
+            {/* Phone */}
+            <div className="space-y-2 group">
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
+                <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60">
+                  {t("profile.info.phone", { defaultValue: "Phone" })}
+                </label>
+              </div>
+              <p className="text-sm text-foreground/90 tracking-wide pl-5.5">
+                {profile.phoneNumber || (
+                  <span className="text-muted-foreground/50 italic">
+                    {t("profile.info.notSet", { defaultValue: "Not provided" })}
+                  </span>
+                )}
+              </p>
+              <div className="h-px bg-border/30 mt-3 group-hover:bg-accent/20 transition-colors duration-500" />
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-2 group">
+              <div className="flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
+                <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60">
+                  {t("profile.info.gender", { defaultValue: "Gender" })}
+                </label>
+              </div>
+              <p className="text-sm text-foreground/90 tracking-wide pl-5.5 capitalize">
+                {profile.gender ? (
+                  profile.gender.toLowerCase()
+                ) : (
+                  <span className="text-muted-foreground/50 italic">
+                    {t("profile.info.notSet", { defaultValue: "Not provided" })}
+                  </span>
+                )}
+              </p>
+              <div className="h-px bg-border/30 mt-3 group-hover:bg-accent/20 transition-colors duration-500" />
+            </div>
+
+            {/* Birthday */}
+            <div className="space-y-2 group">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
+                <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60">
+                  {t("profile.info.birthDate", { defaultValue: "Birthday" })}
+                </label>
+              </div>
+              <p className="text-sm text-foreground/90 tracking-wide pl-5.5">
+                {profile.birthDate ? (
+                  new Date(profile.birthDate).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                ) : (
+                  <span className="text-muted-foreground/50 italic">
+                    {t("profile.info.addBirthday", {
+                      defaultValue: "Add for special offers",
+                    })}
+                  </span>
+                )}
+              </p>
+              <div className="h-px bg-border/30 mt-3 group-hover:bg-accent/20 transition-colors duration-500" />
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      <EditProfileDialog 
+      <EditProfileDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         profile={profile}
         onSave={onUpdate}
       />
-    </motion.div>
+    </div>
   );
 }

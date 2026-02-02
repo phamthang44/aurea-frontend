@@ -15,6 +15,17 @@ import { getOrCreateGuestId } from "./utils/guestId";
 
 const API_BASE_URL = "/api/proxy";
 
+// Error codes that indicate token issues and should trigger refresh
+const TOKEN_ERROR_CODES = ["AUTH_003", "AUTH_004"]; // TOKEN_EXPIRED, TOKEN_INVALID
+const TOKEN_ERROR_MESSAGES = [
+  "token has expired",
+  "token is invalid",
+  "token expired",
+  "invalid token",
+  "token không hợp lệ",
+  "token đã hết hạn",
+];
+
 interface ApiResponse<T = any> {
   data?: T;
   error?: {
@@ -112,10 +123,18 @@ function createAxiosInstance(): AxiosInstance {
       // Use resolvedLanguage as fallback in case language hasn't fully updated yet
       const lang = I18nUtils.resolvedLanguage || I18nUtils.language || "vi"; // Default to 'vi' if not set
       config.headers["Accept-Language"] = lang;
-      
+
       // Debug logging (only in development)
-      if (process.env.NODE_ENV === 'development' && config.url?.includes('cart')) {
-        console.log('[API Client] Accept-Language header:', lang, 'for URL:', config.url);
+      if (
+        process.env.NODE_ENV === "development" &&
+        config.url?.includes("cart")
+      ) {
+        console.log(
+          "[API Client] Accept-Language header:",
+          lang,
+          "for URL:",
+          config.url,
+        );
       }
 
       // Attach Authorization header if access token exists in localStorage
@@ -128,45 +147,66 @@ function createAxiosInstance(): AxiosInstance {
 
       // If data is FormData, remove Content-Type header to let browser set it with boundary
       if (config.data instanceof FormData) {
-        delete config.headers['Content-Type'];
+        delete config.headers["Content-Type"];
       }
 
       return config;
     },
     (error) => {
       return Promise.reject(error);
-    }
+    },
   );
 
   /**
    * Response Interceptor
-   * Handles 401 errors with automatic token refresh and retry
+   * Handles 401 errors and token-related errors with automatic token refresh and retry
    */
   instance.interceptors.response.use(
     (response) => {
       // Successful response - return as is
       return response;
     },
-    async (error: AxiosError) => {
+    async (error: AxiosError<any>) => {
       const originalRequest = error.config as InternalAxiosRequestConfig & {
         _retry?: boolean;
       };
 
-      // Only handle 401 Unauthorized errors
+      // Check if error is token-related (by status code, error code, or error message)
+      const errorCode = error.response?.data?.error?.code;
+      const errorMessage =
+        error.response?.data?.error?.message?.toLowerCase() || "";
+
+      const isTokenError =
+        error.response?.status === 401 ||
+        TOKEN_ERROR_CODES.includes(errorCode) ||
+        TOKEN_ERROR_MESSAGES.some((msg) =>
+          errorMessage.includes(msg.toLowerCase()),
+        );
+
       // IMPORTANT: Only attempt token refresh for authenticated endpoints
       // Public endpoints (products, shop) should not trigger token refresh
-      const isPublicEndpoint = originalRequest?.url?.includes("/api/v1/products") && 
-                               originalRequest?.method?.toUpperCase() === "GET" &&
-                               !originalRequest?.url?.includes("/admin");
-      
+      const isPublicEndpoint =
+        originalRequest?.url?.includes("/api/v1/products") &&
+        originalRequest?.method?.toUpperCase() === "GET" &&
+        !originalRequest?.url?.includes("/admin");
+
       if (
-        error.response?.status === 401 &&
+        isTokenError &&
         originalRequest &&
         !originalRequest._retry &&
         !isPublicEndpoint // Don't refresh for public endpoints
       ) {
         // Mark this request as retried to prevent infinite loops
         originalRequest._retry = true;
+
+        // Log token error in development
+        if (process.env.NODE_ENV === "development") {
+          console.log("[API Client] Token error detected:", {
+            status: error.response?.status,
+            errorCode,
+            errorMessage: error.response?.data?.error?.message,
+          });
+        }
 
         // If refresh is already in progress, queue this request
         if (refreshTokenQueue.getIsRefreshing()) {
@@ -189,7 +229,7 @@ function createAxiosInstance(): AxiosInstance {
             {},
             {
               withCredentials: true,
-            }
+            },
           );
 
           // Check if refresh was successful
@@ -223,7 +263,7 @@ function createAxiosInstance(): AxiosInstance {
           refreshTokenQueue.setIsRefreshing(false);
 
           // Check if this is an expected error (no refresh token for new/guest users)
-          const isExpectedError = 
+          const isExpectedError =
             (refreshError as AxiosError)?.response?.status === 401 ||
             (refreshError as AxiosError)?.response?.status === 403 ||
             (refreshError as AxiosError)?.message?.includes("refresh") ||
@@ -233,7 +273,7 @@ function createAxiosInstance(): AxiosInstance {
           // Public routes (shop, home, products) should not redirect
           if (typeof window !== "undefined") {
             const currentPath = window.location.pathname;
-            const isPublicRoute = 
+            const isPublicRoute =
               currentPath === "/" ||
               currentPath.startsWith("/shop") ||
               currentPath.startsWith("/product/") ||
@@ -241,19 +281,26 @@ function createAxiosInstance(): AxiosInstance {
               currentPath.startsWith("/auth") ||
               currentPath.startsWith("/forgot-password") ||
               currentPath.startsWith("/reset-password");
-            
+
             // Only redirect if:
             // 1. Not already on auth page
             // 2. Not on a public route (guest users can browse)
             // 3. The original request was for an authenticated endpoint (admin, authenticated cart operations)
-            const isAuthenticatedEndpoint = 
+            const isAuthenticatedEndpoint =
               originalRequest.url?.includes("/admin") ||
-              (originalRequest.url?.includes("/cart") && originalRequest.method?.toUpperCase() !== "GET");
-            
-            if (!isPublicRoute && isAuthenticatedEndpoint && !currentPath.startsWith("/auth")) {
+              (originalRequest.url?.includes("/cart") &&
+                originalRequest.method?.toUpperCase() !== "GET");
+
+            if (
+              !isPublicRoute &&
+              isAuthenticatedEndpoint &&
+              !currentPath.startsWith("/auth")
+            ) {
               // Only log for authenticated routes that need redirect
-              if (process.env.NODE_ENV === 'development') {
-                console.log("[API Client] Token refresh failed, redirecting to auth (authenticated route)");
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  "[API Client] Token refresh failed, redirecting to auth (authenticated route)",
+                );
               }
               window.location.href = "/auth";
             }
@@ -263,8 +310,11 @@ function createAxiosInstance(): AxiosInstance {
 
           // Silently reject for expected errors (no refresh token) or public routes
           // Only log unexpected errors in development
-          if (!isExpectedError && process.env.NODE_ENV === 'development') {
-            console.error("[API Client] Unexpected token refresh error:", refreshError);
+          if (!isExpectedError && process.env.NODE_ENV === "development") {
+            console.error(
+              "[API Client] Unexpected token refresh error:",
+              refreshError,
+            );
           }
 
           return Promise.reject(refreshError);
@@ -277,17 +327,20 @@ function createAxiosInstance(): AxiosInstance {
       // Public endpoints getting 401 should just fail gracefully (guest users browsing)
       // Don't log errors for expected cases (new users without tokens on public routes)
       if (error.response?.status === 401) {
-        const isPublicEndpoint = originalRequest?.url?.includes("/api/v1/products") && 
-                                 originalRequest?.method?.toUpperCase() === "GET" &&
-                                 !originalRequest?.url?.includes("/admin");
+        const isPublicEndpoint =
+          originalRequest?.url?.includes("/api/v1/products") &&
+          originalRequest?.method?.toUpperCase() === "GET" &&
+          !originalRequest?.url?.includes("/admin");
         // Silently handle 401 on public endpoints - this is expected for guest users
         // Only log in development for debugging
-        if (isPublicEndpoint && process.env.NODE_ENV === 'development') {
-          console.log("[API Client] 401 on public endpoint - allowing guest access, not redirecting");
+        if (isPublicEndpoint && process.env.NODE_ENV === "development") {
+          console.log(
+            "[API Client] 401 on public endpoint - allowing guest access, not redirecting",
+          );
         }
       }
       return Promise.reject(error);
-    }
+    },
   );
 
   return instance;
@@ -336,7 +389,7 @@ function handleError(error: any): ApiResponse {
 export class ApiClient {
   private async request<T>(
     path: string,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<ApiResponse<T>> {
     try {
       const response = await axiosInstance.request({
@@ -514,12 +567,22 @@ export const clientApi = {
   },
 
   // Inventory API methods
-  importStock: async (data: { variantId: string; quantity: number; importPrice: number; note?: string }) => {
+  importStock: async (data: {
+    variantId: string;
+    quantity: number;
+    importPrice: number;
+    note?: string;
+  }) => {
     const client = new ApiClient();
     return client.post("inventory/import", data);
   },
 
-  adjustStock: async (data: { variantId: string; quantityDelta: number; reason: string; reference?: string }) => {
+  adjustStock: async (data: {
+    variantId: string;
+    quantityDelta: number;
+    reason: string;
+    reference?: string;
+  }) => {
     const client = new ApiClient();
     return client.post("inventory/adjust", data);
   },
@@ -532,8 +595,10 @@ export const clientApi = {
     const client = new ApiClient();
     const queryParams = new URLSearchParams();
     if (params?.keyword) queryParams.append("keyword", params.keyword);
-    if (params?.page !== undefined) queryParams.append("page", params.page.toString());
-    if (params?.size !== undefined) queryParams.append("size", params.size.toString());
+    if (params?.page !== undefined)
+      queryParams.append("page", params.page.toString());
+    if (params?.size !== undefined)
+      queryParams.append("size", params.size.toString());
 
     const query = queryParams.toString();
     return client.get(`inventory${query ? `?${query}` : ""}`);
@@ -544,15 +609,21 @@ export const clientApi = {
     return client.get(`inventory/variant/${variantId}`);
   },
 
-  getInventoryTransactions: async (variantId: string, page: number = 0, size: number = 20) => {
+  getInventoryTransactions: async (
+    variantId: string,
+    page: number = 0,
+    size: number = 20,
+  ) => {
     const client = new ApiClient();
-    return client.get(`inventory/variant/${variantId}/transactions?page=${page}&size=${size}`);
+    return client.get(
+      `inventory/variant/${variantId}/transactions?page=${page}&size=${size}`,
+    );
   },
 
   getInventoryStatuses: async (variantIds: string[]) => {
     const client = new ApiClient();
     // Convert strings to numbers if backend expects Long
-    const ids = variantIds.map(id => parseInt(id)).filter(id => !isNaN(id));
+    const ids = variantIds.map((id) => parseInt(id)).filter((id) => !isNaN(id));
     return client.post("inventory/status", ids);
   },
 };

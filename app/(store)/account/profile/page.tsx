@@ -184,6 +184,14 @@ export default function ProfilePage() {
 
   // Address handlers
   const handleAddAddress = () => {
+    if (addresses.length >= 5) {
+      toast.error(
+        t("profile.addresses.limitReached", {
+          defaultValue: "You can only save up to 5 addresses",
+        }),
+      );
+      return;
+    }
     setEditingAddress(null);
     setAddressDialogOpen(true);
   };
@@ -218,9 +226,18 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAddress = async (id: string) => {
+    const addr = addresses.find((a) => a.id === id);
+    if (addr && addr.isDefault && addresses.length <= 1) {
+      toast.error(
+        t("profile.addresses.deleteDefaultDenied", {
+          defaultValue: "You cannot delete your only default address",
+        }),
+      );
+      return;
+    }
     const result = await profileApi.deleteAddress(id);
     if (!result.error) {
-      setAddresses((prev) => prev.filter((a) => a.id !== id));
+      await fetchProfileData(false);
       toast.success(
         t("profile.addresses.deleted", { defaultValue: "Address deleted" }),
       );
@@ -233,14 +250,26 @@ export default function ProfilePage() {
   };
 
   const handleSetDefaultAddress = async (id: string) => {
-    const result = await profileApi.setDefaultAddress(id);
+    const addr = addresses.find((a) => a.id === id);
+    if (!addr) return;
+
+    const result = await profileApi.updateAddress(id, {
+      recipientName: addr.recipientName,
+      phoneNumber: addr.phoneNumber,
+      provinceCode: addr.provinceCode,
+      provinceName: addr.provinceName,
+      districtName: addr.districtName,
+      wardCode: addr.wardCode,
+      wardName: addr.wardName,
+      detailAddress: addr.detailAddress,
+      addressType: addr.addressType,
+      isDefault: true,
+      label: addr.label,
+      notes: addr.notes,
+    });
+
     if (result.data) {
-      setAddresses((prev) =>
-        prev.map((a) => ({
-          ...a,
-          isDefault: a.id === id,
-        })),
-      );
+      await fetchProfileData(false);
       toast.success(
         t("profile.addresses.defaultSet", {
           defaultValue: "Default address set",
@@ -375,24 +404,32 @@ export default function ProfilePage() {
             >
               Shipping
             </p>
-            <h2
-              className="text-xl md:text-2xl font-light tracking-wide text-foreground"
-              style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
-            >
-              {t("profile.addresses.title", {
-                defaultValue: "Delivery Addresses",
-              })}
-            </h2>
+            <div className="flex items-baseline gap-3">
+              <h2
+                className="text-xl md:text-2xl font-light tracking-wide text-foreground"
+                style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
+              >
+                {t("profile.addresses.title", {
+                  defaultValue: "Address Book",
+                })}
+              </h2>
+              {addresses.length > 0 && (
+                <span className="text-xs font-medium text-muted-foreground/50 tabular-nums">
+                  {addresses.length}/5
+                </span>
+              )}
+            </div>
           </div>
 
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleAddAddress}
-            className="group gap-2.5 text-xs tracking-[0.15em] uppercase font-normal text-muted-foreground hover:text-foreground hover:bg-transparent transition-colors duration-500"
+            disabled={addresses.length >= 5}
+            className="gap-2 text-xs font-medium rounded-lg border-border hover:border-accent hover:text-accent transition-colors duration-300"
           >
-            <Plus className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-90" />
-            {t("profile.addresses.addNew", { defaultValue: "Add New" })}
+            <Plus className="w-3.5 h-3.5" />
+            {t("profile.addresses.addNew", { defaultValue: "Add Address" })}
           </Button>
         </div>
 
@@ -407,28 +444,36 @@ export default function ProfilePage() {
                 onEdit={handleEditAddress}
                 onDelete={handleDeleteAddress}
                 onSetDefault={handleSetDefaultAddress}
+                disableDelete={address.isDefault && addresses.length <= 1}
               />
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center border border-dashed border-border/50">
-            <MapPin className="w-8 h-8 mx-auto mb-4 text-muted-foreground/30 stroke-[1.5]" />
-            <p
-              className="text-sm text-muted-foreground/60 tracking-wide mb-6"
-              style={{ fontFamily: "var(--font-sans), sans-serif" }}
-            >
+          <div className="py-16 flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/10">
+            <div className="w-14 h-14 rounded-full bg-muted/40 flex items-center justify-center mb-5">
+              <MapPin className="w-6 h-6 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-medium text-foreground/80 mb-1.5">
               {t("profile.addresses.noAddresses", {
-                defaultValue: "No delivery addresses saved",
+                defaultValue: "No addresses yet",
               })}
             </p>
-            <button
+            <p className="text-xs text-muted-foreground/60 mb-6">
+              {t("profile.addresses.noAddressesDesc", {
+                defaultValue: "Add a delivery address to get started",
+              })}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleAddAddress}
-              className="text-xs tracking-[0.2em] uppercase text-accent hover:text-accent/80 transition-colors duration-300 underline underline-offset-4 decoration-accent/30 hover:decoration-accent/60"
+              className="gap-2 text-xs font-medium rounded-lg border-accent/40 text-accent hover:bg-accent/10 hover:border-accent transition-colors duration-300"
             >
+              <Plus className="w-3.5 h-3.5" />
               {t("profile.addresses.addFirst", {
                 defaultValue: "Add your first address",
               })}
-            </button>
+            </Button>
           </div>
         )}
       </motion.section>

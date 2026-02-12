@@ -7,11 +7,14 @@ import {
   useCallback,
   useRef,
   startTransition,
+  forwardRef,
+  InputHTMLAttributes,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
   Building2,
+  Briefcase,
   MapPin,
   Loader2,
   Search,
@@ -32,7 +35,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { LuxuryInput } from "@/components/auth/LuxuryInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -47,6 +49,50 @@ import type {
   AddressType,
 } from "@/lib/types/profile";
 
+// ============================================================================
+// Outlined Input — replaces underline-only LuxuryInput for forms
+// ============================================================================
+
+interface OutlinedInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+}
+
+const OutlinedInput = forwardRef<HTMLInputElement, OutlinedInputProps>(
+  ({ label, error, className, ...props }, ref) => {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && (
+          <Label
+            htmlFor={props.id}
+            className="text-xs font-medium text-muted-foreground"
+          >
+            {label}
+            {props.required && (
+              <span className="text-destructive ml-0.5">*</span>
+            )}
+          </Label>
+        )}
+        <input
+          ref={ref}
+          className={cn(
+            "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground",
+            "placeholder:text-muted-foreground/50",
+            "focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            error &&
+              "border-destructive focus:ring-destructive/30 focus:border-destructive",
+            className,
+          )}
+          {...props}
+        />
+        {error && <p className="text-xs text-destructive">{error}</p>}
+      </div>
+    );
+  },
+);
+OutlinedInput.displayName = "OutlinedInput";
+
 interface AddressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -54,12 +100,41 @@ interface AddressDialogProps {
   onSave: (data: AddressRequest) => Promise<void>;
 }
 
-const addressTypes: { value: AddressType; icon: typeof Home; label: string }[] =
-  [
-    { value: "HOME", icon: Home, label: "profile.addresses.home" },
-    { value: "OFFICE", icon: Building2, label: "profile.addresses.office" },
-    { value: "OTHER", icon: MapPin, label: "profile.addresses.other" },
-  ];
+const addressTypes: {
+  value: AddressType;
+  icon: typeof Home;
+  label: string;
+  activeClass: string;
+}[] = [
+  {
+    value: "HOME",
+    icon: Home,
+    label: "profile.addresses.home",
+    activeClass:
+      "border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-500/60",
+  },
+  {
+    value: "WORKSPACE",
+    icon: Building2,
+    label: "profile.addresses.workspace",
+    activeClass:
+      "border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-500/60",
+  },
+  {
+    value: "OFFICE",
+    icon: Briefcase,
+    label: "profile.addresses.office",
+    activeClass:
+      "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-500/60",
+  },
+  {
+    value: "OTHER",
+    icon: MapPin,
+    label: "profile.addresses.other",
+    activeClass:
+      "border-slate-500 bg-slate-50 text-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-500/60",
+  },
+];
 
 /**
  * Get localized name based on current language.
@@ -105,6 +180,8 @@ function SearchableProvinceSelect({
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const currentLanguage = i18n.language || "vi";
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _inputRef = inputRef;
 
   const debouncedSearch = useDebounce(searchQuery, 150);
 
@@ -198,14 +275,15 @@ function SearchableProvinceSelect({
           <button
             type="button"
             className={cn(
-              "w-full flex items-center justify-between bg-transparent border-0 border-b border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:border-[#d4b483] dark:focus:border-[#d4b483] focus:outline-none transition-all duration-300 px-0 py-3 text-left",
+              "w-full flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5 text-left",
+              "focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200",
               (disabled || isLoading) && "opacity-50 cursor-not-allowed",
             )}
           >
             <span
               className={cn(
-                !selectedProvince && "text-gray-400 dark:text-zinc-500",
-                "text-sm font-light",
+                "text-sm",
+                !selectedProvince && "text-muted-foreground/50",
               )}
             >
               {selectedProvince
@@ -217,30 +295,33 @@ function SearchableProvinceSelect({
                 : placeholder}
             </span>
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400 flex-shrink-0" />
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/50 flex-shrink-0" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
             )}
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
-          <div className="p-2 border-b border-gray-200 dark:border-zinc-700">
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] p-0 rounded-lg"
+          align="start"
+          sideOffset={4}
+        >
+          <div className="p-2 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
               <input
-                ref={inputRef}
                 type="text"
-                placeholder="Search..."
+                placeholder="Tìm kiếm..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d4b483]/50"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
             </div>
           </div>
           <div className="max-h-[200px] overflow-y-auto overscroll-contain">
             {filteredResults.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-gray-500 text-center">
-                {searchQuery ? "No results found" : "No data"}
+              <div className="px-3 py-4 text-sm text-muted-foreground/60 text-center">
+                {searchQuery ? "Không tìm thấy" : "Không có dữ liệu"}
               </div>
             ) : (
               filteredResults.map((province) => {
@@ -256,13 +337,13 @@ function SearchableProvinceSelect({
                     type="button"
                     onClick={() => handleSelect(province.code)}
                     className={cn(
-                      "w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors",
-                      isSelected && "bg-gray-50 dark:bg-zinc-800/50",
+                      "w-full flex items-center justify-between px-3 py-2.5 text-sm text-left hover:bg-muted/60 transition-colors",
+                      isSelected && "bg-accent/10 text-accent font-medium",
                     )}
                   >
                     <span className="truncate">{displayName}</span>
                     {isSelected && (
-                      <Check className="h-4 w-4 text-[#d4b483] flex-shrink-0 ml-2" />
+                      <Check className="h-4 w-4 text-accent flex-shrink-0 ml-2" />
                     )}
                   </button>
                 );
@@ -302,6 +383,8 @@ function SearchableWardSelect({
   const [filteredResults, setFilteredResults] = useState<WardResponse[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const currentLanguage = i18n.language || "vi";
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _inputRef = inputRef;
 
   const debouncedSearch = useDebounce(searchQuery, 150);
 
@@ -394,14 +477,15 @@ function SearchableWardSelect({
           <button
             type="button"
             className={cn(
-              "w-full flex items-center justify-between bg-transparent border-0 border-b border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:border-[#d4b483] dark:focus:border-[#d4b483] focus:outline-none transition-all duration-300 px-0 py-3 text-left",
+              "w-full flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5 text-left",
+              "focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200",
               (disabled || isLoading) && "opacity-50 cursor-not-allowed",
             )}
           >
             <span
               className={cn(
-                !selectedWard && "text-gray-400 dark:text-zinc-500",
-                "text-sm font-light",
+                "text-sm",
+                !selectedWard && "text-muted-foreground/50",
               )}
             >
               {selectedWard
@@ -413,30 +497,33 @@ function SearchableWardSelect({
                 : placeholder}
             </span>
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400 flex-shrink-0" />
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/50 flex-shrink-0" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
             )}
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
-          <div className="p-2 border-b border-gray-200 dark:border-zinc-700">
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] p-0 rounded-lg"
+          align="start"
+          sideOffset={4}
+        >
+          <div className="p-2 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
               <input
-                ref={inputRef}
                 type="text"
-                placeholder="Search..."
+                placeholder="Tìm kiếm..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d4b483]/50"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
             </div>
           </div>
           <div className="max-h-[200px] overflow-y-auto overscroll-contain">
             {filteredResults.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-gray-500 text-center">
-                {searchQuery ? "No results found" : "No data"}
+              <div className="px-3 py-4 text-sm text-muted-foreground/60 text-center">
+                {searchQuery ? "Không tìm thấy" : "Không có dữ liệu"}
               </div>
             ) : (
               filteredResults.map((ward) => {
@@ -452,13 +539,13 @@ function SearchableWardSelect({
                     type="button"
                     onClick={() => handleSelect(ward.code)}
                     className={cn(
-                      "w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors",
-                      isSelected && "bg-gray-50 dark:bg-zinc-800/50",
+                      "w-full flex items-center justify-between px-3 py-2.5 text-sm text-left hover:bg-muted/60 transition-colors",
+                      isSelected && "bg-accent/10 text-accent font-medium",
                     )}
                   >
                     <span className="truncate">{displayName}</span>
                     {isSelected && (
-                      <Check className="h-4 w-4 text-[#d4b483] flex-shrink-0 ml-2" />
+                      <Check className="h-4 w-4 text-accent flex-shrink-0 ml-2" />
                     )}
                   </button>
                 );
@@ -491,8 +578,7 @@ export function AddressDialog({
   const [label, setLabel] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [addressLine1, setAddressLine1] = useState(""); // This is detailAddress
-  const [addressLine2, setAddressLine2] = useState("");
+  const [detailAddress, setDetailAddress] = useState("");
 
   // Location state
   const [provinceCode, setProvinceCode] = useState("");
@@ -501,7 +587,6 @@ export function AddressDialog({
   const [wardCode, setWardCode] = useState("");
   const [wardName, setWardName] = useState("");
 
-  const [postalCode, setPostalCode] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
   // Load provinces on mount
@@ -555,56 +640,34 @@ export function AddressDialog({
   // Reset form when dialog opens/closes or address changes
   useEffect(() => {
     if (open && address) {
-      setType(address.type);
+      setType(address.addressType);
       setLabel(address.label || "");
       setRecipientName(address.recipientName);
       setPhoneNumber(address.phoneNumber);
-      setAddressLine1(address.addressLine1);
-      setAddressLine2(address.addressLine2 || "");
+      setDetailAddress(address.detailAddress);
 
-      // Map address fields to local state
-      // Assuming address.city holds provinceName
-      // Assuming address.district holds districtName
-      // Assuming address.ward holds wardName (or maybe we skip code if not present)
-      setProvinceName(address.city || "");
-      setDistrictName(address.district || "");
-      setWardName(address.ward || "");
-
-      // Try to find code if possible or leave empty if not stored
-      // In a real scenario, you probably store codes too or reverse lookup
-      setProvinceCode(""); // Reset initially
-      setWardCode(""); // Reset initially
-
-      setPostalCode(address.postalCode || "");
+      setProvinceCode(address.provinceCode);
+      setProvinceName(address.provinceName);
+      setDistrictName(address.districtName);
+      setWardCode(address.wardCode);
+      setWardName(address.wardName);
       setIsDefault(address.isDefault);
-
-      // Attempt to reverse match province name to code if code is missing but name exists
-      if (address.city && provinces.length > 0) {
-        // Simple name match logic could happen here if needed
-        const found = provinces.find(
-          (p) => p.name === address.city || p.fullName === address.city,
-        );
-        if (found) setProvinceCode(found.code);
-      }
     } else if (open) {
       // Reset for new address
       setType("HOME");
       setLabel("");
       setRecipientName("");
       setPhoneNumber("");
-      setAddressLine1("");
-      setAddressLine2("");
+      setDetailAddress("");
 
       setProvinceCode("");
       setProvinceName("");
       setDistrictName("");
       setWardCode("");
       setWardName("");
-
-      setPostalCode("");
       setIsDefault(false);
     }
-  }, [open, address, provinces]); // added provinces to dep to perform reverse lookup if needed
+  }, [open, address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -612,17 +675,17 @@ export function AddressDialog({
 
     try {
       await onSave({
-        type,
-        label: label || undefined,
         recipientName,
         phoneNumber,
-        addressLine1, // detailAddress
-        addressLine2: addressLine2 || undefined,
-        ward: wardName || undefined,
-        district: districtName,
-        city: provinceName,
-        postalCode: postalCode || undefined,
+        provinceCode,
+        provinceName,
+        districtName,
+        wardCode,
+        wardName,
+        detailAddress,
+        addressType: type,
         isDefault,
+        label: label || undefined,
       });
       onOpenChange(false);
     } finally {
@@ -643,97 +706,109 @@ export function AddressDialog({
   };
 
   const isValid =
-    recipientName && phoneNumber && addressLine1 && districtName && provinceName;
+    recipientName &&
+    phoneNumber &&
+    detailAddress &&
+    provinceCode &&
+    provinceName &&
+    districtName &&
+    wardCode &&
+    wardName;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-light tracking-wide">
+          <DialogTitle className="text-lg font-semibold tracking-tight">
             {address
               ? t("profile.addresses.editAddress", {
-                  defaultValue: "Edit Address",
+                  defaultValue: "Chỉnh sửa địa chỉ",
                 })
               : t("profile.addresses.addNew", {
-                  defaultValue: "Add New Address",
+                  defaultValue: "Thêm địa chỉ mới",
                 })}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5 pt-1">
           {/* Address Type Selector */}
           <div className="space-y-2">
-            <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-              {t("profile.addresses.type", { defaultValue: "Address Type" })}
+            <Label className="text-xs font-medium text-muted-foreground">
+              {t("profile.addresses.type", { defaultValue: "Loại địa chỉ" })}
             </Label>
-            <div className="flex gap-2">
-              {addressTypes.map(({ value, icon: Icon, label: labelKey }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setType(value)}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border transition-all duration-200",
-                    type === value
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-border hover:border-accent/50",
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-sm font-light">
-                    {t(labelKey, { defaultValue: value })}
-                  </span>
-                </button>
-              ))}
+            <div className="grid grid-cols-4 gap-2">
+              {addressTypes.map(
+                ({ value, icon: TypeIcon, label: labelKey, activeClass }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setType(value)}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all duration-200",
+                      type === value
+                        ? activeClass
+                        : "border-transparent bg-muted/40 text-muted-foreground hover:bg-muted/70",
+                    )}
+                  >
+                    <TypeIcon className="w-5 h-5" />
+                    <span className="text-[11px] font-medium leading-tight text-center">
+                      {t(labelKey, { defaultValue: value })}
+                    </span>
+                  </button>
+                ),
+              )}
             </div>
           </div>
 
           {/* Custom Label (optional) */}
           {type === "OTHER" && (
-            <LuxuryInput
+            <OutlinedInput
               id="label"
               label={t("profile.addresses.label", {
-                defaultValue: "Label (Optional)",
+                defaultValue: "Nhãn (Tùy chọn)",
               })}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder={t("profile.addresses.labelPlaceholder", {
-                defaultValue: "e.g., Parents' House",
+                defaultValue: "v.d., Nhà bố mẹ",
               })}
             />
           )}
 
-          {/* Recipient Info */}
+          {/* Recipient Info — 2-column grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <LuxuryInput
+            <OutlinedInput
               id="recipientName"
               label={t("profile.addresses.recipientName", {
-                defaultValue: "Recipient Name",
+                defaultValue: "Tên người nhận",
               })}
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
               required
+              placeholder="Nguyễn Văn A"
             />
-            <LuxuryInput
+            <OutlinedInput
               id="phone"
               label={t("profile.addresses.phone", {
-                defaultValue: "Phone Number",
+                defaultValue: "Số điện thoại",
               })}
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               type="tel"
               required
+              placeholder="0901234567"
             />
           </div>
 
-          {/* Province, District, Ward */}
-          <div className="space-y-4">
+          {/* Province, District, Ward — 2-column where possible */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Province */}
-            <div className="space-y-2">
-              <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
                 {t("profile.addresses.city", {
-                  defaultValue: "City / Province",
+                  defaultValue: "Thành phố/Tỉnh",
                 })}
+                <span className="text-destructive ml-0.5">*</span>
               </Label>
               <SearchableProvinceSelect
                 provinces={provinces}
@@ -741,82 +816,60 @@ export function AddressDialog({
                 onValueChange={handleProvinceSelect}
                 isLoading={isLoadingProvinces}
                 placeholder={
-                  t("checkout.cityPlaceholder") || "Select City / Province"
+                  t("checkout.cityPlaceholder") || "Chọn tỉnh/thành phố"
                 }
               />
             </div>
 
             {/* District */}
-            <LuxuryInput
+            <OutlinedInput
               id="district"
               label={t("profile.addresses.district", {
-                defaultValue: "District",
+                defaultValue: "Quận/Huyện",
               })}
               value={districtName}
               onChange={(e) => setDistrictName(e.target.value)}
               required
               placeholder={
-                t("checkout.districtPlaceholder") || "Enter district"
+                t("checkout.districtPlaceholder") || "Nhập quận/huyện"
               }
             />
+          </div>
 
-            {/* Ward */}
-            <div className="space-y-2">
-              <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-                {t("profile.addresses.ward", {
-                  defaultValue: "Ward / Commune",
-                })}
-              </Label>
-              <SearchableWardSelect
-                wards={wards}
-                value={wardCode}
-                onValueChange={handleWardSelect}
-                isLoading={isLoadingWards}
-                disabled={!provinceCode}
-                placeholder={
-                  t("checkout.wardPlaceholder") || "Select Ward / Commune"
-                }
-              />
-            </div>
+          {/* Ward — full width */}
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-xs font-medium text-muted-foreground">
+              {t("profile.addresses.ward", {
+                defaultValue: "Phường/Xã",
+              })}
+              <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <SearchableWardSelect
+              wards={wards}
+              value={wardCode}
+              onValueChange={handleWardSelect}
+              isLoading={isLoadingWards}
+              disabled={!provinceCode}
+              placeholder={t("checkout.wardPlaceholder") || "Chọn phường/xã"}
+            />
           </div>
 
           {/* Detail Address */}
-          <LuxuryInput
-            id="addressLine1"
+          <OutlinedInput
+            id="detailAddress"
             label={t("profile.addresses.addressLine1", {
-              defaultValue: "Street Address",
+              defaultValue: "Địa chỉ chi tiết",
             })}
-            value={addressLine1}
-            onChange={(e) => setAddressLine1(e.target.value)}
+            value={detailAddress}
+            onChange={(e) => setDetailAddress(e.target.value)}
             placeholder={t("profile.addresses.addressPlaceholder", {
-              defaultValue: "Street address, P.O. box",
+              defaultValue: "Số nhà, tên đường...",
             })}
             required
           />
 
-          <LuxuryInput
-            id="addressLine2"
-            label={t("profile.addresses.addressLine2", {
-              defaultValue: "Address Line 2 (Optional)",
-            })}
-            value={addressLine2}
-            onChange={(e) => setAddressLine2(e.target.value)}
-            placeholder={t("profile.addresses.addressLine2Placeholder", {
-              defaultValue: "Apartment, suite, unit, building, floor",
-            })}
-          />
-
-          <LuxuryInput
-            id="postalCode"
-            label={t("profile.addresses.postalCode", {
-              defaultValue: "Postal Code (Optional)",
-            })}
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-          />
-
           {/* Set as Default */}
-          <div className="flex items-center space-x-3 pt-2">
+          <div className="flex items-center space-x-3 pt-1">
             <Checkbox
               id="isDefault"
               checked={isDefault}
@@ -824,33 +877,35 @@ export function AddressDialog({
             />
             <Label
               htmlFor="isDefault"
-              className="text-sm font-light text-foreground cursor-pointer"
+              className="text-sm text-foreground cursor-pointer"
             >
               {t("profile.addresses.setAsDefault", {
-                defaultValue: "Set as default delivery address",
+                defaultValue: "Đặt làm địa chỉ giao hàng mặc định",
               })}
             </Label>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          {/* Footer Buttons */}
+          <DialogFooter className="gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSaving}
+              className="rounded-lg border-border px-5"
             >
-              {t("common.cancel", { defaultValue: "Cancel" })}
+              {t("common.cancel", { defaultValue: "Hủy" })}
             </Button>
             <Button
               type="submit"
               disabled={!isValid || isSaving}
-              className="bg-primary hover:bg-primary/90"
+              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 px-6 shadow-sm"
             >
               {isSaving
-                ? t("common.saving", { defaultValue: "Saving..." })
+                ? t("common.saving", { defaultValue: "Đang lưu..." })
                 : address
-                  ? t("common.update", { defaultValue: "Update" })
-                  : t("common.add", { defaultValue: "Add Address" })}
+                  ? t("common.update", { defaultValue: "Cập nhật" })
+                  : t("common.add", { defaultValue: "Thêm địa chỉ" })}
             </Button>
           </DialogFooter>
         </form>

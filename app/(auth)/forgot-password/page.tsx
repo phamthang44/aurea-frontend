@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
         toast.error(anyResponse.error.message || t("error.failedToSendOtp"));
       } else if (anyResponse?.data?.error) {
         toast.error(
-          anyResponse.data.error.message || t("error.failedToSendOtp")
+          anyResponse.data.error.message || t("error.failedToSendOtp"),
         );
       } else {
         toast.success(t("success.otpSent"));
@@ -148,11 +148,11 @@ export default function ForgotPasswordPage() {
 
       if (anyResponse?.error) {
         toast.error(
-          anyResponse.error.message || t("error.failedToResetPassword")
+          anyResponse.error.message || t("error.failedToResetPassword"),
         );
       } else if (anyResponse?.data?.error) {
         toast.error(
-          anyResponse.data.error.message || t("error.failedToResetPassword")
+          anyResponse.data.error.message || t("error.failedToResetPassword"),
         );
       } else {
         toast.success(t("success.passwordReset"));
@@ -177,12 +177,10 @@ export default function ForgotPasswordPage() {
       const anyResponse = response as any;
 
       if (anyResponse?.error) {
-        toast.error(
-          anyResponse.error.message || t("error.failedToResendOtp")
-        );
+        toast.error(anyResponse.error.message || t("error.failedToResendOtp"));
       } else if (anyResponse?.data?.error) {
         toast.error(
-          anyResponse.data.error.message || t("error.failedToResendOtp")
+          anyResponse.data.error.message || t("error.failedToResendOtp"),
         );
       } else {
         toast.success(t("success.otpResent"));
@@ -210,9 +208,7 @@ export default function ForgotPasswordPage() {
               <div key={stepNum} className="flex items-center">
                 <div
                   className={`h-2 w-8 rounded-full transition-all duration-300 ${
-                    step >= stepNum
-                      ? "bg-foreground"
-                      : "bg-muted"
+                    step >= stepNum ? "bg-foreground" : "bg-muted"
                   }`}
                 />
                 {stepNum < 3 && (
@@ -234,8 +230,8 @@ export default function ForgotPasswordPage() {
                   Reset Password
                 </h1>
                 <p className="text-sm font-light tracking-wide text-muted-foreground">
-                  Enter your email address and we'll send you an OTP code to
-                  reset your password
+                  Enter your email address and we&apos;ll send you an OTP code
+                  to reset your password
                 </p>
               </div>
 
@@ -292,11 +288,7 @@ export default function ForgotPasswordPage() {
               </div>
 
               <form onSubmit={handleVerifyOtp} className="space-y-8">
-                <OtpInput
-                  value={otp}
-                  onChange={setOtp}
-                  disabled={isLoading}
-                />
+                <OtpInput value={otp} onChange={setOtp} disabled={isLoading} />
 
                 <LuxuryButton
                   type="submit"
@@ -309,7 +301,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="text-center space-y-2">
                   <p className="text-xs font-light text-muted-foreground">
-                    Didn't receive the code?
+                    Didn&apos;t receive the code?
                   </p>
                   <button
                     type="button"
@@ -385,4 +377,3 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
-

@@ -21,6 +21,9 @@
     "clear": "Xóa",
     "menu": "Danh mục",
     "refresh": "Làm mới",
+    "update": "Cập nhật",
+    "add": "Thêm địa chỉ",
+    "saving": "Đang lưu...",
     "pagination": {
       "showing": "Hiển thị {{count}} trong {{total}}",
       "prev": "Trước",
@@ -1449,6 +1452,7 @@
       "addNew": "Thêm địa chỉ mới",
       "editAddress": "Chỉnh sửa địa chỉ",
       "home": "Nhà riêng",
+      "workspace": "Không gian làm việc",
       "office": "Văn phòng",
       "other": "Khác",
       "default": "Mặc định",
@@ -1457,11 +1461,11 @@
       "labelPlaceholder": "v.d., Nhà bố mẹ",
       "recipientName": "Tên người nhận",
       "phone": "Số điện thoại",
-      "addressLine1": "Địa chỉ dòng 1",
+      "addressLine1": "Địa chỉ chi tiết",
       "addressPlaceholder": "Số nhà, tên đường...",
       "addressLine2": "Địa chỉ dòng 2 (Tùy chọn)",
       "addressLine2Placeholder": "Căn hộ, tòa nhà, tầng...",
-      "ward": "Phường/Xã (Tùy chọn)",
+      "ward": "Phường/Xã",
       "district": "Quận/Huyện",
       "city": "Thành phố/Tỉnh",
       "postalCode": "Mã bưu chính",
@@ -1472,7 +1476,10 @@
       "deleted": "Đã xóa địa chỉ",
       "defaultSet": "Đã đặt địa chỉ mặc định",
       "noAddresses": "Chưa có địa chỉ giao hàng",
-      "addFirst": "Thêm địa chỉ đầu tiên của bạn"
+      "noAddressesDesc": "Thêm địa chỉ giao hàng để bắt đầu",
+      "addFirst": "Thêm địa chỉ đầu tiên",
+      "limitReached": "Bạn chỉ có thể lưu tối đa 5 địa chỉ",
+      "deleteDefaultDenied": "Bạn không thể xóa địa chỉ mặc định duy nhất"
     },
     "security": {
       "title": "Bảo mật & Riêng tư",

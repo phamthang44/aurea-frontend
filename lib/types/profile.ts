@@ -5,8 +5,8 @@
  * (Time-Sorted Unique Identifier) which is a Long type in Java.
  */
 
-// Address type enum
-export type AddressType = "HOME" | "OFFICE" | "OTHER";
+// Address type enum (must match backend com.thang.aurea.common.enums.AddressType)
+export type AddressType = "HOME" | "WORKSPACE" | "OFFICE" | "OTHER";
 
 // User profile response from API
 export interface UserProfile {
@@ -30,37 +30,39 @@ export interface UpdateProfileRequest {
   birthDate?: string;
 }
 
-// User address
+// User contact address (ContactAddressResponse)
 export interface UserAddress {
   id: string;
-  type: AddressType;
-  label?: string;
   recipientName: string;
   phoneNumber: string;
-  addressLine1: string;
-  addressLine2?: string;
-  ward?: string;
-  district: string;
-  city: string;
-  postalCode?: string;
+  provinceCode: string;
+  provinceName: string;
+  wardCode: string;
+  wardName: string;
+  districtName: string;
+  detailAddress: string;
+  fullAddress?: string;
+  addressType: AddressType;
   isDefault: boolean;
+  label?: string;
+  notes?: string;
   createdAt?: string;
-  updatedAt?: string;
 }
 
-// Address create/update request
+// Address create/update request (CreateAddressRequest)
 export interface AddressRequest {
-  type: AddressType;
-  label?: string;
   recipientName: string;
   phoneNumber: string;
-  addressLine1: string;
-  addressLine2?: string;
-  ward?: string;
-  district: string;
-  city: string;
-  postalCode?: string;
-  isDefault?: boolean;
+  provinceCode: string;
+  provinceName: string;
+  districtName: string;
+  wardCode: string;
+  wardName: string;
+  detailAddress: string;
+  addressType: AddressType;
+  isDefault: boolean;
+  label?: string;
+  notes?: string;
 }
 
 // User voucher (from staff promotions)

@@ -1,21 +1,11 @@
 import { MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-export interface SavedAddress {
-  id: number;
-  recipientName: string;
-  phone: string;
-  city: string;
-  district: string;
-  ward: string;
-  street: string;
-  isDefault: boolean;
-}
+import type { UserAddress } from "@/lib/types/profile";
 
 interface SavedAddressCardProps {
-  address: SavedAddress;
+  address: UserAddress;
   isSelected: boolean;
-  onSelect: (addressId: number) => void;
+  onSelect: (addressId: string) => void;
   defaultLabel: string;
 }
 
@@ -25,16 +15,27 @@ export function SavedAddressCard({
   onSelect,
   defaultLabel,
 }: SavedAddressCardProps) {
+  const fullAddress =
+    address.fullAddress ||
+    [
+      address.detailAddress,
+      address.wardName,
+      address.districtName,
+      address.provinceName,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
   return (
     <button
       type="button"
-      onClick={() => onSelect(address.id)}
+      onClick={() => onSelect(String(address.id))}
       className={cn(
         "text-left p-5 border transition-all duration-300 rounded-lg",
         "bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10",
         isSelected
           ? "border-[#d4b483] dark:border-white border-2 shadow-lg dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-          : "border-gray-300 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/40"
+          : "border-gray-300 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/40",
       )}
       style={{ fontFamily: "var(--font-be-vietnam-pro), sans-serif" }}
     >
@@ -52,13 +53,10 @@ export function SavedAddressCard({
             )}
           </div>
           <p className="text-sm text-gray-600 dark:text-zinc-400">
-            {address.street}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-zinc-400">
-            {address.ward}, {address.district}, {address.city}
+            {fullAddress}
           </p>
           <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
-            {address.phone}
+            {address.phoneNumber}
           </p>
         </div>
         {isSelected && (

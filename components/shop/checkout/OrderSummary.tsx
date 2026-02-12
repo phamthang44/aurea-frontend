@@ -78,7 +78,7 @@ export function OrderSummary({
           )}
           <div className="flex justify-between text-sm">
             <span className="text-zinc-400">{labels.shipping}</span>
-            <span className="font-medium text-white">
+            <span className="font-medium dark:text-white">
               {shippingFee === 0 ? (
                 <span className="text-emerald-400">{labels.free}</span>
               ) : (

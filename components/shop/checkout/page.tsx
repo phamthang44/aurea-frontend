@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,11 +15,13 @@ import { StorefrontNavBar } from "@/components/shop/layout/StorefrontNavBar";
 import { StorefrontFooter } from "@/components/shop/layout/StorefrontFooter";
 import { useTranslation } from "react-i18next";
 import { SectionHeader } from "./SectionHeader";
-import { SavedAddressCard, type SavedAddress } from "./SavedAddressCard";
+import { SavedAddressCard } from "./SavedAddressCard";
 import { PaymentMethodCard } from "./PaymentMethodCard";
 import { FormField } from "./FormField";
 import { AddressForm } from "./AddressForm";
 import { OrderSummary } from "./OrderSummary";
+import { profileApi } from "@/lib/api/profile";
+import type { UserAddress } from "@/lib/types/profile";
 import {
   orderApi,
   type PaymentMethod,
@@ -41,32 +43,6 @@ function formatVND(amount: number): string {
   );
 }
 
-/**
- * Mock saved addresses data
- */
-const mockSavedAddresses: SavedAddress[] = [
-  {
-    id: 1,
-    recipientName: "Nguyễn Văn A",
-    phone: "0901234567",
-    city: "Hồ Chí Minh",
-    district: "Quận 1",
-    ward: "Phường Bến Nghé",
-    street: "123 Đường Nguyễn Huệ",
-    isDefault: true,
-  },
-  {
-    id: 2,
-    recipientName: "Trần Thị B",
-    phone: "0987654321",
-    city: "Hà Nội",
-    district: "Quận Hoàn Kiếm",
-    ward: "Phường Hàng Bông",
-    street: "456 Phố Hàng Đào",
-    isDefault: false,
-  },
-];
-
 type CheckoutFormData = {
   email: string;
   // Address fields (matching AddressRequest structure)
@@ -80,7 +56,7 @@ type CheckoutFormData = {
   detailAddress: string;
   paymentMethod: "COD" | "BANK_TRANSFER";
   note?: string;
-  savedAddressId?: number;
+  savedAddressId?: string;
 };
 
 export default function CheckoutPage() {
@@ -115,7 +91,7 @@ export default function CheckoutPage() {
           .string()
           .min(
             1,
-            t("checkout.validation.wardRequired") || "Vui lòng chọn phường/xã"
+            t("checkout.validation.wardRequired") || "Vui lòng chọn phường/xã",
           )
           .max(20),
         wardName: z.string().min(1).max(255),
@@ -124,7 +100,7 @@ export default function CheckoutPage() {
           .min(
             1,
             t("checkout.validation.districtRequired") ||
-              "Vui lòng nhập quận/huyện"
+              "Vui lòng nhập quận/huyện",
           )
           .max(255, t("checkout.validation.districtMaxLength")),
         detailAddress: z
@@ -132,7 +108,7 @@ export default function CheckoutPage() {
           .min(
             1,
             t("checkout.validation.streetRequired") ||
-              "Vui lòng nhập địa chỉ chi tiết"
+              "Vui lòng nhập địa chỉ chi tiết",
           )
           .max(255, t("checkout.validation.streetMaxLength")),
         paymentMethod: z.enum(["COD", "BANK_TRANSFER"], {
@@ -142,14 +118,43 @@ export default function CheckoutPage() {
           .string()
           .max(500, t("checkout.validation.noteMaxLength"))
           .optional(),
-        savedAddressId: z.number().optional(),
+        savedAddressId: z.string().optional(),
       }),
-    [t]
+    [t],
   );
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
-    mockSavedAddresses.find((addr) => addr.isDefault)?.id || null
+
+  // Saved addresses from backend
+  const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch saved addresses on mount
+  const fetchAddresses = useCallback(async () => {
+    setIsLoadingAddresses(true);
+    try {
+      const result = await profileApi.getAddresses();
+      if (result.data) {
+        setSavedAddresses(result.data);
+        // Auto-select default address
+        const defaultAddr = result.data.find((a) => a.isDefault);
+        if (defaultAddr) {
+          setSelectedAddressId(String(defaultAddr.id));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load addresses:", error);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAddresses();
+  }, [fetchAddresses]);
 
   const {
     register,
@@ -162,9 +167,28 @@ export default function CheckoutPage() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       paymentMethod: "COD",
-      savedAddressId: mockSavedAddresses.find((addr) => addr.isDefault)?.id,
     },
   });
+
+  // Auto-fill form when default address is loaded
+  useEffect(() => {
+    if (selectedAddressId && savedAddresses.length > 0) {
+      const addr = savedAddresses.find(
+        (a) => String(a.id) === selectedAddressId,
+      );
+      if (addr) {
+        setValue("recipientName", addr.recipientName, { shouldValidate: true });
+        setValue("phone", addr.phoneNumber, { shouldValidate: true });
+        setValue("provinceCode", addr.provinceCode, { shouldValidate: true });
+        setValue("provinceName", addr.provinceName, { shouldValidate: true });
+        setValue("districtName", addr.districtName, { shouldValidate: true });
+        setValue("wardCode", addr.wardCode, { shouldValidate: true });
+        setValue("wardName", addr.wardName, { shouldValidate: true });
+        setValue("detailAddress", addr.detailAddress, { shouldValidate: true });
+        setValue("savedAddressId", String(addr.id));
+      }
+    }
+  }, [selectedAddressId, savedAddresses, setValue]);
 
   // Validate cart before allowing checkout
   const isCartValid = items.length > 0;
@@ -172,28 +196,65 @@ export default function CheckoutPage() {
   const paymentMethod = watch("paymentMethod");
 
   // Auto-fill form when saved address is selected
-  // Note: Mock addresses use old format, need to map to new format
-  // In production, saved addresses should already have provinceCode, wardCode, etc.
-  const handleSelectAddress = (addressId: number) => {
-    const address = mockSavedAddresses.find((addr) => addr.id === addressId);
+  const handleSelectAddress = (addressId: string) => {
+    const id = String(addressId);
+    const address = savedAddresses.find((addr) => String(addr.id) === id);
     if (address) {
-      setSelectedAddressId(addressId);
-      setValue("savedAddressId", addressId, { shouldValidate: true });
+      setSelectedAddressId(id);
+      setValue("savedAddressId", id, { shouldValidate: true });
       setValue("recipientName", address.recipientName, {
         shouldValidate: true,
       });
-      setValue("phone", address.phone, { shouldValidate: true });
-      // Map old format to new format
-      // Note: In production, saved addresses should have provinceCode, wardCode
-      // For now, we'll set placeholder values - you'll need to update mockSavedAddresses
-      // or load from API with proper structure
-      setValue("provinceName", address.city, { shouldValidate: true });
-      setValue("districtName", address.district, { shouldValidate: true });
-      setValue("wardName", address.ward, { shouldValidate: true });
-      setValue("detailAddress", address.street, { shouldValidate: true });
-      // TODO: Set provinceCode and wardCode from saved address data
-      // These should come from the saved address API response
+      setValue("phone", address.phoneNumber, { shouldValidate: true });
+      setValue("provinceCode", address.provinceCode, { shouldValidate: true });
+      setValue("provinceName", address.provinceName, { shouldValidate: true });
+      setValue("districtName", address.districtName, { shouldValidate: true });
+      setValue("wardCode", address.wardCode, { shouldValidate: true });
+      setValue("wardName", address.wardName, { shouldValidate: true });
+      setValue("detailAddress", address.detailAddress, {
+        shouldValidate: true,
+      });
     }
+  };
+
+  // Handle form validation errors — shows a toast so the user knows why submission didn't proceed
+  const onFormError = (validationErrors: Record<string, any>) => {
+    console.warn("Checkout validation errors:", validationErrors);
+
+    // Collect user-friendly field names for the first few errors
+    const fieldLabels: Record<string, string> = {
+      email: t("checkout.email"),
+      recipientName: t("checkout.recipientName"),
+      phone: t("checkout.phoneNumber"),
+      provinceCode: t("checkout.city"),
+      provinceName: t("checkout.city"),
+      wardCode: t("checkout.ward"),
+      wardName: t("checkout.ward"),
+      districtName: t("checkout.district"),
+      detailAddress: t("checkout.streetAddress"),
+      paymentMethod: t("checkout.paymentMethod"),
+    };
+
+    const errorKeys = Object.keys(validationErrors);
+    const firstErrorField = errorKeys[0];
+    const firstErrorMessage =
+      validationErrors[firstErrorField]?.message ||
+      t("checkout.validation.required") ||
+      "This field is required";
+
+    // Show toast with the first validation error
+    toast.error(
+      `${fieldLabels[firstErrorField] || firstErrorField}: ${firstErrorMessage}`,
+    );
+
+    // Scroll to the first errored field so the user can see it
+    setTimeout(() => {
+      const el = document.querySelector(`[name="${firstErrorField}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        (el as HTMLElement).focus?.();
+      }
+    }, 100);
   };
 
   const onSubmit = async (data: CheckoutFormData) => {
@@ -266,7 +327,7 @@ export default function CheckoutPage() {
         if (typeof window !== "undefined") {
           sessionStorage.setItem(
             `order_${orderData.orderCode}`,
-            JSON.stringify(orderData)
+            JSON.stringify(orderData),
           );
         }
 
@@ -328,7 +389,7 @@ export default function CheckoutPage() {
             </p>
           </motion.div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit, onFormError)}>
             <div className="grid grid-cols-1 lg:grid-cols-[58%_40%] gap-12">
               {/* Left Column - Checkout Form */}
               <motion.div
@@ -361,7 +422,7 @@ export default function CheckoutPage() {
                   <SectionHeader>{t("checkout.shippingAddress")}</SectionHeader>
 
                   {/* Saved Addresses */}
-                  {mockSavedAddresses.length > 0 && (
+                  {!isLoadingAddresses && savedAddresses.length > 0 && (
                     <div className="space-y-3">
                       <Label
                         className="text-sm text-gray-600 dark:text-zinc-400"
@@ -372,11 +433,13 @@ export default function CheckoutPage() {
                         {t("checkout.savedAddresses")}
                       </Label>
                       <div className="grid grid-cols-1 gap-3">
-                        {mockSavedAddresses.map((address) => (
+                        {savedAddresses.map((address) => (
                           <SavedAddressCard
                             key={address.id}
                             address={address}
-                            isSelected={selectedAddressId === address.id}
+                            isSelected={
+                              selectedAddressId === String(address.id)
+                            }
                             onSelect={handleSelectAddress}
                             defaultLabel={t("checkout.default")}
                           />
@@ -433,7 +496,7 @@ export default function CheckoutPage() {
                       labels={{
                         recipientName: t("checkout.recipientName"),
                         recipientNamePlaceholder: t(
-                          "checkout.recipientNamePlaceholder"
+                          "checkout.recipientNamePlaceholder",
                         ),
                         phone: t("checkout.phoneNumber"),
                         phonePlaceholder: t("checkout.phonePlaceholder"),
@@ -447,7 +510,7 @@ export default function CheckoutPage() {
                         wardPlaceholder: t("checkout.wardPlaceholder"),
                         detailAddress: t("checkout.streetAddress"),
                         detailAddressPlaceholder: t(
-                          "checkout.streetPlaceholder"
+                          "checkout.streetPlaceholder",
                         ),
                       }}
                     />
@@ -535,7 +598,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-
-
-

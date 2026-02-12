@@ -1,8 +1,23 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef, startTransition } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  startTransition,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { Home, Building2, MapPin, Loader2, Search, ChevronDown, Check } from "lucide-react";
+import {
+  Home,
+  Building2,
+  MapPin,
+  Loader2,
+  Search,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +36,16 @@ import { LuxuryInput } from "@/components/auth/LuxuryInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/useDebounce";
-import { locationApi, type ProvinceResponse, type WardResponse } from "@/lib/api/location";
-import type { UserAddress, AddressRequest, AddressType } from "@/lib/types/profile";
+import {
+  locationApi,
+  type ProvinceResponse,
+  type WardResponse,
+} from "@/lib/api/location";
+import type {
+  UserAddress,
+  AddressRequest,
+  AddressType,
+} from "@/lib/types/profile";
 
 interface AddressDialogProps {
   open: boolean;
@@ -31,11 +54,12 @@ interface AddressDialogProps {
   onSave: (data: AddressRequest) => Promise<void>;
 }
 
-const addressTypes: { value: AddressType; icon: typeof Home; label: string }[] = [
-  { value: "HOME", icon: Home, label: "profile.addresses.home" },
-  { value: "OFFICE", icon: Building2, label: "profile.addresses.office" },
-  { value: "OTHER", icon: MapPin, label: "profile.addresses.other" },
-];
+const addressTypes: { value: AddressType; icon: typeof Home; label: string }[] =
+  [
+    { value: "HOME", icon: Home, label: "profile.addresses.home" },
+    { value: "OFFICE", icon: Building2, label: "profile.addresses.office" },
+    { value: "OTHER", icon: MapPin, label: "profile.addresses.other" },
+  ];
 
 /**
  * Get localized name based on current language.
@@ -44,7 +68,7 @@ const addressTypes: { value: AddressType; icon: typeof Home; label: string }[] =
 function getLocalizedName(
   name: string,
   nameEn?: string,
-  language?: string
+  language?: string,
 ): string {
   if (language === "en" && nameEn && nameEn.trim()) {
     return nameEn;
@@ -77,7 +101,7 @@ function SearchableProvinceSelect({
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [filteredResults, setFilteredResults] = useState<ProvinceResponse[]>(
-    []
+    [],
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const currentLanguage = i18n.language || "vi";
@@ -89,12 +113,12 @@ function SearchableProvinceSelect({
       const displayName = getLocalizedName(
         province.name,
         province.nameEn,
-        currentLanguage
+        currentLanguage,
       );
       const displayFullName = getLocalizedName(
         province.fullName,
         province.fullNameEn,
-        currentLanguage
+        currentLanguage,
       );
       const searchText = [
         displayName,
@@ -124,7 +148,7 @@ function SearchableProvinceSelect({
 
       const matched = searchableProvinces
         .filter(({ searchText }) =>
-          queryWords.every((word) => searchText.includes(word))
+          queryWords.every((word) => searchText.includes(word)),
         )
         .slice(0, 50);
 
@@ -147,7 +171,7 @@ function SearchableProvinceSelect({
 
   const selectedProvince = useMemo(
     () => provinces.find((p) => p.code === value),
-    [provinces, value]
+    [provinces, value],
   );
 
   const handleSelect = useCallback(
@@ -157,14 +181,14 @@ function SearchableProvinceSelect({
         const displayName = getLocalizedName(
           province.name,
           province.nameEn,
-          currentLanguage
+          currentLanguage,
         );
         onValueChange(province.code, displayName);
         setIsOpen(false);
         setSearchQuery("");
       }
     },
-    [provinces, currentLanguage, onValueChange]
+    [provinces, currentLanguage, onValueChange],
   );
 
   return (
@@ -175,20 +199,20 @@ function SearchableProvinceSelect({
             type="button"
             className={cn(
               "w-full flex items-center justify-between bg-transparent border-0 border-b border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:border-[#d4b483] dark:focus:border-[#d4b483] focus:outline-none transition-all duration-300 px-0 py-3 text-left",
-              (disabled || isLoading) && "opacity-50 cursor-not-allowed"
+              (disabled || isLoading) && "opacity-50 cursor-not-allowed",
             )}
           >
             <span
               className={cn(
                 !selectedProvince && "text-gray-400 dark:text-zinc-500",
-                "text-sm font-light"
+                "text-sm font-light",
               )}
             >
               {selectedProvince
                 ? getLocalizedName(
                     selectedProvince.name,
                     selectedProvince.nameEn,
-                    currentLanguage
+                    currentLanguage,
                   )
                 : placeholder}
             </span>
@@ -199,11 +223,7 @@ function SearchableProvinceSelect({
             )}
           </button>
         </PopoverTrigger>
-        <PopoverContent
-          className="w-[300px] p-0"
-          align="start"
-          sideOffset={4}
-        >
+        <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
           <div className="p-2 border-b border-gray-200 dark:border-zinc-700">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -227,7 +247,7 @@ function SearchableProvinceSelect({
                 const displayName = getLocalizedName(
                   province.name,
                   province.nameEn,
-                  currentLanguage
+                  currentLanguage,
                 );
                 const isSelected = province.code === value;
                 return (
@@ -237,7 +257,7 @@ function SearchableProvinceSelect({
                     onClick={() => handleSelect(province.code)}
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors",
-                      isSelected && "bg-gray-50 dark:bg-zinc-800/50"
+                      isSelected && "bg-gray-50 dark:bg-zinc-800/50",
                     )}
                   >
                     <span className="truncate">{displayName}</span>
@@ -290,12 +310,12 @@ function SearchableWardSelect({
       const displayName = getLocalizedName(
         ward.name,
         ward.nameEn,
-        currentLanguage
+        currentLanguage,
       );
       const displayFullName = getLocalizedName(
         ward.fullName,
         ward.fullNameEn,
-        currentLanguage
+        currentLanguage,
       );
       const searchText = [
         displayName,
@@ -325,7 +345,7 @@ function SearchableWardSelect({
 
       const matched = searchableWards
         .filter(({ searchText }) =>
-          queryWords.every((word) => searchText.includes(word))
+          queryWords.every((word) => searchText.includes(word)),
         )
         .slice(0, 50);
 
@@ -347,7 +367,7 @@ function SearchableWardSelect({
 
   const selectedWard = useMemo(
     () => wards.find((w) => w.code === value),
-    [wards, value]
+    [wards, value],
   );
 
   const handleSelect = useCallback(
@@ -357,14 +377,14 @@ function SearchableWardSelect({
         const displayName = getLocalizedName(
           ward.name,
           ward.nameEn,
-          currentLanguage
+          currentLanguage,
         );
         onValueChange(ward.code, displayName);
         setIsOpen(false);
         setSearchQuery("");
       }
     },
-    [wards, currentLanguage, onValueChange]
+    [wards, currentLanguage, onValueChange],
   );
 
   return (
@@ -375,20 +395,20 @@ function SearchableWardSelect({
             type="button"
             className={cn(
               "w-full flex items-center justify-between bg-transparent border-0 border-b border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:border-[#d4b483] dark:focus:border-[#d4b483] focus:outline-none transition-all duration-300 px-0 py-3 text-left",
-              (disabled || isLoading) && "opacity-50 cursor-not-allowed"
+              (disabled || isLoading) && "opacity-50 cursor-not-allowed",
             )}
           >
             <span
               className={cn(
                 !selectedWard && "text-gray-400 dark:text-zinc-500",
-                "text-sm font-light"
+                "text-sm font-light",
               )}
             >
               {selectedWard
                 ? getLocalizedName(
                     selectedWard.name,
                     selectedWard.nameEn,
-                    currentLanguage
+                    currentLanguage,
                   )
                 : placeholder}
             </span>
@@ -399,11 +419,7 @@ function SearchableWardSelect({
             )}
           </button>
         </PopoverTrigger>
-        <PopoverContent
-          className="w-[300px] p-0"
-          align="start"
-          sideOffset={4}
-        >
+        <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
           <div className="p-2 border-b border-gray-200 dark:border-zinc-700">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -427,7 +443,7 @@ function SearchableWardSelect({
                 const displayName = getLocalizedName(
                   ward.name,
                   ward.nameEn,
-                  currentLanguage
+                  currentLanguage,
                 );
                 const isSelected = ward.code === value;
                 return (
@@ -437,7 +453,7 @@ function SearchableWardSelect({
                     onClick={() => handleSelect(ward.code)}
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors",
-                      isSelected && "bg-gray-50 dark:bg-zinc-800/50"
+                      isSelected && "bg-gray-50 dark:bg-zinc-800/50",
                     )}
                   >
                     <span className="truncate">{displayName}</span>
@@ -463,28 +479,28 @@ export function AddressDialog({
 }: AddressDialogProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Data for selectors
   const [provinces, setProvinces] = useState<ProvinceResponse[]>([]);
   const [wards, setWards] = useState<WardResponse[]>([]);
   const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
   const [isLoadingWards, setIsLoadingWards] = useState(false);
-  
+
   // Form state
   const [type, setType] = useState<AddressType>("HOME");
   const [label, setLabel] = useState("");
   const [recipientName, setRecipientName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [addressLine1, setAddressLine1] = useState(""); // This is detailAddress
   const [addressLine2, setAddressLine2] = useState("");
-  
+
   // Location state
   const [provinceCode, setProvinceCode] = useState("");
   const [provinceName, setProvinceName] = useState("");
   const [districtName, setDistrictName] = useState("");
   const [wardCode, setWardCode] = useState("");
   const [wardName, setWardName] = useState("");
-  
+
   const [postalCode, setPostalCode] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
@@ -509,7 +525,7 @@ export function AddressDialog({
 
   // Handle province change: load wards
   const debouncedProvinceCode = useDebounce(provinceCode, 300);
-  
+
   useEffect(() => {
     if (!debouncedProvinceCode) {
       setWards([]);
@@ -519,7 +535,9 @@ export function AddressDialog({
     const loadWards = async () => {
       setIsLoadingWards(true);
       try {
-        const result = await locationApi.getWardsByProvince(debouncedProvinceCode);
+        const result = await locationApi.getWardsByProvince(
+          debouncedProvinceCode,
+        );
         if (result.data) {
           setWards(result.data);
         }
@@ -540,10 +558,10 @@ export function AddressDialog({
       setType(address.type);
       setLabel(address.label || "");
       setRecipientName(address.recipientName);
-      setPhone(address.phone);
+      setPhoneNumber(address.phoneNumber);
       setAddressLine1(address.addressLine1);
       setAddressLine2(address.addressLine2 || "");
-      
+
       // Map address fields to local state
       // Assuming address.city holds provinceName
       // Assuming address.district holds districtName
@@ -551,19 +569,21 @@ export function AddressDialog({
       setProvinceName(address.city || "");
       setDistrictName(address.district || "");
       setWardName(address.ward || "");
-      
+
       // Try to find code if possible or leave empty if not stored
       // In a real scenario, you probably store codes too or reverse lookup
       setProvinceCode(""); // Reset initially
       setWardCode(""); // Reset initially
-      
+
       setPostalCode(address.postalCode || "");
       setIsDefault(address.isDefault);
-      
+
       // Attempt to reverse match province name to code if code is missing but name exists
       if (address.city && provinces.length > 0) {
         // Simple name match logic could happen here if needed
-        const found = provinces.find(p => p.name === address.city || p.fullName === address.city);
+        const found = provinces.find(
+          (p) => p.name === address.city || p.fullName === address.city,
+        );
         if (found) setProvinceCode(found.code);
       }
     } else if (open) {
@@ -571,16 +591,16 @@ export function AddressDialog({
       setType("HOME");
       setLabel("");
       setRecipientName("");
-      setPhone("");
+      setPhoneNumber("");
       setAddressLine1("");
       setAddressLine2("");
-      
+
       setProvinceCode("");
       setProvinceName("");
       setDistrictName("");
       setWardCode("");
       setWardName("");
-      
+
       setPostalCode("");
       setIsDefault(false);
     }
@@ -589,13 +609,13 @@ export function AddressDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    
+
     try {
       await onSave({
         type,
         label: label || undefined,
         recipientName,
-        phone,
+        phoneNumber,
         addressLine1, // detailAddress
         addressLine2: addressLine2 || undefined,
         ward: wardName || undefined,
@@ -622,7 +642,8 @@ export function AddressDialog({
     setWardName(name);
   };
 
-  const isValid = recipientName && phone && addressLine1 && districtName && provinceName;
+  const isValid =
+    recipientName && phoneNumber && addressLine1 && districtName && provinceName;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -630,8 +651,12 @@ export function AddressDialog({
         <DialogHeader>
           <DialogTitle className="text-xl font-light tracking-wide">
             {address
-              ? t("profile.addresses.editAddress", { defaultValue: "Edit Address" })
-              : t("profile.addresses.addNew", { defaultValue: "Add New Address" })}
+              ? t("profile.addresses.editAddress", {
+                  defaultValue: "Edit Address",
+                })
+              : t("profile.addresses.addNew", {
+                  defaultValue: "Add New Address",
+                })}
           </DialogTitle>
         </DialogHeader>
 
@@ -651,7 +676,7 @@ export function AddressDialog({
                     "flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border transition-all duration-200",
                     type === value
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-border hover:border-accent/50"
+                      : "border-border hover:border-accent/50",
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -667,10 +692,14 @@ export function AddressDialog({
           {type === "OTHER" && (
             <LuxuryInput
               id="label"
-              label={t("profile.addresses.label", { defaultValue: "Label (Optional)" })}
+              label={t("profile.addresses.label", {
+                defaultValue: "Label (Optional)",
+              })}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder={t("profile.addresses.labelPlaceholder", { defaultValue: "e.g., Parents' House" })}
+              placeholder={t("profile.addresses.labelPlaceholder", {
+                defaultValue: "e.g., Parents' House",
+              })}
             />
           )}
 
@@ -678,16 +707,20 @@ export function AddressDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <LuxuryInput
               id="recipientName"
-              label={t("profile.addresses.recipientName", { defaultValue: "Recipient Name" })}
+              label={t("profile.addresses.recipientName", {
+                defaultValue: "Recipient Name",
+              })}
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
               required
             />
             <LuxuryInput
               id="phone"
-              label={t("profile.addresses.phone", { defaultValue: "Phone Number" })}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              label={t("profile.addresses.phone", {
+                defaultValue: "Phone Number",
+              })}
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               type="tel"
               required
             />
@@ -695,67 +728,89 @@ export function AddressDialog({
 
           {/* Province, District, Ward */}
           <div className="space-y-4">
-               {/* Province */}
-               <div className="space-y-2">
-                   <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-                      {t("profile.addresses.city", { defaultValue: "City / Province" })}
-                   </Label>
-                   <SearchableProvinceSelect 
-                      provinces={provinces}
-                      value={provinceCode}
-                      onValueChange={handleProvinceSelect}
-                      isLoading={isLoadingProvinces}
-                      placeholder={t("checkout.cityPlaceholder") || "Select City / Province"}
-                   />
-               </div>
+            {/* Province */}
+            <div className="space-y-2">
+              <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
+                {t("profile.addresses.city", {
+                  defaultValue: "City / Province",
+                })}
+              </Label>
+              <SearchableProvinceSelect
+                provinces={provinces}
+                value={provinceCode}
+                onValueChange={handleProvinceSelect}
+                isLoading={isLoadingProvinces}
+                placeholder={
+                  t("checkout.cityPlaceholder") || "Select City / Province"
+                }
+              />
+            </div>
 
-               {/* District */}
-               <LuxuryInput
-                 id="district"
-                 label={t("profile.addresses.district", { defaultValue: "District" })}
-                 value={districtName}
-                 onChange={(e) => setDistrictName(e.target.value)}
-                 required
-                 placeholder={t("checkout.districtPlaceholder") || "Enter district"}
-               />
+            {/* District */}
+            <LuxuryInput
+              id="district"
+              label={t("profile.addresses.district", {
+                defaultValue: "District",
+              })}
+              value={districtName}
+              onChange={(e) => setDistrictName(e.target.value)}
+              required
+              placeholder={
+                t("checkout.districtPlaceholder") || "Enter district"
+              }
+            />
 
-               {/* Ward */}
-               <div className="space-y-2">
-                   <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-                      {t("profile.addresses.ward", { defaultValue: "Ward / Commune" })}
-                   </Label>
-                   <SearchableWardSelect 
-                      wards={wards}
-                      value={wardCode}
-                      onValueChange={handleWardSelect}
-                      isLoading={isLoadingWards}
-                      disabled={!provinceCode}
-                      placeholder={t("checkout.wardPlaceholder") || "Select Ward / Commune"}
-                   />
-               </div>
+            {/* Ward */}
+            <div className="space-y-2">
+              <Label className="text-xs font-light tracking-wider uppercase text-muted-foreground">
+                {t("profile.addresses.ward", {
+                  defaultValue: "Ward / Commune",
+                })}
+              </Label>
+              <SearchableWardSelect
+                wards={wards}
+                value={wardCode}
+                onValueChange={handleWardSelect}
+                isLoading={isLoadingWards}
+                disabled={!provinceCode}
+                placeholder={
+                  t("checkout.wardPlaceholder") || "Select Ward / Commune"
+                }
+              />
+            </div>
           </div>
 
           {/* Detail Address */}
           <LuxuryInput
             id="addressLine1"
-            label={t("profile.addresses.addressLine1", { defaultValue: "Street Address" })}
+            label={t("profile.addresses.addressLine1", {
+              defaultValue: "Street Address",
+            })}
             value={addressLine1}
             onChange={(e) => setAddressLine1(e.target.value)}
-            placeholder={t("profile.addresses.addressPlaceholder", { defaultValue: "Street address, P.O. box" })}
+            placeholder={t("profile.addresses.addressPlaceholder", {
+              defaultValue: "Street address, P.O. box",
+            })}
             required
           />
 
           <LuxuryInput
             id="addressLine2"
-            label={t("profile.addresses.addressLine2", { defaultValue: "Address Line 2 (Optional)" })}
+            label={t("profile.addresses.addressLine2", {
+              defaultValue: "Address Line 2 (Optional)",
+            })}
             value={addressLine2}
             onChange={(e) => setAddressLine2(e.target.value)}
-            placeholder={t("profile.addresses.addressLine2Placeholder", { defaultValue: "Apartment, suite, unit, building, floor" })}
+            placeholder={t("profile.addresses.addressLine2Placeholder", {
+              defaultValue: "Apartment, suite, unit, building, floor",
+            })}
           />
 
           <LuxuryInput
             id="postalCode"
-            label={t("profile.addresses.postalCode", { defaultValue: "Postal Code (Optional)" })}
+            label={t("profile.addresses.postalCode", {
+              defaultValue: "Postal Code (Optional)",
+            })}
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
           />
@@ -771,7 +826,9 @@ export function AddressDialog({
               htmlFor="isDefault"
               className="text-sm font-light text-foreground cursor-pointer"
             >
-              {t("profile.addresses.setAsDefault", { defaultValue: "Set as default delivery address" })}
+              {t("profile.addresses.setAsDefault", {
+                defaultValue: "Set as default delivery address",
+              })}
             </Label>
           </div>
 

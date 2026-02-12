@@ -21,7 +21,7 @@ interface FilterSidebarProps {
   filters: ProductFilters;
   onFilterChange: <K extends keyof ProductFilters>(
     key: K,
-    value: ProductFilters[K]
+    value: ProductFilters[K],
   ) => void;
   onReset: () => void;
   categories?: CategoryResponse[];
@@ -40,8 +40,6 @@ const LUXURY_COLORS = [
 ];
 
 const LUXURY_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
-
-const LUXURY_BRANDS = ["Aurea Signature", "L'Artisan", "Ethereal", "Heritage", "Avant-Garde"];
 
 function CategoryTreeItem({
   category,
@@ -75,7 +73,7 @@ function CategoryTreeItem({
           level > 0 ? "ml-4" : "",
           isSelected
             ? "bg-[#D4AF37]/10 text-[#D4AF37] font-medium"
-            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900",
         )}
       >
         <button
@@ -83,35 +81,42 @@ function CategoryTreeItem({
           onClick={() => onSelect(category.slug)}
           className="flex-1 text-left"
         >
-          <span className="text-xs uppercase tracking-widest">{category.name}</span>
+          <span className="text-xs uppercase tracking-widest">
+            {category.name}
+          </span>
         </button>
-        
-        <div className="flex items-center gap-1">
+
+        <div
+          className={cn(
+            "flex items-center gap-1",
+            !hasChildren && "pr-6", // Add padding when no expand button
+          )}
+        >
           {isSelected && <Check className="h-3 w-3 text-[#D4AF37]" />}
-          
+
           {hasChildren && (
             <button
               type="button"
               onClick={handleToggleExpand}
               className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              <ChevronDown 
+              <ChevronDown
                 className={cn(
                   "h-3 w-3 transition-transform duration-300",
-                  isExpanded ? "rotate-180" : "rotate-0"
-                )} 
+                  isExpanded ? "rotate-180" : "rotate-0",
+                )}
               />
             </button>
           )}
         </div>
       </div>
-      
+
       {/* Collapsible Children */}
       {hasChildren && (
-        <div 
+        <div
           className={cn(
             "overflow-hidden transition-all duration-300 ease-in-out",
-            isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+            isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
           )}
         >
           <div className="mt-1 space-y-1 border-l-2 border-[#D4AF37]/10 ml-3">
@@ -144,12 +149,14 @@ export function FilterSidebar({
 }: FilterSidebarProps) {
   const { t } = useTranslation();
   const [minPrice, setMinPrice] = useState<string>(
-    filters.priceRange[0]?.toString() || ""
+    filters.priceRange[0]?.toString() || "",
   );
   const [maxPrice, setMaxPrice] = useState<string>(
-    filters.priceRange[1]?.toString() || ""
+    filters.priceRange[1]?.toString() || "",
   );
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     setMinPrice(filters.priceRange[0]?.toString() || "");
@@ -188,7 +195,6 @@ export function FilterSidebar({
     filters.priceRange[1] !== null ||
     filters.size !== null ||
     filters.color !== null ||
-    filters.brand !== null ||
     filters.inStock !== null;
 
   return (
@@ -210,9 +216,16 @@ export function FilterSidebar({
         )}
       </div>
 
-      <Accordion type="multiple" defaultValue={["categories", "price", "size", "color", "brand"]} className="w-full">
+      <Accordion
+        type="multiple"
+        defaultValue={["categories", "price", "size", "color"]}
+        className="w-full"
+      >
         {/* Categories */}
-        <AccordionItem value="categories" className="border-zinc-100 dark:border-zinc-900">
+        <AccordionItem
+          value="categories"
+          className="border-zinc-100 dark:border-zinc-900"
+        >
           <AccordionTrigger className="text-[11px] font-bold uppercase tracking-[0.15em] hover:no-underline py-4">
             {t("shop.categories")}
           </AccordionTrigger>
@@ -241,7 +254,10 @@ export function FilterSidebar({
         </AccordionItem>
 
         {/* Price */}
-        <AccordionItem value="price" className="border-zinc-100 dark:border-zinc-900">
+        <AccordionItem
+          value="price"
+          className="border-zinc-100 dark:border-zinc-900"
+        >
           <AccordionTrigger className="text-[11px] font-bold uppercase tracking-[0.15em] hover:no-underline py-4">
             {t("shop.filters.priceRange", { defaultValue: "Price Range" })}
           </AccordionTrigger>
@@ -249,7 +265,9 @@ export function FilterSidebar({
             <div className="space-y-4 pt-2">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">₫</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">
+                    ₫
+                  </span>
                   <Input
                     placeholder="Min"
                     type="number"
@@ -260,7 +278,9 @@ export function FilterSidebar({
                 </div>
                 <div className="h-px w-3 bg-zinc-200" />
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">₫</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">
+                    ₫
+                  </span>
                   <Input
                     placeholder="Max"
                     type="number"
@@ -283,7 +303,10 @@ export function FilterSidebar({
         </AccordionItem>
 
         {/* Size */}
-        <AccordionItem value="size" className="border-zinc-100 dark:border-zinc-900">
+        <AccordionItem
+          value="size"
+          className="border-zinc-100 dark:border-zinc-900"
+        >
           <AccordionTrigger className="text-[11px] font-bold uppercase tracking-[0.15em] hover:no-underline py-4">
             Size
           </AccordionTrigger>
@@ -292,12 +315,14 @@ export function FilterSidebar({
               {LUXURY_SIZES.map((size) => (
                 <button
                   key={size}
-                  onClick={() => onFilterChange("size", filters.size === size ? null : size)}
+                  onClick={() =>
+                    onFilterChange("size", filters.size === size ? null : size)
+                  }
                   className={cn(
                     "h-10 text-[10px] font-medium border transition-all duration-300",
                     filters.size === size
                       ? "bg-[#D4AF37] border-[#D4AF37] text-white"
-                      : "border-zinc-100 dark:border-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-[#D4AF37]/50"
+                      : "border-zinc-100 dark:border-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-[#D4AF37]/50",
                   )}
                 >
                   {size}
@@ -308,7 +333,10 @@ export function FilterSidebar({
         </AccordionItem>
 
         {/* Color */}
-        <AccordionItem value="color" className="border-zinc-100 dark:border-zinc-900">
+        <AccordionItem
+          value="color"
+          className="border-zinc-100 dark:border-zinc-900"
+        >
           <AccordionTrigger className="text-[11px] font-bold uppercase tracking-[0.15em] hover:no-underline py-4">
             Color
           </AccordionTrigger>
@@ -317,24 +345,31 @@ export function FilterSidebar({
               {LUXURY_COLORS.map((color) => (
                 <button
                   key={color.name}
-                  onClick={() => onFilterChange("color", filters.color === color.name ? null : color.name)}
+                  onClick={() =>
+                    onFilterChange(
+                      "color",
+                      filters.color === color.name ? null : color.name,
+                    )
+                  }
                   className="group flex flex-col items-center gap-2"
                   title={color.name}
                 >
-                  <div 
+                  <div
                     className={cn(
                       "w-8 h-8 rounded-full border-2 p-0.5 transition-all duration-300",
-                      filters.color === color.name 
-                        ? "border-[#D4AF37] scale-110" 
-                        : "border-transparent group-hover:border-zinc-200"
+                      filters.color === color.name
+                        ? "border-[#D4AF37] scale-110"
+                        : "border-transparent group-hover:border-zinc-200",
                     )}
                   >
-                    <div 
-                      className="w-full h-full rounded-full shadow-inner" 
+                    <div
+                      className="w-full h-full rounded-full shadow-inner"
                       style={{ backgroundColor: color.hex }}
                     />
                   </div>
-                  <span className="text-[8px] uppercase tracking-tighter text-zinc-400">{color.name}</span>
+                  <span className="text-[8px] uppercase tracking-tighter text-zinc-400">
+                    {color.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -342,39 +377,17 @@ export function FilterSidebar({
         </AccordionItem>
 
         {/* Brand */}
-        <AccordionItem value="brand" className="border-zinc-100 dark:border-zinc-900">
-          <AccordionTrigger className="text-[11px] font-bold uppercase tracking-[0.15em] hover:no-underline py-4">
-            Designer
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-1 pt-2">
-              {LUXURY_BRANDS.map((brand) => (
-                <button
-                  key={brand}
-                  onClick={() => onFilterChange("brand", filters.brand === brand ? null : brand)}
-                  className={cn(
-                    "w-full text-left py-2 px-3 text-xs tracking-wide transition-colors rounded-md flex items-center justify-between",
-                    filters.brand === brand
-                      ? "text-[#D4AF37] bg-[#D4AF37]/5"
-                      : "text-zinc-500 hover:bg-zinc-50"
-                  )}
-                >
-                  {brand}
-                  {filters.brand === brand && <Check className="h-3 w-3" />}
-                </button>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
 
       {/* Toggles */}
       <div className="pt-4 space-y-4">
         <label className="flex items-center gap-3 cursor-pointer group">
-          <Checkbox 
+          <Checkbox
             id="in-stock"
             checked={filters.inStock === true}
-            onCheckedChange={(checked: boolean | 'indeterminate') => onFilterChange("inStock", checked === true ? true : null)}
+            onCheckedChange={(checked: boolean | "indeterminate") =>
+              onFilterChange("inStock", checked === true ? true : null)
+            }
             className="border-zinc-300 data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
           />
           <span className="text-xs uppercase tracking-[0.1em] text-zinc-600 dark:text-zinc-400 group-hover:text-[#D4AF37] transition-colors">

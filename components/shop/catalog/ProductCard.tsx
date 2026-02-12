@@ -4,14 +4,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { Eye, ShoppingBag } from 'lucide-react';
-import { ProductResponse } from '@/lib/types/product';
+import { ProductResponse, ProductListingDto } from '@/lib/types/product';
 import { Button } from '@/components/ui/button';
 import { ProductQuickViewModal } from './ProductQuickViewModal';
 
 interface ProductCardProps {
-  product: ProductResponse;
+  product: ProductResponse | ProductListingDto;
   showQuickView?: boolean;
   onQuickView?: (product: ProductResponse) => void;
+}
+
+function isProductResponse(product: ProductResponse | ProductListingDto): product is ProductResponse {
+  return 'variants' in product;
 }
 
 /**
@@ -43,25 +47,34 @@ function isNewProduct(createdAt?: string, referenceDate?: Date): boolean {
  * Check if product is sold out
  * Uses inStock field from backend if available, otherwise falls back to variant calculation
  */
-function isSoldOut(product: ProductResponse): boolean {
+function isSoldOut(product: ProductResponse | ProductListingDto): boolean {
   // Prefer backend computed inStock field
   if (product.inStock !== undefined) {
     return !product.inStock;
   }
   
-  // Fallback: calculate from variants (for backward compatibility)
-  const variants = product.variants;
-  if (!variants || variants.length === 0) return false;
-  return variants.every(
-    (variant) => variant.quantity === 0 || !variant.isActive
-  );
+  // Fallback: calculate from variants (only for ProductResponse)
+  if (isProductResponse(product)) {
+    const variants = product.variants;
+    if (!variants || variants.length === 0) return false;
+    return variants.every(
+      (variant) => variant.quantity === 0 || !variant.isActive
+    );
+  }
+
+  return false;
 }
 
 /**
  * Get product images from assets array or fallback to deprecated images
  */
-function getProductImages(product: ProductResponse): string[] {
-  // Prefer assets array (new structure)
+function getProductImages(product: ProductResponse | ProductListingDto): string[] {
+  // For ProductListingDto, we primarily rely on thumbnail
+  if (!isProductResponse(product)) {
+    return product.thumbnail ? [product.thumbnail] : [];
+  }
+
+  // Prefer assets array (new structure) for ProductResponse
   if (product.assets && product.assets.length > 0) {
     // Filter only IMAGE type and sort by position
     const images = product.assets
@@ -116,8 +129,10 @@ export function ProductCard({
   // Use useMemo to calculate date-dependent values only on client
   const isNew = useMemo(() => {
     if (!mounted) return false; // Return false during SSR to avoid mismatch
-    return isNewProduct(product.createdAt);
-  }, [product.createdAt, mounted]);
+    // Only ProductResponse has createdAt
+    const createdAt = isProductResponse(product) ? product.createdAt : undefined;
+    return isNewProduct(createdAt);
+  }, [product, mounted]);
 
   const images = getProductImages(product);
   const primaryImage = getPrimaryImage(images);
@@ -125,20 +140,33 @@ export function ProductCard({
   const soldOut = isSoldOut(product);
 
   // Calculate display price (use lowest variant price if available, otherwise basePrice)
-  const activeVariants =
-    product.variants?.filter((v) => v.isActive && v.quantity > 0) || [];
-  const displayPrice =
-    activeVariants.length > 0
-      ? Math.min(
-          ...activeVariants.map((v) => v.sellingPrice || product.minPrice)
-        )
-      : product.minPrice;
+  // Calculate display price (use lowest variant price if available, otherwise basePrice)
+  let displayPrice = product.minPrice || (product as any).price || 0;
+  
+  if (isProductResponse(product)) {
+    const activeVariants =
+      product.variants?.filter((v) => v.isActive && v.quantity > 0) || [];
+    
+    if (activeVariants.length > 0) {
+        const variantPrices = activeVariants
+            .map((v) => v.sellingPrice)
+            .filter((price): price is number => typeof price === 'number' && !isNaN(price));
+        
+        if (variantPrices.length > 0) {
+            displayPrice = Math.min(...variantPrices);
+        } else if (product.minPrice) {
+            displayPrice = product.minPrice;
+        }
+    }
+  }
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (onQuickView) {
-      onQuickView(product);
+      // Cast to ProductResponse if needed, or update onQuickView signature
+      // For now, assuming handler can handle it or we pass what we have
+      onQuickView(product as ProductResponse); 
     } else {
       // Open modal for variant selection
       setIsModalOpen(true);
@@ -180,7 +208,7 @@ export function ProductCard({
   return (
     <>
       <ProductQuickViewModal
-        product={product}
+        product={product as ProductResponse} 
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
       />
@@ -297,7 +325,17 @@ export function ProductCard({
 
             {/* Price */}
             <p className="text-lg font-bold text-foreground">
-              {formatVND(displayPrice)}
+              {typeof product.minPrice === 'number' && 
+               typeof product.maxPrice === 'number' && 
+               !isNaN(product.minPrice) &&
+               !isNaN(product.maxPrice) &&
+               product.minPrice !== product.maxPrice ? (
+                <span>
+                  From {formatVND(product.minPrice)}
+                </span>
+              ) : (
+                formatVND(displayPrice || 0)
+              )}
             </p>
           </div>
         </Link>

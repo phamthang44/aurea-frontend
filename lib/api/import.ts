@@ -43,7 +43,7 @@ export async function uploadProductCSV(
   formData.append("file", file);
 
   return fetchClient.post<ImportApiResponse<number>>(
-    "imports/internal/products",
+    "admin/imports/internal/products",
     formData,
   );
 }
@@ -67,7 +67,7 @@ export async function getImportJob(
   data?: ImportApiResponse<ImportJob>;
   error?: { message?: string; code?: string };
 }> {
-  return fetchClient.get<ImportApiResponse<ImportJob>>(`imports/${jobId}`);
+  return fetchClient.get<ImportApiResponse<ImportJob>>(`admin/imports/${jobId}`);
 }
 
 /**
@@ -81,7 +81,7 @@ export async function getImportJobStatus(
   error?: { message?: string; code?: string };
 }> {
   return fetchClient.get<ImportApiResponse<ImportJob>>(
-    `imports/${jobId}/status`,
+    `admin/imports/${jobId}/status`,
   );
 }
 
@@ -116,7 +116,7 @@ export async function listImportJobs(
   if (params?.page !== undefined) queryParams.page = params.page;
   if (params?.size) queryParams.size = params.size;
 
-  return fetchClient.get<ImportApiResponse<PagedImportJobs>>("imports", {
+  return fetchClient.get<ImportApiResponse<PagedImportJobs>>("admin/imports", {
     params: queryParams,
   });
 }
@@ -139,7 +139,7 @@ export async function cancelImportJob(
   data?: ImportApiResponse<null>;
   error?: { message?: string; code?: string };
 }> {
-  return fetchClient.delete<ImportApiResponse<null>>(`imports/${jobId}`);
+  return fetchClient.delete<ImportApiResponse<null>>(`admin/imports/${jobId}`);
 }
 
 // ============================================================================

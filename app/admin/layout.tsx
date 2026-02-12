@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -28,12 +28,16 @@ import { cn, clearCartData } from "@/lib/utils";
 import { AuthGuard } from "@/components/providers/AuthGuard";
 import { useTranslation } from "react-i18next";
 import { SettingsButton } from "@/components/ui/SettingsButton";
+import { usePermission } from "@/lib/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/constants/permissions";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
   badge?: string;
+  /** Permission required to see this menu item. If undefined, item is always visible to admin users. */
+  requiredPermission?: string;
 }
 
 const navItems: NavItem[] = [
@@ -41,36 +45,43 @@ const navItems: NavItem[] = [
     label: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+    // Dashboard visible to all admin users
   },
   {
     label: "Products",
     href: "/admin/products",
     icon: Package,
+    requiredPermission: PERMISSIONS.SHOP_PRODUCT_VIEW,
   },
   {
     label: "Categories",
     href: "/admin/categories",
     icon: LayoutGrid,
+    requiredPermission: PERMISSIONS.SHOP_CATEGORY_VIEW,
   },
   {
     label: "Inventory",
     href: "/admin/inventory",
     icon: Warehouse,
+    requiredPermission: PERMISSIONS.INVENTORY_STOCK_VIEW,
   },
   {
     label: "Import",
     href: "/admin/imports",
     icon: Upload,
+    requiredPermission: PERMISSIONS.FILE_UPLOAD,
   },
   {
     label: "Users",
     href: "/admin/users",
     icon: Users,
+    requiredPermission: PERMISSIONS.IAM_USER_VIEW,
   },
   {
     label: "Settings",
     href: "/admin/settings",
     icon: Settings,
+    // Settings visible to all admin users
   },
 ];
 
@@ -95,22 +106,33 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const user = useAppSelector((state) => state.auth.user);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { can } = usePermission();
+
+  // Filter nav items based on user permissions
+  const filteredNavItems = useMemo(() => {
+    return navItems.filter((item) => {
+      // If no permission required, always show
+      if (!item.requiredPermission) return true;
+      // Check if user has the required permission
+      return can(item.requiredPermission);
+    });
+  }, [can]);
 
   const handleLogout = async () => {
     // Clear cart state before logout to prevent data leakage to next user
     const cartStore = useCartStore.getState();
     cartStore.clearCart();
     cartStore.setAuthenticated(false);
-    
+
     // Clear all cart-related localStorage data
     clearCartData();
-    
+
     // Clear auth state
     dispatch(clearAuth());
-    
+
     // Call logout action (clears server-side cookies)
     await logoutAction();
-    
+
     // Navigate to home
     router.push("/");
     router.refresh();
@@ -133,7 +155,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <aside
           className={cn(
             "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-[#0B0F1A] border-r border-gray-200 dark:border-slate-800 transition-all duration-300 hidden lg:block shadow-[1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-none",
-            isSidebarCollapsed ? "w-[72px]" : "w-64"
+            isSidebarCollapsed ? "w-[72px]" : "w-64",
           )}
         >
           <div className="flex flex-col h-full">
@@ -143,7 +165,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 href="/"
                 className={cn(
                   "flex items-center gap-2 no-underline transition-all duration-300",
-                  isSidebarCollapsed ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"
+                  isSidebarCollapsed
+                    ? "opacity-0 invisible w-0"
+                    : "opacity-100 visible w-auto",
                 )}
               >
                 <div className="w-8 h-8 rounded-lg bg-[#D4AF37] flex items-center justify-center shadow-lg shadow-[#D4AF37]/20">
@@ -159,7 +183,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className={cn(
                   "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
-                  isSidebarCollapsed ? "mx-auto" : "ml-auto"
+                  isSidebarCollapsed ? "mx-auto" : "ml-auto",
                 )}
               >
                 {isSidebarCollapsed ? (
@@ -172,15 +196,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             {/* Navigation Section */}
             <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none overflow-x-hidden">
-              <div className={cn(
-                "px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-300",
-                isSidebarCollapsed ? "opacity-0" : "opacity-100"
-              )}>
+              <div
+                className={cn(
+                  "px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-300",
+                  isSidebarCollapsed ? "opacity-0" : "opacity-100",
+                )}
+              >
                 {t("common.menu", { defaultValue: "Menu" })}
               </div>
-              {navItems.map((item) => {
+              {filteredNavItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/admin" && pathname.startsWith(item.href));
 
                 return (
                   <Link
@@ -191,19 +219,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 no-underline group relative",
                       isActive
                         ? "bg-[#D4AF37]/10 text-[#D4AF37] dark:bg-[#D4AF37]/5"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50",
                     )}
                   >
-                    <div className={cn(
-                      "flex items-center justify-center transition-colors",
-                      isActive ? "text-[#D4AF37]" : "group-hover:text-slate-900 dark:group-hover:text-slate-200"
-                    )}>
+                    <div
+                      className={cn(
+                        "flex items-center justify-center transition-colors",
+                        isActive
+                          ? "text-[#D4AF37]"
+                          : "group-hover:text-slate-900 dark:group-hover:text-slate-200",
+                      )}
+                    >
                       <Icon className="h-5 w-5 flex-shrink-0" />
                     </div>
-                    
+
                     {!isSidebarCollapsed && (
                       <span className="flex-1 truncate">
-                        {t(getNavLabel(item.label), { defaultValue: item.label })}
+                        {t(getNavLabel(item.label), {
+                          defaultValue: item.label,
+                        })}
                       </span>
                     )}
 
@@ -214,7 +248,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     {/* Tooltip for collapsed state */}
                     {isSidebarCollapsed && (
                       <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-xl border border-slate-800 translate-x-1 group-hover:translate-x-0 z-[60]">
-                        {t(getNavLabel(item.label), { defaultValue: item.label })}
+                        {t(getNavLabel(item.label), {
+                          defaultValue: item.label,
+                        })}
                         <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-800 rotate-45" />
                       </div>
                     )}
@@ -228,13 +264,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <Link
                 href="/"
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 no-underline text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 group"
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 no-underline text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 group",
                 )}
               >
                 <div className="flex items-center justify-center">
                   <Home className="h-5 w-5 flex-shrink-0" />
                 </div>
-                {!isSidebarCollapsed && <span className="flex-1">{t("admin.layout.backToSite", { defaultValue: "Back to Site" })}</span>}
+                {!isSidebarCollapsed && (
+                  <span className="flex-1">
+                    {t("admin.layout.backToSite", {
+                      defaultValue: "Back to Site",
+                    })}
+                  </span>
+                )}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-xl border border-slate-800 translate-x-1 group-hover:translate-x-0 z-[60]">
                     {t("admin.layout.backToSite")}
@@ -246,13 +288,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={handleLogout}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 group relative"
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 group relative",
                 )}
               >
                 <div className="flex items-center justify-center">
                   <LogOut className="h-5 w-5 flex-shrink-0" />
                 </div>
-                {!isSidebarCollapsed && <span className="flex-1 text-left">{t("admin.layout.logout", { defaultValue: "Logout" })}</span>}
+                {!isSidebarCollapsed && (
+                  <span className="flex-1 text-left">
+                    {t("admin.layout.logout", { defaultValue: "Logout" })}
+                  </span>
+                )}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-4 px-3 py-2 bg-rose-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-xl translate-x-1 group-hover:translate-x-0 z-[60]">
                     {t("admin.layout.logout")}
@@ -270,7 +316,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             "fixed inset-0 z-50 lg:hidden transition-opacity duration-300",
             isMobileSidebarOpen
               ? "opacity-100"
-              : "opacity-0 pointer-events-none"
+              : "opacity-0 pointer-events-none",
           )}
         >
           {/* Backdrop */}
@@ -283,7 +329,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div
             className={cn(
               "absolute left-0 top-0 h-full w-64 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 border-r border-gray-200 dark:border-amber-900/20 transition-transform duration-300 shadow-xl dark:shadow-amber-950/30",
-              isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+              isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             )}
           >
             <div className="flex flex-col h-full overflow-hidden">
@@ -307,7 +353,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
               {/* Navigation */}
               <nav className="flex-1 px-3 py-6 space-y-1">
-                {navItems.map((item) => {
+                {filteredNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
 
@@ -320,16 +366,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 no-underline",
                         isActive
                           ? "bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20"
-                          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5",
                       )}
                     >
                       <Icon
                         className={cn(
                           "h-5 w-5 flex-shrink-0",
-                          isActive ? "text-white" : "text-slate-400 group-hover:text-slate-900"
+                          isActive
+                            ? "text-white"
+                            : "text-slate-400 group-hover:text-slate-900",
                         )}
                       />
-                      <span className="flex-1">{t(getNavLabel(item.label), { defaultValue: item.label })}</span>
+                      <span className="flex-1">
+                        {t(getNavLabel(item.label), {
+                          defaultValue: item.label,
+                        })}
+                      </span>
                       {item.badge && (
                         <span className="px-2 py-0.5 text-xs rounded-full bg-[#D4AF37] text-white">
                           {item.badge}
@@ -348,7 +400,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   onClick={() => setIsMobileSidebarOpen(false)}
                 >
                   <Home className="h-5 w-5 flex-shrink-0" />
-                  <span>{t("admin.layout.backToSite", { defaultValue: "Back to Site" })}</span>
+                  <span>
+                    {t("admin.layout.backToSite", {
+                      defaultValue: "Back to Site",
+                    })}
+                  </span>
                 </Link>
 
                 <button
@@ -359,7 +415,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="h-5 w-5 flex-shrink-0" />
-                  <span>{t("admin.layout.logout", { defaultValue: "Logout" })}</span>
+                  <span>
+                    {t("admin.layout.logout", { defaultValue: "Logout" })}
+                  </span>
                 </button>
               </div>
             </div>
@@ -371,7 +429,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           className={cn(
             "transition-all duration-300",
             "lg:pl-64",
-            isSidebarCollapsed && "lg:pl-20"
+            isSidebarCollapsed && "lg:pl-20",
           )}
         >
           {/* Top Header */}
@@ -405,7 +463,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                           "no-underline transition-colors",
                           index === array.length - 1
                             ? "text-slate-900 dark:text-slate-100 font-semibold cursor-default pointer-events-none"
-                            : "text-slate-400 hover:text-[#D4AF37] dark:text-slate-500 dark:hover:text-[#D4AF37]"
+                            : "text-slate-400 hover:text-[#D4AF37] dark:text-slate-500 dark:hover:text-[#D4AF37]",
                         )}
                       >
                         {crumb.label}
@@ -434,7 +492,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   </div>
                   <div className="h-10 w-10 rounded-full border-2 border-gray-100 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-800 transition-transform hover:scale-105">
                     {user?.avatarUrl ? (
-                      <img src={user.avatarUrl} alt={user.fullName || "User"} className="h-full w-full object-cover" />
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.fullName || "User"}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#D4AF37] to-[#B8962D] text-white font-bold text-sm">
                         {user?.fullName?.charAt(0).toUpperCase() || "A"}
@@ -453,6 +515,3 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     </AuthGuard>
   );
 }
-
-
-

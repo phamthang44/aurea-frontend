@@ -452,6 +452,28 @@ export function sortCategoriesByName(
   }));
 }
 
+/**
+ * Reorder categories by updating their positions
+ * PATCH /api/v1/categories/reorder
+ *
+ * Required Permission: CATEGORY_UPDATE
+ *
+ * @param requests Array of { id, position } objects
+ * @example
+ * ```ts
+ * const result = await categoryApi.reorderCategories([
+ *   { id: '100', position: 0 },
+ *   { id: '101', position: 1 },
+ *   { id: '102', position: 2 }
+ * ]);
+ * ```
+ */
+export async function reorderCategories(
+  requests: Array<{ id: string; position: number }>
+): Promise<ApiResult<void>> {
+  return fetchClient.patch<void>("categories/reorder", requests);
+}
+
 // Export as default object for cleaner imports
 export const categoryApi = {
   // CRUD operations
@@ -462,6 +484,7 @@ export const categoryApi = {
   updateCategory,
   updateCategoryStatus,
   deleteCategory,
+  reorderCategories,
 
   // Utility functions
   getRootCategories,

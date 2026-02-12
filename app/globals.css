@@ -222,7 +222,11 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-1 ring-ring/80 transition-shadow duration-300 ease-out;
   }
   body {
     @apply bg-background text-foreground;
@@ -667,11 +671,11 @@
 
 /* Text selection - gold accent */
 ::selection {
-  background: hsl(var(--accent) / 0.2);
+  background: hsl(45 60% 55% / 0.4); /* Increased opacity */
   color: inherit;
 }
 
 ::-moz-selection {
-  background: hsl(var(--accent) / 0.2);
+  background: hsl(45 60% 55% / 0.4); /* Increased opacity */  
   color: inherit;
 }

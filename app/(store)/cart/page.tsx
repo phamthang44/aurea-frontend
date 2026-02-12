@@ -24,6 +24,7 @@ export default function CartPage() {
     shippingFee,
     discount,
     finalTotalPrice,
+    promotion,
     promotionNote,
     promotionCode,
     loading,
@@ -49,9 +50,9 @@ export default function CartPage() {
       toast.success(
         t("cart.quantityUpdated", { defaultValue: "Quantity updated" })
       );
-    } catch (error) {
+    } catch (error: any) {
       toast.error(
-        t("cart.updateFailed", { defaultValue: "Failed to update quantity" })
+        error?.message || t("cart.updateFailed", { defaultValue: "Failed to update quantity" })
       );
     }
   };
@@ -67,9 +68,9 @@ export default function CartPage() {
           description: itemName,
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       toast.error(
-        t("cart.removeFailed", { defaultValue: "Failed to remove item" })
+        error?.message || t("cart.removeFailed", { defaultValue: "Failed to remove item" })
       );
     }
   };
@@ -78,9 +79,9 @@ export default function CartPage() {
     try {
       await removeAllCartItems();
       toast.success(t("cart.clearCartSuccess"));
-    } catch (error) {
+    } catch (error: any) {
       toast.error(
-        t("cart.clearCartFailedDescription", {
+        error?.message || t("cart.clearCartFailedDescription", {
           defaultValue: "Failed to clear cart. Please try again",
         })
       );
@@ -199,6 +200,7 @@ export default function CartPage() {
                 shippingFee={shippingFee ?? 0}
                 discount={discount ?? 0}
                 finalTotalPrice={finalTotalPrice ?? 0}
+                promotion={promotion}
                 promotionNote={promotionNote}
                 loading={loading}
                 isAuthenticated={isAuthenticated}

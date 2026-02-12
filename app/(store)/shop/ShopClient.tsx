@@ -59,7 +59,7 @@ export function ShopClient({ categories }: ShopClientProps) {
     filters.priceRange[1],
     filters.size,
     filters.color,
-    filters.brand,
+
     filters.inStock !== null,
   ].filter(Boolean).length;
 
@@ -176,15 +176,30 @@ export function ShopClient({ categories }: ShopClientProps) {
           {/* Active Tags */}
           {activeFiltersCount > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
-              {filters.categorySlug && (
-                <Badge variant="outline" className="pl-3 pr-1 py-1 rounded-full border-[#D4AF37]/30 bg-[#D4AF37]/5 text-[#D4AF37]">
-                  Category: {filters.categorySlug}
-                  <X 
-                    className="ml-2 h-3 w-3 cursor-pointer hover:text-black" 
-                    onClick={() => setFilter('categorySlug', null)} 
-                  />
-                </Badge>
-              )}
+              {filters.categorySlug && (() => {
+                // Find category name recursively
+                const findCategory = (cats: CategoryResponse[], slug: string): CategoryResponse | null => {
+                  for (const cat of cats) {
+                    if (cat.slug === slug) return cat;
+                    if (cat.children?.length) {
+                      const found = findCategory(cat.children, slug);
+                      if (found) return found;
+                    }
+                  }
+                  return null;
+                };
+                const category = findCategory(categories, filters.categorySlug);
+                
+                return (
+                  <Badge variant="outline" className="pl-3 pr-1 py-1 rounded-full border-[#D4AF37]/30 bg-[#D4AF37]/5 text-[#D4AF37]">
+                    Category: {category?.name || filters.categorySlug}
+                    <X 
+                      className="ml-2 h-3 w-3 cursor-pointer hover:text-black" 
+                      onClick={() => setFilter('categorySlug', null)} 
+                    />
+                  </Badge>
+                );
+              })()}
               {filters.color && (
                 <Badge variant="outline" className="pl-3 pr-1 py-1 rounded-full border-[#D4AF37]/30 bg-[#D4AF37]/5 text-[#D4AF37]">
                   Color: {filters.color}

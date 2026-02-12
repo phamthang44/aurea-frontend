@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { CartItemResponse } from "@/lib/api/cart";
+import { CartItemResponse, PromotionSummary } from "@/lib/api/cart";
 import { useCart } from "@/components/providers/CartProvider";
 
 /**
@@ -31,6 +31,7 @@ interface CartOrderSummaryProps {
   shippingFee: number;
   discount: number;
   finalTotalPrice: number;
+  promotion?: PromotionSummary;
   promotionNote?: string;
   loading: boolean;
   isAuthenticated: boolean;
@@ -43,6 +44,7 @@ export function CartOrderSummary({
   shippingFee,
   discount,
   finalTotalPrice,
+  promotion,
   promotionNote,
   loading,
   isAuthenticated,
@@ -59,12 +61,14 @@ export function CartOrderSummary({
     setMounted(true);
   }, []);
 
-  // Sync coupon code input with applied promotion code
+  // Sync coupon code input with applied promotion code or available promo code metadata
   useEffect(() => {
     if (promotionCode) {
       setCouponCode(promotionCode);
+    } else if (promotion?.promoCode) {
+      setCouponCode(promotion.promoCode);
     }
-  }, [promotionCode]);
+  }, [promotionCode, promotion?.promoCode]);
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim();
@@ -77,17 +81,18 @@ export function CartOrderSummary({
     try {
       const result = await applyPromotionCodeToCart(code);
       if (result) {
-        const note = result.promotionNote || "";
-        const isError = note.includes("Lỗi") || note.includes("Error") || note.includes("invalid") || note.includes("không hợp lệ");
-        
-        if (isError) {
-          toast.error(note || t("cart.invalidCouponCode", { defaultValue: "Invalid coupon code" }));
-        } else {
-          toast.success(t("cart.couponApplied", { defaultValue: "Coupon applied successfully" }));
+        const promo = result.promotion;
+        if (promo) {
+           if (promo.applied) {
+             toast.success(promo.message || t("cart.couponApplied", { defaultValue: "Coupon applied successfully" }));
+           } else {
+             toast.error(promo.message || t("cart.invalidCouponCode", { defaultValue: "Invalid coupon code" }));
+           }
         }
       }
     } catch (error: any) {
-      // Error is already handled in the cart provider, but we can show additional feedback
+      // The error thrown by CartProvider contains the backend message in error.message
+      // and the error code (e.g., 'PROMOTION_001') in error.code
       const errorMessage = error?.message || t("cart.invalidCouponCode", { defaultValue: "Invalid coupon code" });
       toast.error(errorMessage);
     } finally {
@@ -173,18 +178,36 @@ export function CartOrderSummary({
                 )}
               </span>
             </div>
-            {/* Promotion Note - Show if available (after mount to avoid hydration issues) */}
-            {mounted && promotionNote && promotionNote.trim().length > 0 && (
-              <p
-                className={`text-xs italic ${
-                  promotionNote.includes("Lỗi") || promotionNote.includes("Error") 
-                    ? "text-red-500 font-medium" 
-                    : "text-muted-foreground"
-                }`}
-                suppressHydrationWarning
-              >
-                {promotionNote.trim()}
-              </p>
+            {/* Promotion Note - Show based on promotion object or fallback to note */}
+            {mounted && (
+              <>
+                {promotion ? (
+                   promotion.message && (
+                     <p
+                       className={`text-xs italic ${
+                         !promotion.applied
+                           ? "text-red-500 font-medium"
+                           : "text-emerald-600 dark:text-emerald-400"
+                       }`}
+                     >
+                       {promotion.message} : {promotion.promoCode ? `(${promotion.promoCode})` : ""}
+                     </p>
+                   )
+                ) : (
+                  promotionNote && promotionNote.trim().length > 0 && (
+                    <p
+                      className={`text-xs italic ${
+                        promotionNote.includes("Lỗi") || promotionNote.includes("Error") 
+                          ? "text-red-500 font-medium" 
+                          : "text-muted-foreground"
+                      }`}
+                      suppressHydrationWarning
+                    >
+                      {promotionNote.trim()}
+                    </p>
+                  )
+                )}
+              </>
             )}
           </div>
 

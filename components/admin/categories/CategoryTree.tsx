@@ -196,6 +196,38 @@ export default function CategoryTree() {
     }
   }, [searchQuery, filteredCategories]);
 
+  const handleReorderRoot = async (index: number, direction: number) => {
+    try {
+      if (searchQuery) return;
+      
+      const items = [...categories];
+      const targetIndex = index + direction;
+      
+      if (targetIndex < 0 || targetIndex >= items.length) return;
+      
+      const temp = items[index];
+      items[index] = items[targetIndex];
+      items[targetIndex] = temp;
+      
+      const payload = items.map((item, idx) => ({
+        id: item.id,
+        position: idx
+      }));
+      
+      const result = await categoryApi.reorderCategories(payload);
+      
+      if (result.error) {
+        toast.error(result.error.message);
+        return;
+      }
+      
+      toast.success(t('common.success'));
+      fetchCategories();
+    } catch (error) {
+      toast.error(t('common.error'));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Search and Global Actions */}
@@ -245,7 +277,7 @@ export default function CategoryTree() {
           </div>
         ) : (
           <div className="space-y-1">
-            {filteredCategories.map((category) => (
+            {filteredCategories.map((category, index) => (
               <CategoryNode
                 key={category.id}
                 category={category}
@@ -257,6 +289,12 @@ export default function CategoryTree() {
                 onToggleStatus={handleToggleStatus}
                 expandedNodes={expandedNodes}
                 onToggleExpand={toggleExpand}
+                
+                isFirst={!searchQuery && index === 0}
+                isLast={!searchQuery && index === filteredCategories.length - 1}
+                onMoveUp={!searchQuery ? () => handleReorderRoot(index, -1) : undefined}
+                onMoveDown={!searchQuery ? () => handleReorderRoot(index, 1) : undefined}
+                onRefresh={fetchCategories}
               />
             ))}
           </div>

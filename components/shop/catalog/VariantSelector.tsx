@@ -144,40 +144,11 @@ export function VariantSelector({
         </div>
       ))}
 
-      {/* Price Display */}
-      <div className="pt-2 border-t border-border">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm text-muted-foreground">
-            {t("cart.from", { defaultValue: "Price" })}:
-          </span>
-          <span className="text-lg font-semibold text-[#D4AF37]">
-            {new Intl.NumberFormat("vi-VN", {
-              style: "decimal",
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })
-              .format(displayPrice)
-              .replace(/,/g, ".") + "₫"}
-          </span>
-        </div>
-      </div>
+      {/* Price Display - Moved to Parent Modal */}
+      {/* <div className="pt-2 border-t border-border">...</div> */}
 
-      {/* Stock Status */}
-      {currentVariant && (
-        <div className="text-sm">
-          {isAvailable ? (
-            <p className="text-green-600 dark:text-green-400">
-              {currentVariant.quantity > 10
-                ? t("cart.inStock", { defaultValue: "In Stock" })
-                : t("cart.lowStock", { stock: currentVariant.quantity })}
-            </p>
-          ) : (
-            <p className="text-destructive">
-              {t("cart.soldOut", { defaultValue: "Sold Out" })}
-            </p>
-          )}
-        </div>
-      )}
+      {/* Stock Status - Moved to Parent Modal */}
+      {/* {currentVariant && (...)} */}
 
       {/* Warning if no variant matches */}
       {!currentVariant && Object.keys(selectedAttributes).length > 0 && (

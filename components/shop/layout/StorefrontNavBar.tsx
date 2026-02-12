@@ -34,7 +34,7 @@ export function StorefrontNavBar() {
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const storefrontNavItems = [
-    { label: 'demo.nav.newArrivals', href: `/shop?category=newest` },
+    { label: 'demo.nav.newArrivals', href: `/shop` },
     { label: 'demo.nav.women', href: `/shop?category=${lang === 'vi' ? 'nu' : 'women'}` },
     { label: 'demo.nav.men', href: `/shop?category=${lang === 'vi' ? 'nam' : 'men'}` },
     { label: 'demo.nav.collections', href: `/shop?category=collections` },
@@ -157,7 +157,7 @@ export function StorefrontNavBar() {
                       className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full text-white text-[9px] sm:text-[10px] font-medium flex items-center justify-center border-2 border-white dark:border-zinc-900"
                       style={{ backgroundColor: store.theme?.primaryColor || '#D4AF37' }}
                     >
-                      {cartItemCount > 9 ? '9+' : cartItemCount}
+                      {cartItemCount}
                     </span>
                   )}
                 </Button>

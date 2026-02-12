@@ -11,10 +11,14 @@ import {
   Edit2, 
   Trash2, 
   Move,
+  ArrowUp,
+  ArrowDown,
   Eye,
   EyeOff,
   Package
 } from 'lucide-react';
+import { categoryApi } from '@/lib/api/category';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { CategoryResponse } from '@/lib/types/product';
@@ -39,6 +43,13 @@ interface CategoryNodeProps {
   onToggleStatus: (category: CategoryResponse) => void;
   expandedNodes: Set<string>;
   onToggleExpand: (id: string | Set<string>) => void;
+  
+  // Reorder props
+  isFirst?: boolean;
+  isLast?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onRefresh?: () => void;
 }
 
 export function CategoryNode({
@@ -51,8 +62,46 @@ export function CategoryNode({
   onToggleStatus,
   expandedNodes,
   onToggleExpand,
+
+  isFirst,
+  isLast,
+  onMoveUp,
+  onMoveDown,
+  onRefresh
 }: CategoryNodeProps) {
   const { t } = useTranslation();
+
+  const handleReorderChildren = async (childIndex: number, direction: number) => {
+    try {
+      if (!category.children) return;
+      
+      const items = [...category.children];
+      const targetIndex = childIndex + direction;
+      
+      if (targetIndex < 0 || targetIndex >= items.length) return;
+      
+      const temp = items[childIndex];
+      items[childIndex] = items[targetIndex];
+      items[targetIndex] = temp;
+      
+      const payload = items.map((item, idx) => ({
+        id: item.id,
+        position: idx
+      }));
+      
+      const result = await categoryApi.reorderCategories(payload);
+      
+      if (result.error) {
+        toast.error(result.error.message);
+        return;
+      }
+      
+      toast.success(t('common.success'));
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      toast.error(t('common.error'));
+    }
+  };
   const hasChildren = category.children && category.children.length > 0;
   const isLeaf = !hasChildren;
   const isExpanded = expandedNodes.has(category.id);
@@ -141,27 +190,56 @@ export function CategoryNode({
                     <MoreHorizontal className="h-4 w-4 text-slate-400" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-xl border-slate-200 dark:border-slate-800 shadow-xl p-2 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md">
-                  <DropdownMenuItem onClick={() => onAddChild(category)} className="rounded-lg gap-2 cursor-pointer focus:bg-[#D4AF37]/10 focus:text-[#D4AF37]">
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl border-slate-200 dark:border-slate-800 shadow-xl p-2 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md space-y-1">
+                  <DropdownMenuItem onClick={() => onAddChild(category)} className="rounded-xl gap-2 cursor-pointer focus:bg-[#D4AF37]/10 focus:text-[#D4AF37] transition-all duration-200 font-medium">
                     <Plus className="h-4 w-4" />
                     <span>{t("admin.categories.addChild")}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEdit(category)} className="rounded-lg gap-2 cursor-pointer">
-                    <Edit2 className="h-4 w-4" />
+                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5 my-1" />
+                  <DropdownMenuItem onClick={() => onEdit(category)} className="rounded-xl gap-2 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-all duration-200 group">
+                    <Edit2 className="h-4 w-4 text-slate-400 group-focus:text-slate-700 dark:group-focus:text-slate-200 transition-colors" />
                     <span>{t("admin.categories.edit")}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onMove(category)} className="rounded-lg gap-2 cursor-pointer">
-                    <Move className="h-4 w-4" />
+                  
+                  {/* Reorder Actions */}
+                  {(onMoveUp || onMoveDown) && (
+                     <>
+                        <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5 my-1" />
+                        <DropdownMenuItem 
+                          onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }} 
+                          disabled={isFirst}
+                          className="rounded-xl gap-2 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-all duration-200 group disabled:opacity-50"
+                        >
+                          <ArrowUp className="h-4 w-4 text-slate-400 group-focus:text-slate-700 dark:group-focus:text-slate-200 transition-colors" />
+                          <span>{t("admin.categories.moveUp")}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
+                          disabled={isLast} 
+                          className="rounded-xl gap-2 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-all duration-200 group disabled:opacity-50"
+                        >
+                          <ArrowDown className="h-4 w-4 text-slate-400 group-focus:text-slate-700 dark:group-focus:text-slate-200 transition-colors" />
+                          <span>{t("admin.categories.moveDown")}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5 my-1" />
+                     </>
+                  )}
+
+                  <DropdownMenuItem onClick={() => onMove(category)} className="rounded-xl gap-2 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-all duration-200 group">
+                    <Move className="h-4 w-4 text-slate-400 group-focus:text-slate-700 dark:group-focus:text-slate-200 transition-colors" />
                     <span>{t("admin.categories.move")}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onToggleStatus(category)} className="rounded-lg gap-2 cursor-pointer">
-                    {category.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  <DropdownMenuItem onClick={() => onToggleStatus(category)} className="rounded-xl gap-2 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-all duration-200 group">
+                    {category.isActive 
+                      ? <EyeOff className="h-4 w-4 text-slate-400 group-focus:text-slate-700 dark:group-focus:text-slate-200 transition-colors" /> 
+                      : <Eye className="h-4 w-4 text-slate-400 group-focus:text-slate-700 dark:group-focus:text-slate-200 transition-colors" />
+                    }
                     <span>{category.isActive ? t("admin.categories.deactivate") : t("admin.categories.activate")}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5" />
+                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5 my-1" />
                   <DropdownMenuItem 
                     onClick={() => onDelete(category)}
-                    className="rounded-lg gap-2 cursor-pointer text-red-500 focus:text-white focus:bg-red-500"
+                    className="rounded-xl gap-2 cursor-pointer text-red-500 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-900/20 transition-all duration-200"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>{t("admin.categories.delete")}</span>
@@ -181,7 +259,7 @@ export function CategoryNode({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            {category.children.map((child) => (
+            {category.children.map((child, index) => (
               <CategoryNode
                 key={child.id}
                 category={child}
@@ -193,6 +271,12 @@ export function CategoryNode({
                 onToggleStatus={onToggleStatus}
                 expandedNodes={expandedNodes}
                 onToggleExpand={onToggleExpand}
+                // Recursive props
+                isFirst={index === 0}
+                isLast={index === (category.children?.length || 0) - 1}
+                onMoveUp={() => handleReorderChildren(index, -1)}
+                onMoveDown={() => handleReorderChildren(index, 1)}
+                onRefresh={onRefresh}
               />
             ))}
           </motion.div>

@@ -3,15 +3,15 @@
  * All endpoints automatically handle X-Guest-ID and Authorization headers via fetch client
  */
 
-import fetchClient from "@/lib/fetch-client";
+import fetchClient, { ApiResponse } from "@/lib/fetch-client";
 
 /**
  * Cart Item Response from backend
  */
 export interface CartItemResponse {
   id: number;
-  productId: number;
-  productVariantId: number;
+  productId: string;
+  productVariantId: string;
   quantity: number;
   // Enriched fields from backend
   productName?: string;
@@ -19,7 +19,6 @@ export interface CartItemResponse {
   thumbnail?: string;
   sku?: string;
   availableStock?: number;
-  stockStatus?: string;
   subtotalPrice?: number; // Calculated subtotal for this item (price * quantity)
   createdAt?: string;
   updatedAt?: string;
@@ -29,9 +28,17 @@ export interface CartItemResponse {
  * Cart Response from backend
  * All pricing calculations are done by the backend including promotions
  */
+export interface PromotionSummary {
+  applied: boolean;
+  promoCode?: string;
+  discount?: number;
+  errorCode?: string;
+  message?: string;
+}
+
 export interface CartResponse {
   id: number;
-  userId?: number;
+  userId?: string;
   sessionId?: string;
   items: CartItemResponse[];
   // Promotion & Calculation fields (calculated by backend)
@@ -39,22 +46,11 @@ export interface CartResponse {
   shippingFee?: number; // Shipping fee (calculated by promotion service)
   discount?: number; // Discount amount (calculated by promotion service)
   finalTotalPrice?: number; // Final total: subTotal + shippingFee - discount
-  promotionNote?: string; // Promotion description/note
+  promotion?: PromotionSummary; // Promotion details
   createdAt?: string;
   updatedAt?: string;
   // Deprecated: Use finalTotalPrice instead
   totalAmount?: number;
-}
-
-/**
- * API Response wrapper
- */
-interface ApiResponse<T> {
-  data?: T;
-  error?: {
-    message?: string;
-    code?: string;
-  };
 }
 
 /**

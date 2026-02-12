@@ -41,7 +41,7 @@ async function setAuthCookies(accessToken: string, refreshToken?: string) {
  */
 export async function loginWithPasswordAction(
   identifier: string,
-  password: string
+  password: string,
 ) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -98,7 +98,7 @@ export async function loginWithGoogleAction(code: string, redirectUri: string) {
   try {
     console.log(
       "[Server Action] Google login - API URL:",
-      `${API_BASE_URL}/api/v1/auth/google-login`
+      `${API_BASE_URL}/api/v1/auth/google-login`,
     );
     console.log("[Server Action] Code present:", !!code);
     console.log("[Server Action] Redirect URI:", redirectUri);
@@ -114,7 +114,7 @@ export async function loginWithGoogleAction(code: string, redirectUri: string) {
     console.log(
       "[Server Action] Response status:",
       response.status,
-      response.statusText
+      response.statusText,
     );
 
     const data: ApiResultAuthResponse = await response.json();
@@ -168,7 +168,7 @@ export async function loginWithGoogleAction(code: string, redirectUri: string) {
 export async function finishRegistrationAction(
   email: string,
   password: string,
-  fullName: string
+  fullName: string,
 ) {
   try {
     const cookieStore = await cookies();
@@ -387,7 +387,7 @@ export async function forgotPasswordAction(email: string) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
-      }
+      },
     );
 
     const data: ApiResultVoid = await response.json();
@@ -416,7 +416,7 @@ export async function forgotPasswordAction(email: string) {
 export async function resetPasswordAction(
   email: string,
   otp: string,
-  newPassword: string
+  newPassword: string,
 ) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
@@ -476,6 +476,7 @@ export async function getRolesFromRefreshAction() {
         success: false,
         error: "No refresh token found",
         roles: [],
+        permissions: [],
       };
     }
 
@@ -485,12 +486,12 @@ export async function getRolesFromRefreshAction() {
     const result = await serverApi.post<AuthResponse>(
       "/api/v1/auth/refresh",
       {},
-      { withCredentials: true }
+      { withCredentials: true },
     );
 
     console.log(
       "[Server Action] Get Roles From Refresh - Response data:",
-      JSON.stringify(result, null, 2)
+      JSON.stringify(result, null, 2),
     );
 
     if (result.error) {
@@ -498,6 +499,7 @@ export async function getRolesFromRefreshAction() {
         success: false,
         error: result.error.message || "Failed to get roles from refresh",
         roles: [],
+        permissions: [],
       };
     }
 
@@ -507,6 +509,7 @@ export async function getRolesFromRefreshAction() {
         success: false,
         error: "Invalid response from refresh endpoint",
         roles: [],
+        permissions: [],
       };
     }
 
@@ -521,6 +524,7 @@ export async function getRolesFromRefreshAction() {
     return {
       success: true,
       roles: authData.roles || [],
+      permissions: authData.permissions || [],
     };
   } catch (error: any) {
     console.error("[Server Action] Get Roles From Refresh - Error:", error);
@@ -528,6 +532,7 @@ export async function getRolesFromRefreshAction() {
       success: false,
       error: error.message || "An error occurred while getting roles",
       roles: [],
+      permissions: [],
     };
   }
 }
@@ -579,7 +584,7 @@ export async function fetchUserProfileAction() {
         errorMessage.includes("USER PROFILE")
       ) {
         console.warn(
-          "[Server Action] User profile not found. User may need to complete profile setup."
+          "[Server Action] User profile not found. User may need to complete profile setup.",
         );
 
         // Try to create user profile using the createUserProfile endpoint
@@ -595,7 +600,7 @@ export async function fetchUserProfileAction() {
 
           if (createResult.data && !createResult.error) {
             console.log(
-              "[Server Action] User profile created successfully via createUserProfile endpoint"
+              "[Server Action] User profile created successfully via createUserProfile endpoint",
             );
             // Return the newly created profile
             const userProfile = createResult.data;
@@ -612,7 +617,7 @@ export async function fetchUserProfileAction() {
         } catch (createError: any) {
           console.warn(
             "[Server Action] Could not create user profile automatically:",
-            createError
+            createError,
           );
           // If creation fails (e.g., not admin or endpoint not available),
           // return a graceful error that allows the app to continue
@@ -627,7 +632,7 @@ export async function fetchUserProfileAction() {
               fullName: undefined,
               avatarUrl: undefined,
               userId: undefined,
-              roles: undefined
+              roles: undefined,
             },
           };
         }
@@ -646,7 +651,7 @@ export async function fetchUserProfileAction() {
     const userProfile = result.data;
     console.log(
       "[Server Action] Fetch User Profile - Raw User Data from API:",
-      JSON.stringify(userProfile, null, 2)
+      JSON.stringify(userProfile, null, 2),
     );
 
     // Map UserProfileResponse fields: fullName, avatarUrl, userId, email

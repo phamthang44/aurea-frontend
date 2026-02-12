@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, SyntheticEvent } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -37,7 +37,7 @@ function formatVND(amount: number): string {
       maximumFractionDigits: 0,
     })
       .format(amount)
-      .replace(/,/g, ".") + "â‚«"
+      .replace(/,/g, ".") + "₫"
   );
 }
 
@@ -80,7 +80,7 @@ export function ProductQuickViewModal({
         .getProductById(product.id)
         .then((result) => {
           if (result.data) {
-            const fetchedProduct: ProductResponse = (result.data as unknown as { data: ProductResponse }).data;
+            const fetchedProduct: ProductResponse = result.data;
             setFullProduct(fetchedProduct);
             
             // Auto-select first available variant
@@ -188,10 +188,59 @@ export function ProductQuickViewModal({
           setJustAdded(false);
         }, 2000);
       })
-      .catch((error) => {
+      .catch((error: any) => {
         setIsAdding(false);
-        toast.error(t("cart.addToCartFailed"), {
-          description: error.message || t("cart.addToCartFailedDescription"),
+        
+        // Robust error message extraction
+        let description = error?.message || "An unexpected error occurred";
+        if (!error?.message && typeof error === 'string') {
+          description = error;
+        } else if (!error?.message && t) {
+          description = t("cart.addToCartFailedDescription", { defaultValue: "Could not add item to cart. Please try again." });
+        }
+
+        let title = t ? t("cart.addToCartFailed", { defaultValue: "Add to Cart Failed" }) : "Add to Cart Failed";
+        
+        // Check for specific error code or message content for Out of Stock
+        // Handle "CART_004" as generic Out of Stock
+        const isOutOfStock = error?.code === 'CART_004' || 
+                             description.toLowerCase().includes("không đủ hàng") || 
+                             description.toLowerCase().includes("not enough stock") ||
+                             description.toLowerCase().includes("sold out");
+
+        if (isOutOfStock) {
+          title = t ? t("cart.soldOut", { defaultValue: "Out of Stock" }) : "Out of Stock";
+          
+          // Try to extract remaining quantity from backend message
+          const match = description.match(/Còn lại:\s*(\d+)/i) || description.match(/Remaining:\s*(\d+)/i);
+          if (match && match[1]) {
+            const remaining = parseInt(match[1]);
+            if (remaining === 0) {
+              description = t ? t("cart.itemSoldOut", { defaultValue: "This item is currently sold out" }) : "This item is currently sold out";
+              // Update local state to reflect sold out
+              if (selectedVariant) {
+                 setSelectedVariant({...selectedVariant, quantity: 0, isActive: false});
+              }
+            } else {
+              description = t ? t("cart.onlyRemaining", { 
+                count: remaining, 
+                defaultValue: `Only ${remaining} left in stock` 
+              }) : `Only ${remaining} left in stock`;
+              // Update local state to reflect accurate quantity
+              if (selectedVariant) {
+                 setSelectedVariant({...selectedVariant, quantity: remaining});
+              }
+            }
+          } else {
+             // Fallback if we can't parse the number but know it's out of stock
+             description = t ? t("cart.itemOutOfStock", { defaultValue: "Not enough stock available" }) : "Not enough stock available";
+          }
+        }
+
+        // Display the error toast
+        toast.error(title, {
+          description: description,
+          duration: 3000,
         });
       });
   };
@@ -240,7 +289,7 @@ export function ProductQuickViewModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light">
             {displayProduct.name}
@@ -258,7 +307,7 @@ export function ProductQuickViewModal({
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   unoptimized={thumbnail.startsWith("http")}
-                  onError={(e) => {
+                  onError={(e: SyntheticEvent<HTMLImageElement, Event>) => {
                     // Fallback to placeholder if image fails to load
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
@@ -283,53 +332,115 @@ export function ProductQuickViewModal({
                 </p>
               )}
 
+              {/* Price Section - Dynamic based on selection */}
+              <div className="flex flex-col gap-1 pb-4 border-b border-border">
+                {selectedVariant ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-2xl font-semibold text-[#D4AF37]">
+                      {formatVND(selectedVariant.sellingPrice)}
+                    </span>
+                    {selectedVariant.originalPrice > selectedVariant.sellingPrice && (
+                      <>
+                        <span className="text-sm text-muted-foreground line-through decoration-zinc-400/50">
+                          {formatVND(selectedVariant.originalPrice)}
+                        </span>
+                        <span className="text-xs font-medium text-red-500 bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-full">
+                          -{Math.round(((selectedVariant.originalPrice - selectedVariant.sellingPrice) / selectedVariant.originalPrice) * 100)}%
+                        </span>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-baseline gap-2">
+                     {/* Show Range if min != max, otherwise single price */}
+                     {(() => {
+                        // Calculate range from variants if available
+                        let calculatedMin = minPrice;
+                        let calculatedMax = minPrice;
+                        
+                        if (hasVariants) {
+                           const prices = variants.map(v => v.sellingPrice).filter(p => typeof p === 'number' && !isNaN(p));
+                           if (prices.length > 0) {
+                             calculatedMin = Math.min(...prices);
+                             calculatedMax = Math.max(...prices);
+                           }
+                        }
+
+                        if (calculatedMin !== calculatedMax) {
+                          return (
+                            <span className="text-2xl font-semibold text-[#D4AF37]">
+                              {formatVND(calculatedMin)} - {formatVND(calculatedMax)}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="text-2xl font-semibold text-[#D4AF37]">
+                             {formatVND(calculatedMin)}
+                          </span>
+                        );
+                     })()}
+                  </div>
+                )}
+                
+                {/* Stock Status */}
+                <div className="text-sm mt-1">
+                  {selectedVariant ? (
+                     selectedVariant.isActive && selectedVariant.quantity > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5 font-medium">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            {t("cart.inStock", { defaultValue: "In Stock" })}
+                          </span>
+                          
+                          {/* Low Stock Indicator - Matches ProductCardListing Luxury Badge Style */}
+                          {selectedVariant.quantity <= 10 && (
+                            <span className="ml-2 border border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-500 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-sm">
+                              {t("cart.onlyRemaining", { count: selectedVariant.quantity, defaultValue: `Only ${selectedVariant.quantity} Left` })}
+                            </span>
+                          )}
+                        </div>
+                     ) : (
+                        <span className="text-zinc-400 text-xs font-bold uppercase tracking-[0.3em] border border-zinc-200 px-3 py-1.5 inline-block">
+                          {t("cart.soldOut", { defaultValue: "Sold Out" })}
+                        </span>
+                     )
+                  ) : (
+                    // General stock status
+                    "inStock" in displayProduct && displayProduct.inStock === false ? (
+                      <span className="text-zinc-400 text-xs font-bold uppercase tracking-[0.3em] border border-zinc-200 px-3 py-1.5 inline-block">
+                        {t("cart.soldOut", { defaultValue: "Sold Out" })}
+                      </span>
+                    ) : (
+                       <span className="text-muted-foreground text-xs italic">
+                         {hasVariants ? "Select a variant to see availability" : "In Stock"}
+                       </span>
+                    )
+                  )}
+                </div>
+              </div>
+
               {/* Description */}
               {"description" in displayProduct && displayProduct.description && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Description</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-4">
-                    {displayProduct.description}
-                  </p>
+                <div className="pt-2">
+                  <h3 className="text-sm font-medium mb-2 uppercase tracking-wide text-foreground/80">Description</h3>
+                  <div 
+                    className="text-sm text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: displayProduct.description }} // Ensure HTML description is rendered if backend sends HTML
+                  />
                 </div>
               )}
 
               {/* Variant Selector */}
-              {hasVariants ? (
+              {hasVariants && (
                 <VariantSelector
                   variants={variants}
                   minPrice={minPrice || 0}
                   onVariantSelect={setSelectedVariant}
                   selectedVariant={selectedVariant}
                 />
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-baseline justify-between pt-2 border-t border-border">
-                    <span className="text-sm text-muted-foreground">Price:</span>
-                    <span className="text-lg font-semibold text-[#D4AF37]">
-                      {minPrice && !isNaN(minPrice) ? formatVND(minPrice) : "Price unavailable"}
-                    </span>
-                  </div>
-                  {/* Debug info in development */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <div className="text-xs text-amber-600 dark:text-amber-400">
-                      [Dev] minPrice: {minPrice}, type: {typeof minPrice}, isNaN: {String(isNaN(minPrice))}
-                    </div>
-                  )}
-                  {/* For products without variants, check stock from ProductListingDto */}
-                  {"inStock" in displayProduct && (
-                    <div className="text-sm">
-                      {displayProduct.inStock ? (
-                        <p className="text-green-600 dark:text-green-400">
-                          {t("cart.inStock", { defaultValue: "In Stock" })}
-                        </p>
-                      ) : (
-                        <p className="text-destructive">
-                          {t("cart.soldOut", { defaultValue: "Sold Out" })}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
               )}
 
               {/* Add to Cart Button */}

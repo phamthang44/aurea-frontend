@@ -139,6 +139,12 @@ export function ProductCardListing({
                 Sale
               </span>
             )}
+            {/* Low Stock Badge - Show when stock is low (<= 10) but not sold out */}
+            {isInStock && product.availableStock !== undefined && product.availableStock > 0 && product.availableStock <= 10 && (
+               <span className="bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-[8px] font-bold uppercase tracking-widest px-3 py-1 items-center justify-center flex shadow-xl backdrop-blur-sm">
+                 Only {product.availableStock} Left
+               </span>
+            )}
           </div>
 
           {/* Wishlist Button - outside Link with higher z-index */}
@@ -202,13 +208,31 @@ export function ProductCardListing({
               </h3>
             </div>
             <div className="text-right">
-              {product.onSale && product.discountPrice ? (
-                <>
-                  <p className="text-sm font-semibold text-zinc-900">{formatVND(product.discountPrice)}</p>
-                  <p className="text-[10px] text-zinc-400 line-through">{formatVND(product.price)}</p>
-                </>
+              {typeof product.minPrice === 'number' && 
+               typeof product.maxPrice === 'number' && 
+               !isNaN(product.minPrice) && 
+               !isNaN(product.maxPrice) && 
+               product.minPrice !== product.maxPrice ? (
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-serif italic pr-4">
+                  {formatVND(product.minPrice)} - {formatVND(product.maxPrice)}
+                </p>
               ) : (
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-serif italic">{formatVND(product.price)}</p>
+                product.onSale && 
+                typeof product.discountPrice === 'number' && 
+                !isNaN(product.discountPrice) ? (
+                  <>
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {formatVND(product.discountPrice)}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 line-through">
+                      {formatVND(product.minPrice || product.price || 0)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-serif italic pr-4">
+                    {formatVND(product.minPrice || product.price || 0)}
+                  </p>
+                )
               )}
             </div>
           </div>

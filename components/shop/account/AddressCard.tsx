@@ -174,7 +174,7 @@ export function AddressCard({
         <div className="flex items-center gap-2.5">
           <Phone className="w-3.5 h-3.5 text-muted-foreground/40 stroke-[1.5]" />
           <span className="text-sm text-muted-foreground/80 tracking-wide">
-            {address.phone}
+            {address.phoneNumber}
           </span>
         </div>
 

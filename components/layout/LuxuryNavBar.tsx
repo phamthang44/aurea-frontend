@@ -73,7 +73,7 @@ export function LuxuryNavBar() {
     }
   }, [pathname]);
 
-  const cartItemCount = cartItems?.length || 0;
+  const cartItemCount = cartItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   return (
     <motion.nav

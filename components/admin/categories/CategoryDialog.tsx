@@ -38,6 +38,7 @@ import { categoryApi } from '@/lib/api/category';
 import { slugify } from '@/lib/utils';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CategoryCombobox } from './CategoryCombobox';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -146,10 +147,10 @@ export function CategoryDialog({
     }
   };
 
-  const eligibleParents = React.useMemo(() => {
-    const flat = categoryApi.flattenCategories(categories);
+  // Recursive function to find all descendant IDs
+  const excludedIds = React.useMemo(() => {
+    if (!category) return [];
     
-    // Recursive function to find all descendant IDs
     const getDescendantIds = (cat: CategoryResponse): string[] => {
       let ids = [cat.id];
       if (cat.children) {
@@ -160,7 +161,11 @@ export function CategoryDialog({
       return ids;
     };
     
-    const excludedIds = category ? getDescendantIds(category) : [];
+    return getDescendantIds(category);
+  }, [category]);
+
+  const eligibleParents = React.useMemo(() => {
+    const flat = categoryApi.flattenCategories(categories);
 
     return flat.filter(c => {
        // Cannot select itself or descendants
@@ -171,7 +176,7 @@ export function CategoryDialog({
 
        return true;
     });
-  }, [categories, category]);
+  }, [categories, excludedIds]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -246,24 +251,15 @@ export function CategoryDialog({
                     <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
                       {t('admin.categories.form.parent')}
                     </FormLabel>
-                    <Select 
-                      onValueChange={(val) => field.onChange(val === 'root' ? null : val)} 
-                      value={field.value || 'root'}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="rounded-2xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 py-6 px-4">
-                          <SelectValue placeholder={t('admin.categories.form.root')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="rounded-2xl shadow-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0A0A0A]">
-                        <SelectItem value="root" className="rounded-xl">{t('admin.categories.form.root')}</SelectItem>
-                        {eligibleParents.map((p) => (
-                           <SelectItem key={p.id} value={p.id} className="rounded-xl">
-                              {Array(p.level).fill('\u00A0\u00A0').join('')} {p.name}
-                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <CategoryCombobox
+                        categories={categories}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        excludeIds={excludedIds}
+                        placeholder={t('admin.categories.form.root')}
+                      />
+                    </FormControl>
                     <FormMessage className="text-[10px] uppercase font-bold text-red-400" />
                   </FormItem>
                 )}

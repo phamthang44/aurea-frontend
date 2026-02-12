@@ -110,6 +110,7 @@ export interface ProductResponse {
   slug: string;
   description: string;
   minPrice: number;
+  maxPrice?: number; // Added for range display
   originalPrice: number;
   costPrice: number;
   categoryId: string;
@@ -585,6 +586,8 @@ export interface ProductListingDto {
   name: string;
   slug: string;
   price: number;
+  minPrice?: number; // Added for range display
+  maxPrice?: number; // Added for range display
   thumbnail: string;
   categoryName: string;
   availableStock: number;
@@ -638,7 +641,7 @@ export interface ProductResponseAdmin {
  */
 export interface ProductSearchRequest {
   keyword?: string;
-  categoryId?: number; // Backend still uses numeric ID internally
+  categoryId?: string; // Backend uses TSID (Long) but we use string to avoid precision loss
   categorySlug?: string; // Frontend-friendly slug for filtering
   minPrice?: number;
   maxPrice?: number;

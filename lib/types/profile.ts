@@ -1,12 +1,12 @@
 /**
  * User Profile and Address Types
- * 
+ *
  * IMPORTANT: All ID fields use `string` type because the backend uses TSID
  * (Time-Sorted Unique Identifier) which is a Long type in Java.
  */
 
 // Address type enum
-export type AddressType = 'HOME' | 'OFFICE' | 'OTHER';
+export type AddressType = "HOME" | "OFFICE" | "OTHER";
 
 // User profile response from API
 export interface UserProfile {
@@ -15,7 +15,7 @@ export interface UserProfile {
   fullName: string;
   phoneNumber?: string;
   avatarUrl?: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  gender?: "MALE" | "FEMALE" | "OTHER";
   birthDate?: string; // ISO 8601 YYYY-MM-DD
   createdAt: string;
   updatedAt: string;
@@ -26,7 +26,7 @@ export interface UpdateProfileRequest {
   fullName?: string;
   phoneNumber?: string;
   avatarUrl?: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  gender?: "MALE" | "FEMALE" | "OTHER";
   birthDate?: string;
 }
 
@@ -63,14 +63,12 @@ export interface AddressRequest {
   isDefault?: boolean;
 }
 
-
-
 // User voucher (from staff promotions)
 export interface UserVoucher {
   id: string;
   code: string;
   description: string;
-  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT";
   discountValue: number;
   minOrderValue?: number;
   maxDiscount?: number;
@@ -83,6 +81,10 @@ export interface UserVoucher {
 export interface ProfileApiResponse<T> {
   data?: T;
   meta?: {
+    page?: number;
+    size?: number;
+    totalElements?: number;
+    totalPages?: number;
     serverTime?: number;
     apiVersion?: string;
     traceId?: string;

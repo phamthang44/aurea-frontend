@@ -899,6 +899,8 @@
       "leaf": "Leaf",
       "branch": "Branch",
       "products": "Products",
+      "moveUp": "Move Up",
+      "moveDown": "Move Down",
       "noCategoriesFound": "No category nexuses identified.",
       "status": {
         "active": "Operational",

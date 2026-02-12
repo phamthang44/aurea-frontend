@@ -1,11 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
   isAuthenticated: boolean;
   user: {
     email?: string;
     fullName?: string;
-    roles?: string[];
+    roles?: string[]; // Keep for backward compat
+    permissions?: string[]; // NEW: Permission-based authorization
     avatarUrl?: string;
     phoneNumber?: string;
   } | null;
@@ -17,14 +18,21 @@ const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setAuthenticated: (
       state,
       action: PayloadAction<{
-        user?: { email?: string; fullName?: string; roles?: string[]; avatarUrl?: string; phoneNumber?: string };
-      }>
+        user?: {
+          email?: string;
+          fullName?: string;
+          roles?: string[];
+          permissions?: string[];
+          avatarUrl?: string;
+          phoneNumber?: string;
+        };
+      }>,
     ) => {
       state.isAuthenticated = true;
       state.user = action.payload.user || null;
@@ -35,7 +43,14 @@ const authSlice = createSlice({
     },
     setUser: (
       state,
-      action: PayloadAction<{ email?: string; fullName?: string; roles?: string[]; avatarUrl?: string; phoneNumber?: string }>
+      action: PayloadAction<{
+        email?: string;
+        fullName?: string;
+        roles?: string[];
+        permissions?: string[];
+        avatarUrl?: string;
+        phoneNumber?: string;
+      }>,
     ) => {
       state.user = action.payload;
     },
@@ -44,4 +59,3 @@ const authSlice = createSlice({
 
 export const { setAuthenticated, clearAuth, setUser } = authSlice.actions;
 export default authSlice.reducer;
-

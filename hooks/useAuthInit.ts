@@ -45,10 +45,11 @@ export function useAuthInit() {
               // console.log("[Auth Init] User profile fetched successfully:", profileResult.data);
               // console.log("[Auth Init] Roles from Auth Module:", rolesResult.roles);
 
-              // Merge profile data with roles from Auth Module
+              // Merge profile data with roles and permissions from Auth Module
               const userData = {
                 ...profileResult.data,
                 roles: rolesResult.success ? rolesResult.roles : [],
+                permissions: rolesResult.success ? rolesResult.permissions : [],
               };
 
               // Set user data in Redux with roles from Auth Module
@@ -57,7 +58,7 @@ export function useAuthInit() {
               // Profile fetch failed - this could be because profile doesn't exist yet
               console.warn(
                 "[Auth Init] Failed to fetch user profile:",
-                profileResult.error
+                profileResult.error,
               );
 
               // If we have partial data (e.g., from a graceful error handling), use it
@@ -65,23 +66,27 @@ export function useAuthInit() {
                 const userData = {
                   ...profileResult.data,
                   roles: rolesResult.success ? rolesResult.roles : [],
+                  permissions: rolesResult.success
+                    ? rolesResult.permissions
+                    : [],
                 };
                 dispatch(setAuthenticated({ user: userData }));
                 console.log(
-                  "[Auth Init] Using partial user data (profile may be created later)"
+                  "[Auth Init] Using partial user data (profile may be created later)",
                 );
               } else {
-                // If no data at all, still try to set roles if we have them
+                // If no data at all, still try to set roles and permissions if we have them
                 if (rolesResult.success && rolesResult.roles.length > 0) {
                   dispatch(
                     setAuthenticated({
                       user: {
                         roles: rolesResult.roles,
+                        permissions: rolesResult.permissions,
                       },
-                    })
+                    }),
                   );
                   console.log(
-                    "[Auth Init] Set user with roles only (profile will be created later)"
+                    "[Auth Init] Set user with roles/permissions only (profile will be created later)",
                   );
                 }
               }
@@ -105,5 +110,3 @@ export function useAuthInit() {
 
   return { isAuthenticated, user, isInitializing };
 }
-
-

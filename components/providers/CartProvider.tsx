@@ -10,6 +10,7 @@ import {
   applyPromotionCode,
   CartResponse,
   CartItemResponse,
+  PromotionSummary,
 } from "@/lib/api/cart";
 import { useAppSelector } from "@/lib/store/hooks";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,7 @@ interface CartState {
   shippingFee?: number;
   discount?: number;
   finalTotalPrice?: number;
+  promotion?: PromotionSummary;
   promotionNote?: string;
   promotionCode?: string; // Applied promotion code
   // Deprecated: Use finalTotalPrice instead, kept for backward compatibility
@@ -32,7 +34,7 @@ interface CartState {
   loading: boolean;
   error: string | null;
   cartId: number | null;
-  userId: number | null;
+  userId: string | null;
   sessionId: string | null;
 }
 
@@ -88,6 +90,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     shippingFee: 0,
     discount: 0,
     finalTotalPrice: 0,
+    promotion: undefined,
     promotionNote: undefined,
     promotionCode: undefined,
     totalAmount: 0,
@@ -124,8 +127,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (response.data) {
-        // Backend returns ApiResult<CartResponse>
-        const cart = (response.data as any).data as CartResponse;
+        // fetch-client already unwraps ApiResult<T>.data
+        const cart = response.data as CartResponse;
 
         if (!cart) {
           setState((prev) => ({
@@ -136,21 +139,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Use backend-provided values (all calculations done by backend)
-        // Normalize empty string promotionNote to undefined for consistency
-        const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
-          ? cart.promotionNote.trim() 
-          : undefined;
+          // Use backend-provided values (all calculations done by backend)
+          const promotion = cart.promotion;
+          const normalizedPromotionNote = promotion?.message?.trim() || undefined;
+          // Preserve promotionCode if applied or if metadata exists (e.g. for expired codes)
+          const appliedCode = promotion?.applied ? promotion.promoCode : (promotion?.promoCode || undefined);
         
-        setState((prev) => ({
+          setState((prev) => ({
           items: sortCartItems(cart.items || []),
           subTotal: cart.subTotal ?? 0,
           shippingFee: cart.shippingFee ?? 0,
           discount: cart.discount ?? 0,
           finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+          promotion: promotion,
           promotionNote: normalizedPromotionNote,
-          // Preserve promotionCode if promotion is still active, otherwise clear it
-          promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
+          promotionCode: appliedCode,
           totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
@@ -194,29 +197,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (response.error) {
+          const errorMessage = response.error?.message || "Failed to add item to cart";
+          // Keep the state error simple for now, or use the full message
           setState((prev) => ({
             ...prev,
             loading: false,
-            error: response.error?.message || "Failed to add item to cart",
+            error: errorMessage,
           }));
-          return null;
+          
+          // Throw error with code so UI can handle i18n
+          const error = new Error(errorMessage) as Error & { code?: string };
+          if (response.error.code) {
+             error.code = response.error.code;
+          }
+          throw error;
         }
 
         if (response.data) {
-          const cart = (response.data as any).data as CartResponse;
+          const cart = response.data as CartResponse;
           if (!cart) {
+            const errorMessage = "Invalid cart response format";
             setState((prev) => ({
               ...prev,
               loading: false,
-              error: "Invalid cart response format",
+              error: errorMessage,
             }));
-            return null;
+            throw new Error(errorMessage);
           }
 
           // Use backend-provided values (all calculations done by backend)
-          const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
-            ? cart.promotionNote.trim() 
-            : undefined;
+          const promotion = cart.promotion;
+          const normalizedPromotionNote = promotion?.message?.trim() || undefined;
+          const appliedCode = promotion?.applied ? promotion.promoCode : undefined;
           
           setState((prev) => ({
             items: sortCartItems(cart.items || []),
@@ -224,9 +236,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             shippingFee: cart.shippingFee ?? 0,
             discount: cart.discount ?? 0,
             finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+            promotion: promotion,
             promotionNote: normalizedPromotionNote,
-            // Preserve promotionCode if promotion is still active, otherwise clear it
-            promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
+            // Preserve promotionCode if applied or if metadata exists
+            promotionCode: appliedCode,
             totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
@@ -238,14 +251,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return cart;
         }
 
-        return null;
+        throw new Error("No data received from server");
       } catch (error: any) {
         setState((prev) => ({
           ...prev,
           loading: false,
           error: error.message || "Failed to add item to cart",
         }));
-        return null;
+        throw error;
       }
     },
     []
@@ -262,16 +275,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const response = await updateItem(cartItemId, quantity);
 
         if (response.error) {
+          const errorMessage = response.error?.message || "Failed to update cart item";
           setState((prev) => ({
             ...prev,
             loading: false,
-            error: response.error?.message || "Failed to update cart item",
+            error: errorMessage,
           }));
-          return;
+          const error = new Error(errorMessage) as Error & { code?: string };
+          if (response.error.code) error.code = response.error.code;
+          throw error;
         }
 
         if (response.data) {
-          const cart = (response.data as any).data as CartResponse;
+          const cart = response.data as CartResponse;
           if (!cart) {
             setState((prev) => ({
               ...prev,
@@ -282,9 +298,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Use backend-provided values (all calculations done by backend)
-          const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
-            ? cart.promotionNote.trim() 
-            : undefined;
+          const promotion = cart.promotion;
+          const normalizedPromotionNote = promotion?.message?.trim() || undefined;
+          const appliedCode = promotion?.applied ? promotion.promoCode : undefined;
           
           setState((prev) => ({
             items: sortCartItems(cart.items || []),
@@ -292,9 +308,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             shippingFee: cart.shippingFee ?? 0,
             discount: cart.discount ?? 0,
             finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+            promotion: promotion,
             promotionNote: normalizedPromotionNote,
-            // Preserve promotionCode if promotion is still active, otherwise clear it
-            promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
+            // Preserve promotionCode if applied or if metadata exists
+            promotionCode: appliedCode,
             totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
@@ -324,16 +341,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const response = await removeItem(cartItemId);
 
       if (response.error) {
+        const errorMessage = response.error?.message || "Failed to remove item from cart";
         setState((prev) => ({
           ...prev,
           loading: false,
-          error: response.error?.message || "Failed to remove item from cart",
+          error: errorMessage,
         }));
-        return;
+        const error = new Error(errorMessage) as Error & { code?: string };
+        if (response.error.code) error.code = response.error.code;
+        throw error;
       }
 
       if (response.data) {
-        const cart = (response.data as any).data as CartResponse;
+        const cart = response.data as CartResponse;
         if (!cart) {
           setState((prev) => ({
             ...prev,
@@ -344,10 +364,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Use backend-provided values (all calculations done by backend)
-        // Normalize empty string promotionNote to undefined for consistency
-        const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
-          ? cart.promotionNote.trim() 
-          : undefined;
+        const promotion = cart.promotion;
+        const normalizedPromotionNote = promotion?.message?.trim() || undefined;
+        // Preserve promotionCode if applied or if metadata exists
+        const appliedCode = promotion?.applied ? promotion.promoCode : (promotion?.promoCode || undefined);
         
         setState((prev) => ({
           items: sortCartItems(cart.items || []),
@@ -355,9 +375,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           shippingFee: cart.shippingFee ?? 0,
           discount: cart.discount ?? 0,
           finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+          promotion: promotion,
           promotionNote: normalizedPromotionNote,
-          // Preserve promotionCode if promotion is still active, otherwise clear it
-          promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
+          promotionCode: appliedCode,
           totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,  
@@ -385,17 +405,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const response = await removeAllItems();
 
       if (response.error) {
+        const errorMessage = response.error?.message || "Failed to remove all items from cart";
         setState((prev) => ({
           ...prev,
           loading: false,
-          error:
-            response.error?.message || "Failed to remove all items from cart",
+          error: errorMessage,
         }));
-        return;
+        const error = new Error(errorMessage) as Error & { code?: string };
+        if (response.error.code) error.code = response.error.code;
+        throw error;
       }
 
       if (response.data) {
-        const cart = (response.data as any).data as CartResponse;
+        const cart = response.data as CartResponse;
         if (!cart) {
           setState((prev) => ({
             ...prev,
@@ -406,10 +428,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Use backend-provided values (all calculations done by backend)
-        // Normalize empty string promotionNote to undefined for consistency
-        const normalizedPromotionNote = cart.promotionNote && cart.promotionNote.trim().length > 0 
-          ? cart.promotionNote.trim() 
-          : undefined;
+        const promotion = cart.promotion;
+        const normalizedPromotionNote = promotion?.message?.trim() || undefined;
+        // Preserve promotionCode if applied or if metadata exists
+        const appliedCode = promotion?.applied ? promotion.promoCode : (promotion?.promoCode || undefined);
         
         setState((prev) => ({
           items: sortCartItems(cart.items || []),
@@ -417,9 +439,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           shippingFee: cart.shippingFee ?? 0,
           discount: cart.discount ?? 0,
           finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+          promotion: promotion,
           promotionNote: normalizedPromotionNote,
-          // Preserve promotionCode if promotion is still active, otherwise clear it
-          promotionCode: normalizedPromotionNote ? prev.promotionCode : undefined,
+          promotionCode: appliedCode,
           totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
           loading: false,
           error: null,
@@ -448,16 +470,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const response = await applyPromotionCode(code);
 
         if (response.error) {
+          const errorMessage = response.error?.message || "Failed to apply promotion code";
           setState((prev) => ({
             ...prev,
             loading: false,
-            error: response.error?.message || "Failed to apply promotion code",
+            error: errorMessage,
           }));
-          return null;
+          
+          const error = new Error(errorMessage) as Error & { code?: string };
+          if (response.error.code) {
+             error.code = response.error.code;
+          }
+          throw error;
         }
 
         if (response.data) {
-          const cart = (response.data as any).data as CartResponse;
+          const cart = response.data as CartResponse;
           if (!cart) {
             setState((prev) => ({
               ...prev,
@@ -468,11 +496,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Use backend-provided values (all calculations done by backend)
-          // Normalize empty string promotionNote to undefined for consistency
-          const normalizedPromotionNote =
-            cart.promotionNote && cart.promotionNote.trim().length > 0
-              ? cart.promotionNote.trim()
-              : undefined;
+          const promotion = cart.promotion;
+          const normalizedPromotionNote = promotion?.message?.trim() || undefined;
+          const appliedCode = promotion?.promoCode || undefined;
 
           setState({
             items: sortCartItems(cart.items || []),
@@ -480,8 +506,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             shippingFee: cart.shippingFee ?? 0,
             discount: cart.discount ?? 0,
             finalTotalPrice: cart.finalTotalPrice ?? cart.totalAmount ?? 0,
+            promotion: promotion,
             promotionNote: normalizedPromotionNote,
-            promotionCode: code.trim(), // Store the applied promotion code
+            promotionCode: appliedCode, // Only set if applied successfully
             totalAmount: cart.finalTotalPrice ?? cart.totalAmount ?? 0, // For backward compatibility
             loading: false,
             error: null,
@@ -499,7 +526,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           loading: false,
           error: error.message || "Failed to apply promotion code",
         }));
-        return null;
+        throw error;
       }
     },
     []
@@ -523,6 +550,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       shippingFee: 0,
       discount: 0,
       finalTotalPrice: 0,
+      promotion: undefined,
       promotionNote: undefined,
       promotionCode: undefined,
       totalAmount: 0,

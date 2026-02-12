@@ -20,7 +20,7 @@ export interface ProductFilters {
   sort: ProductSearchRequest["sort"];
   size: string | null;
   color: string | null;
-  brand: string | null;
+
   inStock: boolean | null;
 }
 
@@ -64,7 +64,7 @@ const DEFAULT_FILTERS: ProductFilters = {
   sort: "newest",
   size: null,
   color: null,
-  brand: null,
+
   inStock: null,
 };
 
@@ -115,7 +115,7 @@ export function useProductStorefront(): UseProductStorefrontReturn {
       sort: (searchParams.get("sort") as ProductSearchRequest["sort"]) || DEFAULT_FILTERS.sort,
       size: searchParams.get("size") || null,
       color: searchParams.get("color") || null,
-      brand: searchParams.get("brand") || null,
+
       inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
     };
   });
@@ -146,7 +146,7 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     if (filters.priceRange[1] !== null) params.maxPrice = filters.priceRange[1]!;
     if (filters.size) params.sizeFilter = filters.size;
     if (filters.color) params.color = filters.color;
-    if (filters.brand) params.brand = filters.brand;
+
     if (filters.inStock !== null) params.inStock = filters.inStock;
 
     return params;
@@ -195,7 +195,7 @@ export function useProductStorefront(): UseProductStorefrontReturn {
     if (filters.sort && filters.sort !== DEFAULT_FILTERS.sort) params.set("sort", filters.sort);
     if (filters.size) params.set("size", filters.size);
     if (filters.color) params.set("color", filters.color);
-    if (filters.brand) params.set("brand", filters.brand);
+
     if (filters.inStock !== null) params.set("inStock", filters.inStock.toString());
 
     if (pagination.page > 1) params.set("page", pagination.page.toString());

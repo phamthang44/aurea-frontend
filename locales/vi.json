@@ -892,6 +892,8 @@
       "leaf": "Lá",
       "branch": "Nhánh",
       "products": "Sản phẩm",
+      "moveUp": "Di chuyển lên",
+      "moveDown": "Di chuyển xuống",
       "noCategoriesFound": "Không tìm thấy cấu trúc danh mục nào.",
       "status": {
         "active": "Đang hoạt động",
